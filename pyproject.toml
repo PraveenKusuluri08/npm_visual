@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "npm-visual"
+version = "0.1.0"
+description = ""
+authors = ["Nicholas Stafford <ngstafford1@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "3.9.6"
+numpy = "^2.1.1"
+networkx = "^3.3"
+pandas = "^2.2.2"
+Flask = "^3.0.3"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
