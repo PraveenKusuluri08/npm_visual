@@ -27,5 +27,10 @@ pipx install poetry
 pipx upgrade poetry
 ~~~
 
+Initialize pre-existing project
+cd to this directory
+~~~
+poetry init
+~~~
 # ToDo
 Add additional notes here. We should use Github tasks. 
