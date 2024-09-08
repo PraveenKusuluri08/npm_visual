@@ -9,15 +9,16 @@ Clone the repo to your local machine
 ~~~
 git clone git@github.com:PraveenKusuluri08/npm_visual.git
 ~~~
-Install Python 3.6.9
+## Install Python 
 First install pyenv on your system. Follow instructions here. Be sure to update the path and install all packages pyenv depends on.
 https://github.com/pyenv/pyenv
 
-Install Python 3.6.9
+Install Python 3.12.5
 ~~~
-pyenv install 3.6.9
+pyenv install 3.12.5
 ~~~
 
+## Install pipx
 Install pipx via instructions here
 https://pipx.pypa.io/stable/installation/
 be sure to update path info
@@ -26,12 +27,13 @@ be sure to update path info
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc && source ~/.bashrc
 ~~~
 
-I had to install python3.8-venv on my machine to install poetry
+I had to install python3.8-venv on my machine to install poetry (this was before installing 3.12.5, maybe it will be different for you)
 ~~~
 pip install pipx
 sudo apt install python3.8-venv
 ~~~
 
+## Install Poetry
 Install poetry. Know that you may need to use the --force option
 ~~~
 pipx install poetry
@@ -45,25 +47,17 @@ poetry --version
 My version is 1.8.3 installed using Python 3.8.10 
 Poetry requires a python version ^=3.8 to install. but the Python version can be different. 
 
-## Setup Environment
-Initialize pre-existing project
-cd to this directory
+# Using Poetry
+Once you got Poetry installed, navigate to this directory and run 
 ~~~
-poetry init
+poetry install
 ~~~
-
-(Optional) In your global config, set virtual environments to be stored locally in project.
-~~~
-poetry config virtualenvs.in-project true
-~~~
-
-
 
 
 # ToDo
 Add additional notes here. We should use Github tasks.
 
 # Warnings
-We should consider carefully if we want to commit poetry.toml to git. In the future, it may have sensitive user-specific information. 
+We should consider carefully if we want to commit poetry.toml to git. In the future, later, it may have sensitive user-specific information. 
 
 
