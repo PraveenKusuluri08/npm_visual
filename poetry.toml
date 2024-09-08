@@ -1,2 +1,8 @@
 readme = "README.md"
-POETRY_VIRTUALENVS_IN_PROJECT
+
+[virtualenvs]
+in-project = true
+create = true
+
+[virtualenvs.options]
+always-copy = true
