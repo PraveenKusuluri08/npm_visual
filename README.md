@@ -53,6 +53,10 @@ Once you got Poetry installed, navigate to this directory and run
 poetry install
 ~~~
 
+# Running Development Server
+~~~
+poetry run flask run
+~~~
 
 # ToDo
 Add additional notes here. We should use Github tasks.
