@@ -60,6 +60,8 @@ poetry run flask run
 
 # ToDo
 Add additional notes here. We should use Github tasks.
+Change React app configuration to compile to a static folder in Flask
+Change React dev server to connect to flask proxy. 
 
 # Warnings
 We should consider carefully if we want to commit poetry.toml to git. In the future, later, it may have sensitive user-specific information. 
