@@ -52,7 +52,11 @@ Once you got Poetry installed, navigate to this directory and run
 ~~~
 poetry install
 ~~~
-
+If poetry ever freezes during installs. you might be seeing the following [https://github.com/python-poetry/poetry/pull/6471](error). If this happens, run:
+~~~
+export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+poetry install
+~~~
 # Running Development Server
 ~~~
 poetry run flask run
