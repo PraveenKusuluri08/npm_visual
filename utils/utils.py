@@ -3,7 +3,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 def create_graph():
-    G = nx.Graph()
+    G = nx.MultiDiGraph()
 
     data = get_data()
 
@@ -28,9 +28,7 @@ def create_graph():
     
 def get_data():
     package_names = ["express"]
-
     data = []
-
     for package_name in package_names:
         url = f"https://registry.npmjs.org/{package_name}"
         response = requests.get(url)
@@ -53,5 +51,22 @@ def get_data():
 
     return data
 
+def fetch_dependencies(package_name, version='latest'):
+    url = f'https://registry.npmjs.org/{package_name}/{version}'
+    response = requests.get(url)
+    package_data = response.json()
 
-create_graph()
+    dependencies = package_data.get('dependencies', {})
+    return dependencies
+
+def build_graph(package_name, version='latest'):
+    G = nx.DiGraph()
+    G.add_node(package_name)
+
+    dependencies = fetch_dependencies(package_name, version)
+
+    for dep, _ in dependencies.items():
+        G.add_node(dep)
+        G.add_edge(package_name, dep)
+
+    return G
