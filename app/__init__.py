@@ -1,6 +1,6 @@
 from flask import Flask,jsonify
 import os
-from utils import utils
+from app.utils import utils
 import networkx as nx
 
 def create_app():
@@ -21,11 +21,6 @@ def create_app():
 
         graph_data = nx.node_link_data(graph)
         return jsonify(graph_data)
-
-    # PORT = os.getenv("HTTP_PORT") or 8080
-
-    # if __name__ == "__main__":
-        # app.run(host="0.0.0.0", port=PORT, debug=True)
 
     # Configure our app here. if we want to use blueprints later, we can do that. 
     return app
