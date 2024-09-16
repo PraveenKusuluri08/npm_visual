@@ -3,7 +3,7 @@ import * as d3 from "d3";
 import { useEffect } from "react";
 
 const GraphDiagram = () => {
-  const url = "http://192.168.1.45:8080/api/dependencies/express";
+  const url = "/api/dependencies/express";
   const graphData = useFetchGraphData(url);
   console.log(graphData);
 
