@@ -1,0 +1,27 @@
+{ 
+  "venvPath": ".", 
+  "venv": ".venv", 
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+  ],
+
+  "defineConstant": {
+    "DEBUG": true
+  },
+
+  "reportMissingImports": "error",
+  "reportMissingTypeStubs": false,
+
+  "pythonVersion": "3.12.5",
+  "pythonPlatform": "Linux",
+
+  "executionEnvironments": [
+    {
+      "root": "app",
+      "pythonVersion": "3.12.5",
+      "pythonPlatform": "Linux",
+      "reportMissingImports": "warning"
+    }
+  ]
+}

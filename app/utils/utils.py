@@ -25,7 +25,6 @@ def create_graph():
 
     plt.savefig("graph.png")
     
-    
 def get_data():
     package_names = ["express"]
     data = []
