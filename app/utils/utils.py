@@ -2,9 +2,12 @@ import requests
 import networkx as nx
 import matplotlib.pyplot as plt
 
+from .package import Package
+
+
 def create_graph():
     G = nx.MultiDiGraph()
-
+    
     data = get_data()
 
     for package in data:
@@ -38,13 +41,13 @@ def get_data():
             
             dependencies = r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", None)
             
-            package_info = {
-                "_id": r_dict.get("_id"),
-                "description": r_dict.get("description"),
-                "latest_version": latest_version,
-                "dependencies": dependencies
-            }
-            data.append(package_info)
+            p = Package(
+                r_dict.get("_id"),
+                r_dict.get("description"),
+                latest_version,
+                dependencies
+            )
+            data.append(p)
         else:
             print(f"Failed to fetch data for {package_name}, status code: {response.status_code}")
 
