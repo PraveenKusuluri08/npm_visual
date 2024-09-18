@@ -40,5 +40,6 @@ select = [
     # isort
     "I",
 ]
+
 [tool.ruff.format]
 quote-style = "double"
