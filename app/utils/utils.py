@@ -8,7 +8,7 @@ from .package import Package
 def create_graph():
     G = nx.MultiDiGraph()
 
-    data = get_data()
+    data = scrape_data()
 
     for package in data:
         main_package = package["_id"]
@@ -31,7 +31,7 @@ def create_graph():
     plt.savefig("graph.png")
 
 
-def get_data():
+def scrape_data():
     package_names = ["express"]
     data = []
     for package_name in package_names:

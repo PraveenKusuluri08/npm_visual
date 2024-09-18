@@ -13,12 +13,9 @@ def create_app():
 
     @app.route("/npm")
     def npm():
-        return jsonify(utils.utils.get_data())
+        return jsonify(utils.utils.scrape_data())
 
-    @app.route(
-        "/dependencies/<package_name>", methods=["GET"]
-    )
-    # print('api route called')
+    @app.route("/dependencies/<package_name>", methods=["GET"])
     def get_package_dependencies(package_name):
         graph = utils.build_graph(package_name)
 
