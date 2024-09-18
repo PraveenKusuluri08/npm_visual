@@ -18,8 +18,8 @@ const GraphDiagram = () => {
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
-    const width = 800;
-    const height = 600;
+    const width = 1500;
+    const height = 1500;
     if (graphData !== undefined) {
       const svg = d3
         .select("#d3-container")
@@ -28,8 +28,8 @@ const GraphDiagram = () => {
         .attr("height", height)
         .attr("transform", "translate(100px,200px)");
 
-        // this creates a simulation with the array of nodes
-        
+      // this creates a simulation with the array of nodes
+
       const simulation = d3
         .forceSimulation<GraphNode>(graphData.nodes)
         .force(
