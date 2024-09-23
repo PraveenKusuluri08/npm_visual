@@ -4,36 +4,51 @@ import { useEffect, useState } from "react";
 import GraphData from "../utils/models"
 import axios from "axios"
 import { getCache } from "../utils/cache";
+import { useResizeDetector } from 'react-resize-detector';
+import './GraphDiagram.css';
 
-const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
+const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
+  const { width, height, ref } = useResizeDetector();
+
+  let widthToUse = 1000;
+  let heightToUse = 1000;
+  useEffect(() => {
+    widthToUse = width ? width : 1000;
+    heightToUse = height ? height : 1000;
+    // const svg = d3.select("#d3-container")
+    // svg.append()attr("width") = widthToUse;
+  }, [width])
   // const url = `/api/dependencies/${packageName}`;
   // const graphData = useFetchGraphData(url);
   // console.log(graphData);
 
   const [graphData, setPackageData] = useState<GraphData>()
   useEffect(() => {
-    console.log('setting axios call')
-    const url = `/api/dependencies/${packageName}`;
-    // Prevent many calls to the same API.
-    const apiCache = getCache();
-    if (!apiCache.doesCallExist(url)) {
-      apiCache.addCall(url)
-      axios.get(url)
-        .then((data) => {
-          console.log('setting package data')
-          setPackageData(data.data)
-        })
-        .catch((error) => {
-          console.log("Error fetching data", error)
-        })
-        .finally(() => {
-          apiCache.removeCall(url);
-        })
-    }
-    else {
-      console.log(`did not sent request to ${url}, request already in progress`);
+    if (packageName != "") {
+      console.log('setting axios call')
+      const url = `/api/dependencies/${packageName}`;
+      // Prevent many calls to the same API.
+      const apiCache = getCache();
+      if (!apiCache.doesCallExist(url)) {
+        apiCache.addCall(url)
+        axios.get(url)
+          .then((data) => {
+            console.log('setting package data')
+            setPackageData(data.data)
+          })
+          .catch((error) => {
+            console.log("Error fetching data", error)
+          })
+          .finally(() => {
+            apiCache.removeCall(url);
+          })
+      }
+      else {
+        console.log(`did not sent request to ${url}, request already in progress`);
+      }
     }
   }, [packageName])
+
 
   // useEffect(() => {
   //   alert(" i can change " + packageName)
@@ -51,20 +66,30 @@ const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
   }
 
   useEffect(() => {
+
+  });
+
+  useEffect(() => {
+
     console.log('second useEffect called')
     console.log(graphData)
-    const width = 1500;
-    const height = 1500;
+    const heightToUse = height ? height : 1000;
+    const widthToUse = width ? width : 1000;
+
+    // maybe check if graphdata already exists? break up this UseEffect into pieces
     if (graphData !== undefined) {
       const svg = d3
         .select("#d3-container")
-        .append("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("transform", "translate(100px,200px)");
+        .append("svg") // todo: we should not be creating a new one. Just change the existing one
+        .attr('height', '100%')
+        .attr('width', '100%')
+        .attr('viewBox', '0 0 ' + widthToUse + ' ' + heightToUse)
+        .attr('preserveAspectRatio', 'none');
+      // .attr("width", newWidth)
+      // .attr("height", height)
+      // .attr("transform", "translate(100px,200px)");
 
       // this creates a simulation with the array of nodes
-
       const simulation = d3
         .forceSimulation<GraphNode>(graphData.nodes)
         .force(
@@ -73,8 +98,8 @@ const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
             .forceLink<GraphNode, GraphLink>(graphData.links)
             .id((d: GraphNode) => d.id)
         )
-        .force("charge", d3.forceManyBody().strength(-400))
-        .force("center", d3.forceCenter(width / 2, height / 2));
+        .force("charge", d3.forceManyBody().strength(-100))
+        .force("center", d3.forceCenter(widthToUse / 2.2, heightToUse / 2));
 
       const link = svg
         .append("g")
@@ -151,9 +176,29 @@ const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
       }
     }
   }, [graphData]);
+
+  // const handleForceChange = (input: React.ChangeEventHandler) => {
+  //   const x = input.call
+  //   const force = input.value;
+  //   alert(force)
+  // }
+  // const [force, setForce] = useState(100); // Declare a state variable...
+
   return (
-    <div>
-      Graph of {packageName}
+    <div ref={ref} className="graph-diagram">
+      <div>Width: {width}px</div>
+      <div>Height: {height}px</div>
+      {/* <label> */}
+      {/*   Package to Graph: */}
+      {/*   <input */}
+      {/*     value={force} */}
+      {/*     onChange={handleForceChange} // ... and update the state variable on any edits! */}
+      {/*     name="force" */}
+      {/*     type="number" */}
+      {/*     defaultValue="100" */}
+      {/*   /> */}
+      {/* </label> */}
+      <h1>{packageName}</h1>
       <div id="d3-container"></div>
     </div>
   );

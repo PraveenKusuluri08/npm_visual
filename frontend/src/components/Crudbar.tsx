@@ -1,6 +1,6 @@
 import axios from "axios";
 // import useFetchGraphData from "../hooks/useFetch";
-
+import './Crudbar.css';
 
 function Crudbar({ onSelect }: { onSelect: any }) {
 
@@ -21,20 +21,27 @@ function Crudbar({ onSelect }: { onSelect: any }) {
     // axios.get(url)
   }
 
-  return <div><h2>Temp component to call backend routes</h2>
-    <button onClick={() => scrapeAll()}>Load and Save Everything</button>
+
+  return <nav>
+    <h2>NPM Visual</h2>
+    <button className="button-48" onClick={() => scrapeAll()}>
+      <span className="text">Scrape Everything</span>
+    </button>
     <form onSubmit={handleSubmit}>
       <label>
         Package to Graph:
         <input
           name="packageName"
           type="text"
-          defaultValue="Express"
+          defaultValue="react"
         />
       </label>
-      <button type="submit" >Search</button>
+
+      <button className="button-48" type="submit">
+        <span className="text">Search</span>
+      </button>
     </form>
-  </div>
+  </nav>
 }
 
 export default Crudbar;

@@ -5,7 +5,7 @@ import { useState } from 'react'
 
 function App() {
 
-  const [packageName, setPackageName] = useState("express")
+  const [packageName, setPackageName] = useState("")
 
   const onPackageChanged = (packageName: string) => {
     setPackageName(packageName)
@@ -13,9 +13,10 @@ function App() {
 
   return (
     <>
-      <p>{packageName}</p>
       <Crudbar onSelect={onPackageChanged} />
-      <GraphDiagram packageName={packageName} />
+      <div className="page">
+        <GraphDiagram packageName={packageName} />
+      </div>
     </>
   )
 }
