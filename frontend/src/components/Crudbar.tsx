@@ -1,7 +1,8 @@
 import axios from "axios";
+// import useFetchGraphData from "../hooks/useFetch";
 
 
-function Crudbar() {
+function Crudbar({ onSelect }: { onSelect: any }) {
 
   function scrapeAll() {
     const url = "/api/scrapeAll";
@@ -13,10 +14,11 @@ function Crudbar() {
     const form = e.currentTarget;
     const input = form.elements.namedItem('packageName') as HTMLInputElement;
     const packageName = input.value;
-    alert("you want to search " + packageName)
-    const url = `/api/dependencies/${packageName}`;
-
-    axios.get(url)
+    onSelect(packageName)
+    // alert("you want to search " + packageName)
+    // const url = `/api/dependencies/${packageName}`;
+    // useFetchGraphData(url);
+    // axios.get(url)
   }
 
   return <div><h2>Temp component to call backend routes</h2>

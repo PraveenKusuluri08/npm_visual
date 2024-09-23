@@ -29,10 +29,11 @@ def create_app():
 
     @app.route("/dependencies/<package_name>", methods=["GET"])
     def get_package_dependencies(package_name):
-        # data: List[Package] = utils.scrape_all_data()
-        graph = utils.build_graph(package_name)
-        # return {}
+        packages = [package_name]
+        data: List[Package] = utils.scrape_data(packages)
+        graph = utils.build_big_graph(data)
         # graph = utils.build_graph(package_name)
+        # return {}
 
         graph_data = nx.node_link_data(graph)
         return jsonify(graph_data)

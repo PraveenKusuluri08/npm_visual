@@ -78,7 +78,13 @@ def create_graph():
     plt.savefig("graph.png")
 
 
-def scrape_all_data(max=100) -> Dict[str, Package]:
+def scrape_all_data(max=1000) -> Dict[str, Package]:
+    print()
+    to_search = get_popular_packages()
+    return scrape_data(to_search, max)
+
+
+def scrape_data(to_search: List[str], max=100) -> Dict[str, Package]:
     # seed = "npm"
     # data: Dict[str, Package] = {}
     # s = scrape_package(seed)
@@ -89,7 +95,6 @@ def scrape_all_data(max=100) -> Dict[str, Package]:
     # to_search: List[str] = list(s.dependencies.keys())
     data = {}
 
-    to_search = get_popular_packages()
     # print()
     # print(to_search)
 
@@ -175,12 +180,12 @@ def build_graph(package_name, version="latest"):
 def build_big_graph(packages: Dict[str, Package]):
     G = nx.DiGraph()
     for p in packages.values():
-        print(p)
+        # print(p)
         G.add_node(p.id)
 
-    # for p in packages:
-    #     for e in p.dependencies:
-    #         G.add_edge(e, p.id)
+    for p in packages.values():
+        for e in p.dependencies:
+            G.add_edge(e, p.id)
     return G
 
 

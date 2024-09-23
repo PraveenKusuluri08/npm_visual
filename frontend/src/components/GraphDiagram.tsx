@@ -1,12 +1,32 @@
-import useFetchGraphData from "../hooks/useFetch";
+// import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import GraphData from "../utils/models"
+import axios from "axios"
 
-const GraphDiagram = () => {
-  const url = "/api/dependencies/express";
-  const graphData = useFetchGraphData(url);
-  console.log(graphData);
+const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
+  // const url = `/api/dependencies/${packageName}`;
+  // const graphData = useFetchGraphData(url);
+  // console.log(graphData);
 
+  const [graphData, setPackageData] = useState<GraphData>()
+  useEffect(() => {
+    console.log('setting axios call')
+    const url = `/api/dependencies/${packageName}`;
+    axios.get(url).then((data) => {
+      console.log('setting package data')
+      setPackageData(data.data)
+    }).catch((error) => {
+      console.log("Error fetching data", error)
+    });
+  }, [packageName])
+
+  // useEffect(() => {
+  //   alert(" i can change " + packageName)
+  //   const url = `/api/dependencies/${packageName}`;
+  //   useFetchGraphData(url);
+  // }, [packageName])
+  //
   interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
   }
@@ -16,8 +36,9 @@ const GraphDiagram = () => {
     target: string | GraphNode;
   }
 
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
+    console.log('second useEffect called')
+    console.log(graphData)
     const width = 1500;
     const height = 1500;
     if (graphData !== undefined) {
@@ -118,7 +139,7 @@ const GraphDiagram = () => {
   }, [graphData]);
   return (
     <div>
-      Graph
+      Graph of {packageName}
       <div id="d3-container"></div>
     </div>
   );
