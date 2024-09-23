@@ -85,17 +85,7 @@ def scrape_all_data(max=1000) -> Dict[str, Package]:
 
 
 def scrape_data(to_search: List[str], max=100) -> Dict[str, Package]:
-    # seed = "npm"
-    # data: Dict[str, Package] = {}
-    # s = scrape_package(seed)
-    # print(s)
-    # if s is None:
-    #     return []
-    # data[s.id] = s
-    # to_search: List[str] = list(s.dependencies.keys())
     data = {}
-
-    # print()
     # print(to_search)
 
     count = 1

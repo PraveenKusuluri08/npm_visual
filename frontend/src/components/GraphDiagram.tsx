@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import { useEffect, useState } from "react";
 import GraphData from "../utils/models"
 import axios from "axios"
+import { getCache } from "../utils/cache";
 
 const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
   // const url = `/api/dependencies/${packageName}`;
@@ -13,12 +14,25 @@ const GraphDiagram = ({ packageName = "express" }: { packageName: string }) => {
   useEffect(() => {
     console.log('setting axios call')
     const url = `/api/dependencies/${packageName}`;
-    axios.get(url).then((data) => {
-      console.log('setting package data')
-      setPackageData(data.data)
-    }).catch((error) => {
-      console.log("Error fetching data", error)
-    });
+    // Prevent many calls to the same API.
+    const apiCache = getCache();
+    if (!apiCache.doesCallExist(url)) {
+      apiCache.addCall(url)
+      axios.get(url)
+        .then((data) => {
+          console.log('setting package data')
+          setPackageData(data.data)
+        })
+        .catch((error) => {
+          console.log("Error fetching data", error)
+        })
+        .finally(() => {
+          apiCache.removeCall(url);
+        })
+    }
+    else {
+      console.log(`did not sent request to ${url}, request already in progress`);
+    }
   }, [packageName])
 
   // useEffect(() => {

@@ -32,8 +32,6 @@ def create_app():
         packages = [package_name]
         data: List[Package] = utils.scrape_data(packages)
         graph = utils.build_big_graph(data)
-        # graph = utils.build_graph(package_name)
-        # return {}
 
         graph_data = nx.node_link_data(graph)
         return jsonify(graph_data)
