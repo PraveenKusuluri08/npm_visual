@@ -85,7 +85,7 @@ def scrape_all_data(max=1000) -> Dict[str, Package]:
 
 
 def scrape_data(to_search: List[str], max=100) -> Dict[str, Package]:
-    data = {}
+    data: Dict[str, Package] = {}
     # print(to_search)
 
     count = 1
