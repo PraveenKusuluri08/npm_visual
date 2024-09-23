@@ -98,7 +98,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .forceLink<GraphNode, GraphLink>(graphData.links)
             .id((d: GraphNode) => d.id)
         )
-        .force("charge", d3.forceManyBody().strength(-100))
+        .force("charge", d3.forceManyBody().strength(-200))
         .force("center", d3.forceCenter(widthToUse / 2.2, heightToUse / 2));
 
       const link = svg
