@@ -13,14 +13,24 @@ def create_app():
 
     app.register_blueprint(main_bp)
 
+    @app.route("/scrapeSome", methods=["GET"])
+    def scrape_some():
+        utils.scrape_all_data()
+        return "success"
+
+    @app.route("/scrapeAll", methods=["GET"])
+    def scrape_all():
+        utils.scrape_all_data_long()
+        return "success"
+
     @app.route("/npm")
     def npm():
         return jsonify(utils.utils.scrape_data())
 
     @app.route("/dependencies/<package_name>", methods=["GET"])
     def get_package_dependencies(package_name):
-        data: List[Package] = utils.scrape_all_data()
-        graph = utils.build_big_graph(data)
+        # data: List[Package] = utils.scrape_all_data()
+        graph = utils.build_graph(package_name)
         # return {}
         # graph = utils.build_graph(package_name)
 

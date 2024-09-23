@@ -3,7 +3,29 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import requests
 
+import json
 from .package import Package
+
+
+def save(data: Dict[str, Package]):
+    with open("data.json", "w") as f:
+        json_string = json.dumps([ob.__dict__ for ob in data])
+        json.dump(data, f, ensure_ascii=False)
+
+
+def load() -> Dict[str, Package]:
+    with open("data.json") as data_file:
+        data_loaded = json.load(data_file)
+        data = {}
+        for key, p in data_loaded:
+            next = Package(**p)
+            data[key] = next
+        return data
+
+
+def scrape_all_data_long():
+    x = scrape_all_data(10)
+    save(x)
 
 
 def scrape_package(name: str) -> Package | None:
@@ -35,7 +57,7 @@ def create_graph():
 
     data = scrape_all_data()
 
-    for package in data:
+    for package in data.values():
         main_package = package.id
 
         G.add_node(main_package, label=main_package)
@@ -56,7 +78,7 @@ def create_graph():
     plt.savefig("graph.png")
 
 
-def scrape_all_data() -> List[Package]:
+def scrape_all_data(max=100) -> Dict[str, Package]:
     # seed = "npm"
     # data: Dict[str, Package] = {}
     # s = scrape_package(seed)
@@ -72,7 +94,7 @@ def scrape_all_data() -> List[Package]:
     # print(to_search)
 
     count = 1
-    while count < 2000:
+    while count < max:
         count += 1
         if len(to_search) == 0:
             break
@@ -85,12 +107,12 @@ def scrape_all_data() -> List[Package]:
             next_package = scrape_package(next_id)
             # print("next_package = " + next_package.__str__())
             if next_package is None:
-                return []
+                return {}
             data[next_id] = next_package
             for d in next_package.dependencies:
                 if d not in data:
                     to_search.append(d)
-    return list(data.values())
+    return data
 
     # count = 1
     # limit = 100
@@ -150,14 +172,15 @@ def build_graph(package_name, version="latest"):
     return G
 
 
-def build_big_graph(packages: List[Package]):
+def build_big_graph(packages: Dict[str, Package]):
     G = nx.DiGraph()
-    for p in packages:
+    for p in packages.values():
+        print(p)
         G.add_node(p.id)
 
-    for p in packages:
-        for e in p.dependencies:
-            G.add_edge(e, p.id)
+    # for p in packages:
+    #     for e in p.dependencies:
+    #         G.add_edge(e, p.id)
     return G
 
 
