@@ -8,6 +8,7 @@ from npmvisual.data import clear_cache
 
 from .utils import (
     build_graph_ego_network,
+    build_popular_network,
     scrape_all_data,
 )
 
@@ -30,6 +31,11 @@ def create_app():
     def clear_cache_route():
         clear_cache()
         return "success"
+
+    @app.route("/getPopularNetwork")
+    def get_popular_network():
+        g = build_popular_network()
+        return jsonify(g)
 
     app.logger.info("app created")
     return app

@@ -20,6 +20,18 @@ def build_graph(packages: Dict[str, Package]):
     return G
 
 
+def build_popular_network():
+    to_search = get_popular_packages()
+    return build_graph_network(to_search)
+
+
+def build_graph_network(packages: List[str]):
+    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
+    graph = build_graph(data)
+    graph_data = nx.node_link_data(graph)
+    return graph_data
+
+
 def build_graph_ego_network(package_name: str):
     packages = [package_name]
     data: Dict[str, Package] = get_package_ego_network(packages, 1000)
