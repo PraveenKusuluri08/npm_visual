@@ -2,11 +2,14 @@
 This is the tool you should use to load packages. It will retrieve it from the db or from
 the web if it is not already cached.
 
+we have several data sources. db, cached package.json pages, and online scraping. This
+tool decides where to retrieve data from.
 """
 
-from npmvisual.cache import exists, load, save
 from npmvisual.package import Package
-from npmvisual.scraper import scrape_package_json
+
+from .cache import exists, load, save
+from .scraper import scrape_package_json
 
 
 def get_package(package_name: str) -> Package | None:

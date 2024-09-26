@@ -1,13 +1,6 @@
-from typing import Any, Dict, List
+from typing import Any
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util import Retry
-
-from npmvisual.cache import exists, load
-from npmvisual.commonpackages import get_popular_packages
-from npmvisual.package import Package
-
 
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.

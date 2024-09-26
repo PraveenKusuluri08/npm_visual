@@ -3,7 +3,7 @@ from typing import Dict, List
 import networkx as nx
 
 from npmvisual.commonpackages import get_popular_packages
-from npmvisual.data_master import get_package
+from npmvisual.data import get_package
 
 from .package import Package
 
@@ -22,14 +22,14 @@ def build_graph(packages: Dict[str, Package]):
 
 def build_graph_ego_network(package_name: str):
     packages = [package_name]
-    data: Dict[str, Package] = scrape_package_ego_network(packages)
+    data: Dict[str, Package] = get_package_ego_network(packages)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
 
 
 # build_graph_from_seeds
-def scrape_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
+def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
     # idea. maybe use a priority queue of some kind
     data: Dict[str, Package] = {}
     # print(to_search)
@@ -62,4 +62,4 @@ def scrape_all_data_long():
 
 def scrape_all_data(max=1000) -> Dict[str, Package]:
     to_search = get_popular_packages()
-    return scrape_package_ego_network(to_search, max)
+    return get_package_ego_network(to_search, max)
