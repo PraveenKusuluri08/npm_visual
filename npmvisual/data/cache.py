@@ -80,11 +80,11 @@ def _convert_to_filename(package_name: str) -> str:
         msg = f"Can not save file. hash too long: name={filename}, hash={file_hash}"
         app.logger.error(msg)
         raise Exception(msg)
-    if len(filename) + len(file_hash) > 255:
-        filename_new_len = 255 - len(file_hash)
+    if len(filename) + len(file_hash) > 254:
+        filename_new_len = 254 - len(file_hash)
         filename = filename[:filename_new_len]
 
-    return filename + file_hash
+    return filename + "_" + file_hash
 
 
 def _whitelist(package_name: str) -> str:
