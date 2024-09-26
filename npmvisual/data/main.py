@@ -1,3 +1,5 @@
+from flask import current_app as app
+
 from npmvisual.package import Package
 
 from .cache import exists, load, save
@@ -6,6 +8,7 @@ from .scraper import scrape_package_json
 
 def get_package(package_name: str) -> Package | None:
     if exists(package_name):
+        app.logger.info(f"{package_name} is cached")
         r_dict = load(package_name)
     else:
         r_dict = scrape_package_json(package_name)

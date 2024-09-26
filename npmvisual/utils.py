@@ -22,7 +22,7 @@ def build_graph(packages: Dict[str, Package]):
 
 def build_graph_ego_network(package_name: str):
     packages = [package_name]
-    data: Dict[str, Package] = get_package_ego_network(packages)
+    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
