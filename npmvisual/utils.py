@@ -40,10 +40,10 @@ def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]
         if len(to_search) == 0:
             break  # No remaining dependencies remaining. Success
         # print("\n\n-------------------------------------------------")
-        print("to_search = " + to_search.__str__())
+        # print("to_search = " + to_search.__str__())
         # print("\ndata = " + data.keys().__str__())
         next_id = to_search.pop()
-        print("count = " + count.__str__() + "next = " + next_id)
+        # print("count = " + count.__str__() + "next = " + next_id)
         if next_id not in data:
             next_package = get_package(next_id)
             # print("next_package = " + next_package.__str__())
