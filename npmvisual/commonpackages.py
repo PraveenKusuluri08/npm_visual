@@ -1,3 +1,4 @@
+# TODO. turn this into a json file or something
 def get_popular_packages():
     return [
         "lodash",

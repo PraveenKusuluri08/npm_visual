@@ -1,8 +1,9 @@
 from flask import Flask, jsonify
 
-from npmvisual.scraper import scrape_all_data_long, scrape_package_ego_network
-
-from .utils import build_graph_ego_network
+from .utils import (
+    build_graph_ego_network,
+    scrape_all_data_long,
+)
 
 
 def create_app():
