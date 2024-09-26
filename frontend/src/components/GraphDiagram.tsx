@@ -26,7 +26,11 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   useEffect(() => {
     if (packageName != "") {
       console.log('setting axios call')
-      const url = `/api/dependencies/${packageName}`;
+      let url;
+      if (packageName == "getPopularNetwork")
+        url = '/api/getPopularNetwork';
+      else
+        url = `/api/dependencies/${packageName}`;
       // Prevent many calls to the same API.
       const apiCache = getCache();
       if (!apiCache.doesCallExist(url)) {
@@ -98,7 +102,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .forceLink<GraphNode, GraphLink>(graphData.links)
             .id((d: GraphNode) => d.id)
         )
-        .force("charge", d3.forceManyBody().strength(-200))
+        .force("charge", d3.forceManyBody().strength(-5))
         .force("center", d3.forceCenter(widthToUse / 2.2, heightToUse / 2));
 
       const link = svg
@@ -125,15 +129,15 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .on("end", dragEnded)
         );
 
-      const label = svg
-        .append("g")
-        .selectAll("text")
-        .data(graphData.nodes)
-        .enter()
-        .append("text")
-        .attr("dx", 15)
-        .attr("dy", ".35em")
-        .text((d) => d.id);
+      // const label = svg
+      //   .append("g")
+      //   .selectAll("text")
+      //   .data(graphData.nodes)
+      //   .enter()
+      //   .append("text")
+      //   .attr("dx", 15)
+      //   .attr("dy", ".35em")
+      //   .text((d) => d.id);
 
       simulation.on("tick", () => {
         link
@@ -150,9 +154,9 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
           .attr("cx", (d: GraphNode) => d.x!)
           .attr("cy", (d: GraphNode) => d.y!);
 
-        label
-          .attr("x", (d: GraphNode) => d.x!)
-          .attr("y", (d: GraphNode) => d.y!);
+        // label
+        //   .attr("x", (d: GraphNode) => d.x!)
+        //   .attr("y", (d: GraphNode) => d.y!);
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

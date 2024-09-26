@@ -22,11 +22,11 @@ def build_graph(packages: Dict[str, Package]):
 
 def build_popular_network():
     to_search = get_popular_packages()
-    return build_graph_network(to_search)
+    return build_graph_network(to_search, 3000)
 
 
-def build_graph_network(packages: List[str]):
-    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
+def build_graph_network(packages: List[str], max=1000):
+    data: Dict[str, Package] = get_package_ego_network(packages, max)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
