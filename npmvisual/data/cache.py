@@ -82,7 +82,7 @@ def _hash_package(package_name: str) -> str:
 def _convert_to_filename(package_name: str) -> str:
     # for readability, keep some of the filename
     filename = _whitelist(package_name)
-    file_hash = str(hash(package_name))
+    file_hash = str(_hash_package(package_name))
     # Most OS have maximum file lengths. make sure it is under 255
     if len(filename) + _HASH_LENGTH > 254:
         filename_new_len = 254 - _HASH_LENGTH
