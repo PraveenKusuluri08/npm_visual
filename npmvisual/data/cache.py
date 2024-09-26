@@ -50,7 +50,7 @@ def load(package_name: str) -> Dict[str, Any]:
         raise e
 
 
-def clean_cache():
+def clear_cache():
     for filename in os.listdir(cache_path):
         file_path = os.path.join(cache_path, filename)
         clean_package_cache(file_path)

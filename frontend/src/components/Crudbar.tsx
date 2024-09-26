@@ -8,6 +8,10 @@ function Crudbar({ onSelect }: { onSelect: any }) {
     const url = "/api/scrapeAll";
     axios.get(url)
   }
+  function clearCache() {
+    const url = "/api/clearCache";
+    axios.get(url)
+  }
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -24,6 +28,9 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 
   return <nav>
     <h2>NPM Visual</h2>
+    <button className="button-48" onClick={() => clearCache()}>
+      <span className="text">Clear Cache (for development)</span>
+    </button>
     <button className="button-48" onClick={() => scrapeAll()}>
       <span className="text">Scrape Everything</span>
     </button>

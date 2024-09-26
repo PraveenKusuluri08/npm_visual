@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, jsonify
 
-from npmvisual.data import clean_cache
+from npmvisual.data import clear_cache
 
 from .utils import (
     build_graph_ego_network,
@@ -26,9 +26,9 @@ def create_app():
         g = build_graph_ego_network(package_name)
         return jsonify(g)
 
-    @app.route("/cleanCache")
-    def clean_cache_route():
-        clean_cache()
+    @app.route("/clearCache")
+    def clear_cache_route():
+        clear_cache()
         return "success"
 
     app.logger.info("app created")
