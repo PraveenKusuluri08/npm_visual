@@ -1,13 +1,12 @@
+import hashlib
 import os
 import shutil
-import hashlib
 import string
 from pathlib import Path
 from typing import Any, Dict
 
 from flask import current_app as app
 from flask import json
-import numpy
 
 whitelist = set(string.ascii_letters + string.digits)
 _HASH_LENGTH = 40
