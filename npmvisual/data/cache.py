@@ -1,13 +1,16 @@
 import os
 import shutil
+import hashlib
 import string
 from pathlib import Path
 from typing import Any, Dict
 
 from flask import current_app as app
 from flask import json
+import numpy
 
 whitelist = set(string.ascii_letters + string.digits)
+_HASH_LENGTH = 40
 
 
 def _get_cache_path() -> str:
@@ -71,17 +74,18 @@ def _get_package_path(package_name: str) -> str:
     return os.path.join(cache_path, filename + ".json")
 
 
+def _hash_package(package_name: str) -> str:
+    hash: str = hashlib.sha1(package_name.encode("UTF-8")).hexdigest()
+    return hash[:_HASH_LENGTH]
+
+
 def _convert_to_filename(package_name: str) -> str:
     # for readability, keep some of the filename
     filename = _whitelist(package_name)
     file_hash = str(hash(package_name))
     # Most OS have maximum file lengths. make sure it is under 255
-    if len(file_hash) > 255:
-        msg = f"Can not save file. hash too long: name={filename}, hash={file_hash}"
-        app.logger.error(msg)
-        raise Exception(msg)
-    if len(filename) + len(file_hash) > 254:
-        filename_new_len = 254 - len(file_hash)
+    if len(filename) + _HASH_LENGTH > 254:
+        filename_new_len = 254 - _HASH_LENGTH
         filename = filename[:filename_new_len]
 
     return filename + "_" + file_hash
