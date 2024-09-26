@@ -1,6 +1,7 @@
 from typing import Any
 
 import requests
+from flask import current_app as app
 
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.
@@ -22,7 +23,7 @@ import requests
 def scrape_package_json(package_name) -> Any:
     # print(f"scraping package named {name}")
     url = f"https://registry.npmjs.org/{package_name}"
-    # print(url)
+    app.logger.info(f"scraping package.json from {url}")
 
     try:
         response = requests.get(url)
@@ -31,6 +32,7 @@ def scrape_package_json(package_name) -> Any:
         r_dict = response.json()
         return r_dict
     except requests.exceptions.HTTPError as e:
+        app.logger.error(e)
         print(f"HTTP error: {e}")
         if e.response.status_code == 401:
             print("Authentication required.")

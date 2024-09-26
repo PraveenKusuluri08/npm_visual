@@ -13,7 +13,6 @@ from .utils import (
 def create_app():
     app = Flask(__name__)
     load_logs(app)
-    app.logger.info("app created")
 
     @app.route("/scrapeAll", methods=["GET"])
     def scrape_all():
@@ -25,7 +24,7 @@ def create_app():
         g = build_graph_ego_network(package_name)
         return jsonify(g)
 
-    # Configure our app here. if we want to use blueprints later, we can do that.
+    app.logger.info("app created")
     return app
 
 
@@ -42,5 +41,5 @@ def load_logs(app):
     app.logger.addHandler(file_handler)
 
     app.logger.setLevel(logging.INFO)
-    app.logger.info("app startup")
+    app.logger.info("logger setup")
     return
