@@ -4,7 +4,7 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, jsonify
 
-from npmvisual.data.cache import clean_cache
+from npmvisual.data import clean_cache
 
 from .utils import (
     build_graph_ego_network,
