@@ -53,11 +53,8 @@ def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]
             for d in next_package.dependencies:
                 if d not in data:
                     to_search.append(d)
+    print(f"graph created with {count} packages")
     return data
-
-
-def scrape_all_data_long():
-    scrape_all_data(10)
 
 
 def scrape_all_data(max=1000) -> Dict[str, Package]:

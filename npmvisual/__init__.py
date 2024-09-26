@@ -8,7 +8,7 @@ from npmvisual.data import clear_cache
 
 from .utils import (
     build_graph_ego_network,
-    scrape_all_data_long,
+    scrape_all_data,
 )
 
 
@@ -18,7 +18,7 @@ def create_app():
 
     @app.route("/scrapeAll", methods=["GET"])
     def scrape_all():
-        scrape_all_data_long()
+        scrape_all_data(1000)
         return "success"
 
     @app.route("/dependencies/<package_name>", methods=["GET"])

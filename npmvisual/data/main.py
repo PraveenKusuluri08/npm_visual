@@ -9,10 +9,10 @@ from .scraper import scrape_package_json
 def get_package(package_name: str) -> Package | None:
     # app.logger.info(f"getting {package_name}")
     if exists(package_name):
-        # app.logger.info(f"{package_name} is cached")
+        app.logger.info(f"{package_name} is cached")
         r_dict = load(package_name)
     else:
-        app.logger.info(f"{package_name} is not cached. Scraping from online")
+        # app.logger.info(f"{package_name} is not cached. Scraping from online")
         r_dict = scrape_package_json(package_name)
         save(package_name, r_dict)
     if r_dict is not None:
