@@ -15,12 +15,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   useEffect(() => {
     widthToUse = width ? width : 1000;
     heightToUse = height ? height : 1000;
-    // const svg = d3.select("#d3-container")
-    // svg.append()attr("width") = widthToUse;
   }, [width])
-  // const url = `/api/dependencies/${packageName}`;
-  // const graphData = useFetchGraphData(url);
-  // console.log(graphData);
 
   const [graphData, setPackageData] = useState<GraphData>()
   useEffect(() => {
@@ -54,12 +49,6 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   }, [packageName])
 
 
-  // useEffect(() => {
-  //   alert(" i can change " + packageName)
-  //   const url = `/api/dependencies/${packageName}`;
-  //   useFetchGraphData(url);
-  // }, [packageName])
-  //
   interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
   }
@@ -78,7 +67,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     // maybe check if graphdata already exists? break up this UseEffect into pieces
     if (graphData !== undefined) {
       const svg = d3
-        .select("#bigGraph")
+        .select("#graph")
         .attr('height', '100%')
         .attr('width', '100%')
         .attr('viewBox', '0 0 ' + widthToUse + ' ' + heightToUse)
@@ -123,15 +112,15 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .on("end", dragEnded)
         );
 
-      // const label = svg
-      //   .append("g")
-      //   .selectAll("text")
-      //   .data(graphData.nodes)
-      //   .enter()
-      //   .append("text")
-      //   .attr("dx", 15)
-      //   .attr("dy", ".35em")
-      //   .text((d) => d.id);
+      const label = svg
+        .append("g")
+        .selectAll("text")
+        .data(graphData.nodes)
+        .enter()
+        .append("text")
+        .attr("dx", 15)
+        .attr("dy", ".35em")
+        .text((d) => d.id);
 
       simulation.on("tick", () => {
         link
@@ -148,9 +137,9 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
           .attr("cx", (d: GraphNode) => d.x!)
           .attr("cy", (d: GraphNode) => d.y!);
 
-        // label
-        //   .attr("x", (d: GraphNode) => d.x!)
-        //   .attr("y", (d: GraphNode) => d.y!);
+        label
+          .attr("x", (d: GraphNode) => d.x!)
+          .attr("y", (d: GraphNode) => d.y!);
       });
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -175,33 +164,12 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     }
   }, [graphData]);
 
-  const handleForceChange = (event: any) => {
-    event.preventDefault()
-    const f = event.target.force
-    const svg = d3.select("bigGraph")
-    alert(force)
-  }
-  const [force, setForce] = useState(100); // Declare a state variable...
-
   return (
     <div ref={ref} className="graph-diagram">
       <div>Width: {width}px</div>
       <div>Height: {height}px</div>
-      <form>
-
-        <label onSubmit={e => handleForceChange(e)}>
-          Package to Graph:
-          <input
-            defaultValue="100"
-            name="force"
-            id="force"
-            type="number"
-          />
-        </label>
-        <button>Set Force</button>
-      </form>
       <h1>{packageName}</h1>
-      <svg width="100%" height="1000px" id="bigGraph"></svg>
+      <svg width="100%" height="1000px" id="graph"></svg>
     </div>
   );
 };
