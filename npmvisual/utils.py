@@ -43,6 +43,7 @@ def build_graph_ego_network(package_name: str):
 # build_graph_from_seeds
 def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
     # idea. maybe use a priority queue of some kind
+    to_search.reverse()
     data: Dict[str, Package] = {}
     # print(to_search)
 
