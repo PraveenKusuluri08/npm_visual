@@ -1,6 +1,7 @@
 // import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
 import { ChangeEvent, ChangeEventHandler, FormEvent, useEffect, useState } from "react";
+import { ForceGraph3D } from 'react-force-graph';
 import GraphData from "../utils/models"
 import axios from "axios"
 import { getCache } from "../utils/cache";
@@ -170,6 +171,11 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
       <div>Height: {height}px</div>
       <h1>{packageName}</h1>
       <svg width="100%" height="1000px" id="graph"></svg>
+
+      <ForceGraph3D
+        graphData={graphData}
+      />
+
     </div>
   );
 };
