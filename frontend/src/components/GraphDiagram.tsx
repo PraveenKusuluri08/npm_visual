@@ -1,6 +1,6 @@
 // import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
-import { useEffect, useState } from "react";
+import { ChangeEvent, ChangeEventHandler, FormEvent, useEffect, useState } from "react";
 import GraphData from "../utils/models"
 import axios from "axios"
 import { getCache } from "../utils/cache";
@@ -70,11 +70,6 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   }
 
   useEffect(() => {
-
-  });
-
-  useEffect(() => {
-
     console.log('second useEffect called')
     console.log(graphData)
     const heightToUse = height ? height : 1000;
@@ -83,8 +78,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     // maybe check if graphdata already exists? break up this UseEffect into pieces
     if (graphData !== undefined) {
       const svg = d3
-        .select("#d3-container")
-        .append("svg") // todo: we should not be creating a new one. Just change the existing one
+        .select("#bigGraph")
         .attr('height', '100%')
         .attr('width', '100%')
         .attr('viewBox', '0 0 ' + widthToUse + ' ' + heightToUse)
@@ -181,29 +175,33 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     }
   }, [graphData]);
 
-  // const handleForceChange = (input: React.ChangeEventHandler) => {
-  //   const x = input.call
-  //   const force = input.value;
-  //   alert(force)
-  // }
-  // const [force, setForce] = useState(100); // Declare a state variable...
+  const handleForceChange = (event: any) => {
+    event.preventDefault()
+    const f = event.target.force
+    const svg = d3.select("bigGraph")
+    alert(force)
+  }
+  const [force, setForce] = useState(100); // Declare a state variable...
 
   return (
     <div ref={ref} className="graph-diagram">
       <div>Width: {width}px</div>
       <div>Height: {height}px</div>
-      {/* <label> */}
-      {/*   Package to Graph: */}
-      {/*   <input */}
-      {/*     value={force} */}
-      {/*     onChange={handleForceChange} // ... and update the state variable on any edits! */}
-      {/*     name="force" */}
-      {/*     type="number" */}
-      {/*     defaultValue="100" */}
-      {/*   /> */}
-      {/* </label> */}
+      <form>
+
+        <label onSubmit={e => handleForceChange(e)}>
+          Package to Graph:
+          <input
+            defaultValue="100"
+            name="force"
+            id="force"
+            type="number"
+          />
+        </label>
+        <button>Set Force</button>
+      </form>
       <h1>{packageName}</h1>
-      <div id="d3-container"></div>
+      <svg width="100%" height="1000px" id="bigGraph"></svg>
     </div>
   );
 };
