@@ -22,16 +22,103 @@ if not os.path.exists(cache_path):
     os.mkdir(cache_path)
 
 
+def isReadableFile(file_path):
+    try:
+        if not os.path.exists(file_path):
+            print("File path is invalid.")
+            return False
+        elif not os.path.isfile(file_path):
+            print("File does not exist.")
+            return False
+        elif not os.access(file_path, os.R_OK):
+            print("File cannot be read.")
+            return False
+        else:
+            print("File can be read.")
+            return True
+    except Exception as e:
+        print(f"isReadableFile error({e}")
+    return False
+
+
+def diagnose(package_name):
+    path_to_file: str = _get_package_path(package_name)
+    print(f"diagnose {path_to_file}")
+    my_file = Path(path_to_file)
+    try:
+        with my_file.open() as fp:
+            files = os.listdir(_get_cache_path())
+            files = [d for d in files if "moment" in d]
+            import json
+
+            print(json.dumps(files, sort_keys=True, indent=4))
+            print()
+            data = fp.read()
+            print("----------------------------------")
+            print(os.path.isfile(path_to_file))
+            print(os.path.getsize(path_to_file))
+            print(type(data))
+            print(f"data2 {data}")
+            print("----------------------------------")
+    except FileNotFoundError:
+        print("File not found")
+    except PermissionError:
+        print("I do not have the permission to access", my_file)
+    except UnicodeDecodeError:
+        print("Could not decode UTF-8. Binary file or wrong encoding?")
+
+
+def clean_if_invalid(package_name):
+    path_to_file: str = _get_package_path(package_name)
+    if exists(package_name) & (not file_is_valid(package_name)):
+        clean_package_cache(path_to_file)
+
+
 def exists(package_name: str) -> bool:
     path_to_file: str = _get_package_path(package_name)
     my_file = Path(path_to_file)
     return my_file.is_file()
 
 
-def save(package_name: str, data):
+def file_is_valid(package_name: str) -> bool:
     path_to_file: str = _get_package_path(package_name)
-    json_object = json.dumps(data, indent=4)
     try:
+        if not os.path.exists(path_to_file):
+            print("File path is invalid.")
+            return False
+        elif not os.path.isfile(path_to_file):
+            print("File does not exist.")
+            return False
+        elif not os.access(path_to_file, os.R_OK):
+            print("File cannot be read.")
+            return False
+        print("File can be read.")
+
+        # sometimes, data scraped from online can be saved incorrectly as None
+        my_file = Path(path_to_file)
+        size = os.path.getsize(path_to_file)
+        if size < 1000:  # optimization to not read every file
+            with my_file.open() as fp:
+                data = fp.read()
+                # print(data)
+                if data is None:
+                    print("File is None")
+                    return False
+                if data == "null":
+                    print("File is null")
+                    return False
+        return True
+    except Exception as e:
+        print(f"isReadableFile error({e}")
+        return False
+
+
+def save(package_name: str, data):
+    try:
+        path_to_file: str = _get_package_path(package_name)
+        json_object = json.dumps(data, indent=4)
+        if json_object is None:
+            raise Exception("data from online is None")
         with open(path_to_file, "w+") as outfile:
             outfile.write(json_object)
     except Exception as e:
@@ -40,6 +127,7 @@ def save(package_name: str, data):
 
 def load(package_name: str) -> Dict[str, Any]:
     path_to_file: str = _get_package_path(package_name)
+    # print(path_to_file)
     # Use a try catch because file may be accessed between time we search for file and
     # the time we try to read the file
     try:

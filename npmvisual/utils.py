@@ -22,7 +22,7 @@ def build_graph(packages: Dict[str, Package]):
 
 def build_popular_network():
     to_search = get_popular_packages()
-    return build_graph_network(to_search, 3000)
+    return build_graph_network(to_search, 2000)
 
 
 def build_graph_network(packages: List[str], max=1000):
