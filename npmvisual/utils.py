@@ -1,9 +1,9 @@
-from typing import Dict
+from typing import Dict, List
 
 import networkx as nx
-from flask.json import jsonify
 
-from npmvisual.scraper import scrape_package_ego_network
+from npmvisual.commonpackages import get_popular_packages
+from npmvisual.data import get_package
 
 from .package import Package
 
@@ -20,9 +20,55 @@ def build_graph(packages: Dict[str, Package]):
     return G
 
 
-def build_graph_ego_network(package_name: str):
-    packages = [package_name]
-    data: Dict[str, Package] = scrape_package_ego_network(packages)
+def build_popular_network():
+    to_search = get_popular_packages()
+    return build_graph_network(to_search, 3000)
+
+
+def build_graph_network(packages: List[str], max=1000):
+    data: Dict[str, Package] = get_package_ego_network(packages, max)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
+
+
+def build_graph_ego_network(package_name: str):
+    packages = [package_name]
+    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
+    graph = build_graph(data)
+    graph_data = nx.node_link_data(graph)
+    return graph_data
+
+
+# build_graph_from_seeds
+def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
+    # idea. maybe use a priority queue of some kind
+    data: Dict[str, Package] = {}
+    # print(to_search)
+
+    count = 1
+    while count < max:
+        count += 1
+        if len(to_search) == 0:
+            break  # No remaining dependencies remaining. Success
+        # print("\n\n-------------------------------------------------")
+        # print("to_search = " + to_search.__str__())
+        # print("\ndata = " + data.keys().__str__())
+        next_id = to_search.pop()
+        # print("count = " + count.__str__() + "next = " + next_id)
+        if next_id not in data:
+            next_package = get_package(next_id)
+            # print("next_package = " + next_package.__str__())
+            if next_package is None:
+                return {}
+            data[next_id] = next_package
+            for d in next_package.dependencies:
+                if d not in data:
+                    to_search.append(d)
+    print(f"graph created with {count} packages")
+    return data
+
+
+def scrape_all_data(max=1000) -> Dict[str, Package]:
+    to_search = get_popular_packages()
+    return get_package_ego_network(to_search, max)

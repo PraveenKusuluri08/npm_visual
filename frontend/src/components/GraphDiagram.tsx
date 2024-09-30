@@ -1,6 +1,7 @@
 // import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
-import { useEffect, useState } from "react";
+import { ChangeEvent, ChangeEventHandler, FormEvent, useEffect, useState } from "react";
+import { ForceGraph3D } from 'react-force-graph';
 import GraphData from "../utils/models"
 import axios from "axios"
 import { getCache } from "../utils/cache";
@@ -15,18 +16,17 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   useEffect(() => {
     widthToUse = width ? width : 1000;
     heightToUse = height ? height : 1000;
-    // const svg = d3.select("#d3-container")
-    // svg.append()attr("width") = widthToUse;
   }, [width])
-  // const url = `/api/dependencies/${packageName}`;
-  // const graphData = useFetchGraphData(url);
-  // console.log(graphData);
 
   const [graphData, setPackageData] = useState<GraphData>()
   useEffect(() => {
     if (packageName != "") {
       console.log('setting axios call')
-      const url = `/api/dependencies/${packageName}`;
+      let url;
+      if (packageName == "getPopularNetwork")
+        url = '/api/getPopularNetwork';
+      else
+        url = `/api/dependencies/${packageName}`;
       // Prevent many calls to the same API.
       const apiCache = getCache();
       if (!apiCache.doesCallExist(url)) {
@@ -50,12 +50,6 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   }, [packageName])
 
 
-  // useEffect(() => {
-  //   alert(" i can change " + packageName)
-  //   const url = `/api/dependencies/${packageName}`;
-  //   useFetchGraphData(url);
-  // }, [packageName])
-  //
   interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
   }
@@ -66,11 +60,6 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   }
 
   useEffect(() => {
-
-  });
-
-  useEffect(() => {
-
     console.log('second useEffect called')
     console.log(graphData)
     const heightToUse = height ? height : 1000;
@@ -79,8 +68,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     // maybe check if graphdata already exists? break up this UseEffect into pieces
     if (graphData !== undefined) {
       const svg = d3
-        .select("#d3-container")
-        .append("svg") // todo: we should not be creating a new one. Just change the existing one
+        .select("#graph")
         .attr('height', '100%')
         .attr('width', '100%')
         .attr('viewBox', '0 0 ' + widthToUse + ' ' + heightToUse)
@@ -98,7 +86,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .forceLink<GraphNode, GraphLink>(graphData.links)
             .id((d: GraphNode) => d.id)
         )
-        .force("charge", d3.forceManyBody().strength(-200))
+        .force("charge", d3.forceManyBody().strength(-5))
         .force("center", d3.forceCenter(widthToUse / 2.2, heightToUse / 2));
 
       const link = svg
@@ -177,29 +165,17 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     }
   }, [graphData]);
 
-  // const handleForceChange = (input: React.ChangeEventHandler) => {
-  //   const x = input.call
-  //   const force = input.value;
-  //   alert(force)
-  // }
-  // const [force, setForce] = useState(100); // Declare a state variable...
-
   return (
     <div ref={ref} className="graph-diagram">
       <div>Width: {width}px</div>
       <div>Height: {height}px</div>
-      {/* <label> */}
-      {/*   Package to Graph: */}
-      {/*   <input */}
-      {/*     value={force} */}
-      {/*     onChange={handleForceChange} // ... and update the state variable on any edits! */}
-      {/*     name="force" */}
-      {/*     type="number" */}
-      {/*     defaultValue="100" */}
-      {/*   /> */}
-      {/* </label> */}
       <h1>{packageName}</h1>
-      <div id="d3-container"></div>
+      <svg width="100%" height="1000px" id="graph"></svg>
+
+      <ForceGraph3D
+        graphData={graphData}
+      />
+
     </div>
   );
 };
