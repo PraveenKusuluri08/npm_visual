@@ -25,16 +25,16 @@ if not os.path.exists(cache_path):
 def isReadableFile(file_path):
     try:
         if not os.path.exists(file_path):
-            print("File path is invalid.")
+            # print("File path is invalid.")
             return False
         elif not os.path.isfile(file_path):
-            print("File does not exist.")
+            # print("File does not exist.")
             return False
         elif not os.access(file_path, os.R_OK):
-            print("File cannot be read.")
+            # print("File cannot be read.")
             return False
         else:
-            print("File can be read.")
+            # print("File can be read.")
             return True
     except Exception as e:
         print(f"isReadableFile error({e}")

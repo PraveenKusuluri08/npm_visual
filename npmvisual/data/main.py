@@ -13,7 +13,7 @@ from .scraper import scrape_package_json
 
 
 def get_package(package_name: str) -> Package | None:
-    app.logger.info(f"getting {package_name}")
+    # app.logger.info(f"getting {package_name}")
     clean_if_invalid(package_name)
     # print("diagnose1")
     # diagnose(package_name)
