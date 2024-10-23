@@ -101,8 +101,28 @@ sudo apt-get install openjdk-17-jdk
 
 ## Neo4j debian install I used.
 
+add the best repo
+
 ```
 wget -O - https://debian.neo4j.com/neotechnology.gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/neotechnology.gpg
 echo 'deb [signed-by=/etc/apt/keyrings/neotechnology.gpg] https://debian.neo4j.com stable latest' | sudo tee -a /etc/apt/sources.list.d/neo4j.list
 sudo apt-get update
+```
+
+install Neo4j for real
+
+```
+sudo apt-get install neo4j=1:5.24.0
+```
+
+For Debian, set neo4j to run on startup
+
+```
+sudo systemctl enable neo4j
+```
+
+set initial password
+
+```
+neo4j-admin dbms set-initial-password <super-secret>
 ```
