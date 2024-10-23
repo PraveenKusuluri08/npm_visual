@@ -3,7 +3,7 @@ import os
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, jsonify
-
+from neo4j import GraphDatabase
 from npmvisual.data import clear_cache
 
 from .utils import (
@@ -11,11 +11,21 @@ from .utils import (
     build_popular_network,
     scrape_all_data,
 )
+from config import Config
 
 
-def create_app():
+def create_app(config_class=Config):
     app = Flask(__name__)
+    app.config.from_object(config_class)
     load_logs(app)
+
+    URI = "neo4j://" + app.config["NEO4J_HOST"]  # + ":" + app.config["NEO4J_PORT"]
+    AUTH = (app.config["NEO4J_USERNAME"], app.config["NEO4J_PASSWORD"])
+    print(AUTH)
+    print(URI)
+    with GraphDatabase.driver(URI, auth=AUTH) as driver:
+        driver.verify_connectivity()
+        print("db connection established")
 
     @app.route("/scrapeAll", methods=["GET"])
     def scrape_all():

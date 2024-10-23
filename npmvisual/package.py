@@ -21,5 +21,17 @@ class Package:
             .get("dependencies", {})
         )
 
+    # def find(self):
+    #     package = graph.find_one("package", "id", self.id)
+    #     return package
+    #
+    # def register(self):
+    #     if not self.find():
+    #         package = Node("Package", id=self.id, description="testing")
+    #         graph.create(package)
+    #         return True
+    #     else:
+    #         return False
+
     # def __init__(self, fname):
     # dict.__init__(self, fname=fname)
