@@ -21,8 +21,6 @@ def create_app(config_class=Config):
 
     URI = "neo4j://" + app.config["NEO4J_HOST"]  # + ":" + app.config["NEO4J_PORT"]
     AUTH = (app.config["NEO4J_USERNAME"], app.config["NEO4J_PASSWORD"])
-    print(AUTH)
-    print(URI)
     with GraphDatabase.driver(URI, auth=AUTH) as driver:
         driver.verify_connectivity()
         print("db connection established")
