@@ -99,6 +99,13 @@ follow instructions <a href="https://neo4j.com/docs/operations-manual/current/in
 sudo apt-get install openjdk-17-jdk
 ```
 
+on ubuntu, add this to .bashrc to add java to path
+
+```
+export JAVA_HOME=$(dirname $(dirname $(readlink -f $(which java))))
+export PATH=$PATH:$JAVA_HOME/bin
+```
+
 ## Neo4j debian install I used.
 
 add the best repo
@@ -121,8 +128,26 @@ For Debian, set neo4j to run on startup
 sudo systemctl enable neo4j
 ```
 
-set initial password
+Set initial password
 
 ```
 neo4j-admin dbms set-initial-password <super-secret>
 ```
+
+## server usage
+
+Use systemctl with either start, stop, or restart
+<a href='https://neo4j.com/docs/operations-manual/current/installation/linux/systemd/'>how to run</a>
+
+```
+systemctl {start|stop|restart} neo4j
+```
+
+Go to your favorite web browser and go to <a href='http://localhost:7474/browser/'>http://localhost:7474/browser/</a>
+
+I chose to use the default db and left it empty.
+
+Initial username was: neo4j
+initial password was: neo4j
+
+It prompted me to make a new password. I did. I wrote it on a gold brick and buried it in my backyard.
