@@ -4,14 +4,18 @@ from logging.handlers import RotatingFileHandler
 
 from flask import Flask, jsonify
 from neo4j import GraphDatabase
+
+from config import Config
 from npmvisual.data import clear_cache
+# from npmvisual.extensions.flask_db import FlaskDBExtension
 
 from .utils import (
     build_graph_ego_network,
     build_popular_network,
     scrape_all_data,
 )
-from config import Config
+
+# db = FlaskDBExtension()
 
 
 def create_app(config_class=Config):
@@ -19,11 +23,12 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     load_logs(app)
 
-    URI = "neo4j://" + app.config["NEO4J_HOST"]  # + ":" + app.config["NEO4J_PORT"]
-    AUTH = (app.config["NEO4J_USERNAME"], app.config["NEO4J_PASSWORD"])
-    with GraphDatabase.driver(URI, auth=AUTH) as driver:
-        driver.verify_connectivity()
-        print("db connection established")
+    # db.init_app(app)
+
+    # @app.teardown_appcontext
+    # def close_db(error):
+    #     pass
+    #     # db.close_db(error)
 
     @app.route("/scrapeAll", methods=["GET"])
     def scrape_all():
@@ -37,6 +42,8 @@ def create_app(config_class=Config):
 
     @app.route("/clearCache")
     def clear_cache_route():
+        # x = get_db()
+        # print(x)
         clear_cache()
         return "success"
 
@@ -64,3 +71,7 @@ def load_logs(app):
     app.logger.setLevel(logging.INFO)
     app.logger.info("logger setup")
     return
+
+
+def config_db(app):
+    pass
