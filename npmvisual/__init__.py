@@ -6,16 +6,18 @@ from flask import Flask, jsonify
 from neo4j import GraphDatabase
 
 from config import Config
+from npmvisual.extensions.neo4j_db import Neo4j
 # from npmvisual.data import clear_cache
 
-from .extensions.flask_Native_Neo4j import FlaskNativeNeo4j
+# from .extensions.flask_Native_Neo4j import FlaskNativeNeo4j
 # from .utils import (
 #     build_graph_ego_network,
 #     build_popular_network,
 #     scrape_all_data,
 # )
 
-db = FlaskNativeNeo4j()
+# db = FlaskNativeNeo4j()
+db = Neo4j()
 
 
 def create_app(config_class=Config):
@@ -79,4 +81,13 @@ def load_logs(app):
 
 
 def config_db(app):
-    pass
+    URI = (
+        "neo4j://" + app.config["NEO4J_HOST"]
+    )  # + ":" + current_app.config["NEO4J_PORT"]
+    AUTH = (
+        app.config["NEO4J_USERNAME"],
+        app.config["NEO4J_PASSWORD"],
+    )
+    database = app.config["NEO4J_DB"]
+    driver = GraphDatabase.driver(URI, auth=AUTH)
+    return driver

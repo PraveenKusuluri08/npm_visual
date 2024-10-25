@@ -5,6 +5,8 @@ from npmvisual.data import bp
 @bp.route("/test", methods=["GET"])
 def open_db():
     print(db)
+    x = db.driver
+    print(x)
     return "test"
     # get_db()
 
