@@ -6,16 +6,16 @@ from flask import Flask, jsonify
 from neo4j import GraphDatabase
 
 from config import Config
-from npmvisual.data import clear_cache
-# from npmvisual.extensions.flask_db import FlaskDBExtension
+# from npmvisual.data import clear_cache
 
-from .utils import (
-    build_graph_ego_network,
-    build_popular_network,
-    scrape_all_data,
-)
+from .extensions.flask_Native_Neo4j import FlaskNativeNeo4j
+# from .utils import (
+#     build_graph_ego_network,
+#     build_popular_network,
+#     scrape_all_data,
+# )
 
-# db = FlaskDBExtension()
+db = FlaskNativeNeo4j()
 
 
 def create_app(config_class=Config):
@@ -23,36 +23,41 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     load_logs(app)
 
-    # db.init_app(app)
+    db.init_app(app)
+
+    from npmvisual.data import bp as data_bp
+
+    app.register_blueprint(data_bp, url_prefix="/data")
 
     # @app.teardown_appcontext
     # def close_db(error):
     #     pass
     #     # db.close_db(error)
 
-    @app.route("/scrapeAll", methods=["GET"])
-    def scrape_all():
-        scrape_all_data(1000)
-        return "success"
+    # @app.route("/scrapeAll", methods=["GET"])
+    # def scrape_all():
+    #     scrape_all_data(1000)
+    #     return "success"
+    #
 
-    @app.route("/dependencies/<package_name>", methods=["GET"])
-    def get_package_dependencies(package_name):
-        g = build_graph_ego_network(package_name)
-        return jsonify(g)
-
-    @app.route("/clearCache")
-    def clear_cache_route():
-        # x = get_db()
-        # print(x)
-        clear_cache()
-        return "success"
-
-    @app.route("/getPopularNetwork")
-    def get_popular_network():
-        g = build_popular_network()
-        return jsonify(g)
-
-    app.logger.info("app created")
+    # @app.route("/dependencies/<package_name>", methods=["GET"])
+    # def get_package_dependencies(package_name):
+    #     g = build_graph_ego_network(package_name)
+    #     return jsonify(g)
+    #
+    # @app.route("/clearCache")
+    # def clear_cache_route():
+    #     # x = get_db()
+    #     # print(x)
+    #     clear_cache()
+    #     return "success"
+    #
+    # @app.route("/getPopularNetwork")
+    # def get_popular_network():
+    #     g = build_popular_network()
+    #     return jsonify(g)
+    #
+    # app.logger.info("app created")
     return app
 
 

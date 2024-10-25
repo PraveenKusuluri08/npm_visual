@@ -1,3 +1,4 @@
+from npmvisual import db
 from dataclasses import dataclass
 from typing import Dict
 
@@ -20,6 +21,9 @@ class Package:
             .get(self.latest_version, {})
             .get("dependencies", {})
         )
+
+    def addToDB(self):
+        print(db)
 
     # def find(self):
     #     package = graph.find_one("package", "id", self.id)
