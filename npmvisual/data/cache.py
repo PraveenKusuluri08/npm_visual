@@ -8,6 +8,8 @@ from typing import Any, Dict
 from flask import current_app as app
 from flask import json
 
+from npmvisual.data import bp
+
 whitelist = set(string.ascii_letters + string.digits)
 _HASH_LENGTH = 40
 
@@ -140,10 +142,13 @@ def load(package_name: str) -> Dict[str, Any]:
         raise e
 
 
+@bp.route("/clearCache")
 def clear_cache():
     for filename in os.listdir(cache_path):
         file_path = os.path.join(cache_path, filename)
-        clean_package_cache(file_path)
+        # clean_package_cache(file_path)
+        print("Cash intentionally not cleared")
+    return "success"
 
 
 def clean_package_cache(file_path):

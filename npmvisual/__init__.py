@@ -25,19 +25,13 @@ def create_app(config_class=Config):
 
     app.register_blueprint(utils_bp)
 
-    # @bp.route("/clearCache")
-    # def clear_cache_route():
-    #     # x = get_db()
-    #     # print(x)
-    #     clear_cache()
-    # return "success"
     # @app.teardown_appcontext
     # def close_db(error):
     #     pass
     #     # db.close_db(error)
 
     #
-    # app.logger.info("app created")
+    app.logger.info("app created")
     return app
 
 
