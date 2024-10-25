@@ -2,21 +2,11 @@ import logging
 import os
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask, jsonify
-from neo4j import GraphDatabase
+from flask import Flask
 
 from config import Config
 from npmvisual.extensions.neo4j_db import Neo4j
-# from npmvisual.data import clear_cache
 
-# from .extensions.flask_Native_Neo4j import FlaskNativeNeo4j
-# from .utils import (
-#     build_graph_ego_network,
-#     build_popular_network,
-#     scrape_all_data,
-# )
-
-# db = FlaskNativeNeo4j()
 db = Neo4j()
 
 
@@ -31,33 +21,21 @@ def create_app(config_class=Config):
 
     app.register_blueprint(data_bp, url_prefix="/data")
 
+    from npmvisual.utils import bp as utils_bp
+
+    app.register_blueprint(utils_bp)
+
+    # @bp.route("/clearCache")
+    # def clear_cache_route():
+    #     # x = get_db()
+    #     # print(x)
+    #     clear_cache()
+    # return "success"
     # @app.teardown_appcontext
     # def close_db(error):
     #     pass
     #     # db.close_db(error)
 
-    # @app.route("/scrapeAll", methods=["GET"])
-    # def scrape_all():
-    #     scrape_all_data(1000)
-    #     return "success"
-    #
-
-    # @app.route("/dependencies/<package_name>", methods=["GET"])
-    # def get_package_dependencies(package_name):
-    #     g = build_graph_ego_network(package_name)
-    #     return jsonify(g)
-    #
-    # @app.route("/clearCache")
-    # def clear_cache_route():
-    #     # x = get_db()
-    #     # print(x)
-    #     clear_cache()
-    #     return "success"
-    #
-    # @app.route("/getPopularNetwork")
-    # def get_popular_network():
-    #     g = build_popular_network()
-    #     return jsonify(g)
     #
     # app.logger.info("app created")
     return app
@@ -78,16 +56,3 @@ def load_logs(app):
     app.logger.setLevel(logging.INFO)
     app.logger.info("logger setup")
     return
-
-
-def config_db(app):
-    URI = (
-        "neo4j://" + app.config["NEO4J_HOST"]
-    )  # + ":" + current_app.config["NEO4J_PORT"]
-    AUTH = (
-        app.config["NEO4J_USERNAME"],
-        app.config["NEO4J_PASSWORD"],
-    )
-    database = app.config["NEO4J_DB"]
-    driver = GraphDatabase.driver(URI, auth=AUTH)
-    return driver

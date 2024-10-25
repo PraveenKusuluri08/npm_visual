@@ -1,11 +1,32 @@
 from typing import Dict, List
 
 import networkx as nx
+from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_packages
 from npmvisual.data import get_package
 
 from .package import Package
+
+bp = Blueprint("utils", __name__)
+
+
+@bp.route("/scrapeAll", methods=["GET"])
+def scrape_all():
+    scrape_all_data(1000)
+    return "success"
+
+
+@bp.route("/dependencies/<package_name>", methods=["GET"])
+def get_package_dependencies(package_name):
+    g = build_graph_ego_network(package_name)
+    return jsonify(g)
+
+
+@bp.route("/getPopularNetwork")
+def get_popular_network():
+    g = build_popular_network()
+    return jsonify(g)
 
 
 def build_graph(packages: Dict[str, Package]):
