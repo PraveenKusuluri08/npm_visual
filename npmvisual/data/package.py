@@ -30,6 +30,10 @@ class Package:
 
     def addToDB(self):
         print(db)
+        # with db.driver() as session:
+        # db.driver?.execute_write("")
+        # toto
+        # r = session.execute_write()
 
 
 def get_package(package_name: str) -> Package | None:
@@ -40,6 +44,7 @@ def get_package(package_name: str) -> Package | None:
     if exists(package_name):
         app.logger.info(f"{package_name} is cached")
         r_dict = load(package_name)
+
     else:
         app.logger.info(f"{package_name} is not cached. Scraping from online")
         r_dict = scrape_package_json(package_name)

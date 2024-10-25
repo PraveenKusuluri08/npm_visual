@@ -1,5 +1,5 @@
 from flask.app import Flask
-from neo4j import GraphDatabase
+from neo4j import GraphDatabase, Session
 
 
 class Neo4j:
@@ -7,7 +7,7 @@ class Neo4j:
 
     def __init__(self):
         self.app = None
-        self.driver = None
+        self.driver: Session | None = None
 
     def init_app(self, app):
         self.app = app
