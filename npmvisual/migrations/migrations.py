@@ -49,18 +49,17 @@ def create_migration_list() -> list[Migration]:
     return migrations
 
 
-def delete_all_migrations_tx(tx: ManagedTransaction):
-    tx.run(
-        """
-        MATCH (m:Migration)
-        DELETE m
-        """,
-    )
-
-
 # never use this
 @bp.route("/delete_all")
 def delete_all_migrations():
+    def delete_all_migrations_tx(tx: ManagedTransaction):
+        tx.run(
+            """
+            MATCH (m:Migration)
+            DELETE m
+            """,
+        )
+
     db.execute_write(delete_all_migrations_tx)
     return "success"
 
@@ -112,6 +111,9 @@ def get_timestamp(migration_id: str) -> int:
 
 @bp.route("/upgrade", methods=["GET"])
 def upgrade():
+    """
+    Run any migrations ahead of current. set current_timestamp in db after every migration
+    """
     migrations = create_migration_list()
     current_id = db.execute_write(get_current_migration_id)
     current_timestamp = get_timestamp(current_id)
@@ -141,12 +143,18 @@ def upgrade():
         m.func()
         current_timestamp = m.timestamp
         db.execute_write(set_current_migration, m.migration_id)
+    return "success"
 
-    # run any migrations between now and the timestamp
-    #
-    # migration_1729922231172()
-    # db.execute_write(create_migration_timestamp_002, "migration_1729921513660")
-    # db.execute_write(delete_all_migrations)
-    # r = db.execute_write(get_current_migration, migration_id="migration_1729919486297")
-    # print(r)
+
+# never use this
+@bp.route("/reset")
+def reset():
+    """
+    Remove all migrations and start fresh. rerun the first migration in the file, which
+    creates the migration db object to track current migration.
+    """
+    delete_all_migrations()
+    migrations = create_migration_list()
+    migration_init = migrations[0]
+    migration_init.func()
     return "success"
