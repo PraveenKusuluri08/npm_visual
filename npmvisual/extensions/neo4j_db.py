@@ -98,25 +98,3 @@ class Neo4j:
         """
         with self.driver.session(database=self.database) as session:
             return session.execute_write(transaction_function, *args, **kwargs)
-
-    def session_run(self, input_function):
-        @functools.wraps(input_function)
-        def session_wrapper(*args, **kwargs):
-            print("wrap start")
-            return_value = input_function(*args, **kwargs)
-            print("wrap ends")
-            return return_value
-
-    def session(self, input_function):
-        def wrapper(*args, **kwargs):
-            with self.driver.session(database=self.database) as session:
-                return_value = session  # this is too gross
-                return_value = input_function(*args, **kwargs)
-                print("wrap ends")
-                return return_value
-
-        return wrapper
-
-    # @session
-    def execute_read(*args, **kwargs):
-        kk = 0
