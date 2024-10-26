@@ -1,15 +1,12 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, OrderedDict
 
-from neo4j._data import Record
 from neo4j._sync.work.result import Result
 from neo4j._sync.work.transaction import ManagedTransaction
 
 from npmvisual import db
-from npmvisual.extensions.neo4j_db import P
-from npmvisual.migrations import bp, mig_func_never_edit
-from npmvisual.migrations.mig_func_never_edit import *
+from npmvisual.migrations import bp, migration_functions
+from npmvisual.migrations.migration_functions import *
 
 
 @dataclass
@@ -31,10 +28,10 @@ def create_migration_list() -> list[Migration]:
     software that I don't even know if it works.
     """
     migrations: list[Migration] = []
-    print(f'Creating migration list from module "{mig_func_never_edit.__name__}"')
+    print(f'Creating migration list from module "{migration_functions.__name__}"')
 
-    for attr in dir(mig_func_never_edit):
-        atr = getattr(mig_func_never_edit, attr)
+    for attr in dir(migration_functions):
+        atr = getattr(migration_functions, attr)
         if callable(atr):
             name: str = atr.__name__
             x = name.split("_")
@@ -146,7 +143,7 @@ def upgrade():
 
 
 # never use this unless you know what you are doing
-# @bp.route("/reset")
+@bp.route("/reset")
 def reset():
     """
     Remove all migrations and start fresh. rerun the first migration in the file, which
