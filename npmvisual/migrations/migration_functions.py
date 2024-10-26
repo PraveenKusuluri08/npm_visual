@@ -18,7 +18,7 @@ I made a handy CopyTimestamp.tsx component on the website. use that.
 def migration_1729922231172():
     """created new db migration system"""
 
-    def create_migration_system(
+    def create_migration_system_tx(
         tx: ManagedTransaction,
         migration_id: str,
     ):
@@ -35,4 +35,4 @@ def migration_1729922231172():
             migration_id=migration_id,
         )
 
-    db.execute_write(create_migration_system, "migration_1729922231172")
+    db.execute_write(create_migration_system_tx, "migration_1729922231172")

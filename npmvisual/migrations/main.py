@@ -60,7 +60,7 @@ def delete_all_migrations():
     return "success"
 
 
-def set_current_migration(
+def set_current_migration_tx(
     tx: ManagedTransaction,
     migration_id: str,
 ):
@@ -78,7 +78,7 @@ def set_current_migration(
     )
 
 
-def get_current_migration_id(tx: ManagedTransaction) -> str:
+def get_current_migration_id_tx(tx: ManagedTransaction) -> str:
     records = []
     result: Result = tx.run(
         """
@@ -111,7 +111,7 @@ def upgrade():
     Run any migrations ahead of current. set current_timestamp in db after every migration
     """
     migrations = create_migration_list()
-    current_id = db.execute_write(get_current_migration_id)
+    current_id = db.execute_write(get_current_migration_id_tx)
     current_timestamp = get_timestamp(current_id)
     migrations_after_current: list[Migration] = []
     m: Migration
@@ -138,7 +138,7 @@ def upgrade():
         )
         m.func()
         current_timestamp = m.timestamp
-        db.execute_write(set_current_migration, m.migration_id)
+        db.execute_write(set_current_migration_tx, m.migration_id)
     return "success"
 
 
