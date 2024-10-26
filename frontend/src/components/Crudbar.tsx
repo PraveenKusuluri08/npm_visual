@@ -2,6 +2,7 @@ import axios from "axios";
 // import useFetchGraphData from "../hooks/useFetch";
 import "./Crudbar.css";
 import { useRef, useState } from "react";
+import { CopyTimestamp } from "./CopyTimestamp";
 
 function Crudbar({ onSelect }: { onSelect: any }) {
   function scrapeAll() {
@@ -45,6 +46,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
   return (
     <nav>
       <h2>NPM Visual</h2>
+      <CopyTimestamp></CopyTimestamp>
       <div className="flex flex-col">
         <button className="button-48" onClick={() => apiTest(apiText)}>
           <span className="text">Test API</span>
