@@ -1,11 +1,12 @@
-from npmvisual import db
-from typing import Self
 from dataclasses import dataclass
 from typing import Dict
 
 from flask import current_app as app
+from neo4j._sync.work.transaction import ManagedTransaction
 
+from npmvisual import db
 from npmvisual.data.scraper import scrape_package_json
+
 from .cache import clean_if_invalid, exists, load, save
 
 
@@ -28,12 +29,31 @@ class Package:
             .get("dependencies", {})
         )
 
-    def addToDB(self):
-        print(db)
-        # with db.driver() as session:
-        db.run("")
-        # toto
-        # r = session.execute_write()
+    def db_merge_package(self):
+        """Add package to db if it does not exist, update otherwise"""
+
+        def merge_package_tx(
+            tx: ManagedTransaction,
+            package: Package,
+        ):
+            tx.run(
+                """
+                MERGE (p:Package {
+                    package_id: $package_id,
+                    description=description,
+                    latest_version=latest_version
+                })
+                ON CREATE SET p.created = timestamp()
+                ON MATCH SET
+                p.counter = coalesce(m.counter, 0) + 1,
+                p.accessTime = timestamp()
+                """,
+                package_id=package.id,
+                description=package.description,
+                latest_version=package.latest_version,
+            )
+
+        db.execute_write(merge_package_tx, self)
 
 
 def get_package(package_name: str) -> Package | None:
