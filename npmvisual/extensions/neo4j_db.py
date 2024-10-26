@@ -82,9 +82,6 @@ class Neo4j:
     #     *args: _P.args,
     #     **kwargs: _P.kwargs,
     # ) -> _R:
-    def write_transaction(self, *args, **kwargs):
-        with self.driver.session(database=self.database) as session:
-            return session.write_transaction(*args, **kwargs)
 
     def execute_write(
         self,
