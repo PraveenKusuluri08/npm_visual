@@ -1,160 +1,97 @@
-from collections.abc import Callable
-from dataclasses import dataclass
-from typing import Any, OrderedDict
+from npmvisual import db
+from npmvisual.utils2 import ns_hash
 
-from neo4j._data import Record
-from neo4j._sync.work.result import Result
+import time
 from neo4j._sync.work.transaction import ManagedTransaction
 
-from npmvisual import db
-from npmvisual.extensions.neo4j_db import P
-from npmvisual.migrations import bp, mig_func_never_edit
-from npmvisual.migrations.mig_func_never_edit import *
+"""
+DO NOT EVER EDIT FUNCTIONS IN THIS FILE. I HAVE NOT MADE DOWNGRADE. 
+JUST ADD MORE UPGRADES TO FIX STUFF
+
+COPY PASTE IS YOUR FRIEND. 
+
+name of migrations should be: "migration_timestamp"
+where timestamp is milliseconds since the epoch. 
+
+I made a handy CopyTimestamp.tsx component on the website. use that. 
+"""
 
 
-@dataclass
-class Migration:
-    migration_id: str
-    timestamp: int
-    func: Callable[[], object]
+def migration_1729922231172():
+    """created new db migration system"""
 
-
-def int_readable(n: int) -> str:
-    """Return a string representation of the integer with commas for readability."""
-    return f"{n:,}"
-
-
-def create_migration_list() -> list[Migration]:
-    """
-    Creates a list of function names and functions from another file. Yes I know this is a
-    hack, but I don't want to add more dependencies and learn another db migration
-    software that I don't even know if it works.
-    """
-    migrations: list[Migration] = []
-    print(f'Creating migration list from module "{mig_func_never_edit.__name__}"')
-
-    for attr in dir(mig_func_never_edit):
-        atr = getattr(mig_func_never_edit, attr)
-        if callable(atr):
-            name: str = atr.__name__
-            x = name.split("_")
-            # print(x)
-            if len(x) == 2 and x[0] == "migration":
-                timestamp = get_timestamp(name)
-                migrations.append(
-                    Migration(migration_id=name, timestamp=timestamp, func=atr)
-                )
-    migrations.sort(key=lambda migration: migration.migration_id)
-    print("Migration List made successfully")
-    return migrations
-
-
-# never use this
-@bp.route("/delete_all")
-def delete_all_migrations():
-    def delete_all_migrations_tx(tx: ManagedTransaction):
+    def create_migration_system(
+        tx: ManagedTransaction,
+        migration_id: str,
+    ):
         tx.run(
             """
-            MATCH (m:Migration)
-            DELETE m
+            MERGE (m:Migration {
+                migration_id: $migration_id
+            })
+            ON CREATE SET m.created = timestamp()
+            ON MATCH SET
+            m.counter = coalesce(m.counter, 0) + 1,
+            m.accessTime = timestamp()
             """,
+            migration_id=migration_id,
         )
 
-    db.execute_write(delete_all_migrations_tx)
-    return "success"
+    db.execute_write(create_migration_system, "migration_1729922231172")
 
 
-def set_current_migration(
-    tx: ManagedTransaction,
-    migration_id: str,
-):
-    tx.run(
-        """
-        MERGE (m:Migration {
-            migration_id: $migration_id
-          })
-        ON CREATE SET m.created = timestamp()
-        ON MATCH SET
-        m.counter = coalesce(m.counter, 0) + 1,
-        m.accessTime = timestamp()
-        """,
-        migration_id=migration_id,
-    )
-
-
-def get_current_migration_id(tx: ManagedTransaction) -> str:
-    records = []
-    result: Result = tx.run(
-        """
-        MATCH (m:Migration)
-        RETURN m.migration_id as migration_id
-        """,
-    )
-    for record in result:
-        x = record["migration_id"]
-        records.append(x)
-    # should only be one. crash if someone made another or if it does not exist
-    assert len(records) == 1
-    return records[0]
-
-
-def get_timestamp(migration_id: str) -> int:
-    """
-    migration_id functions should be of the format
-        migration_timestamp
-
-    That should be the function name. Also, never edit these funtions once created
-    Copy paste
-    """
-    return int(migration_id.split("_")[1])
-
-
-@bp.route("/upgrade", methods=["GET"])
-def upgrade():
-    """
-    Run any migrations ahead of current. set current_timestamp in db after every migration
-    """
-    migrations = create_migration_list()
-    current_id = db.execute_write(get_current_migration_id)
-    current_timestamp = get_timestamp(current_id)
-    migrations_after_current: list[Migration] = []
-    m: Migration
-    print("Listing all migrations")
-    for m in reversed(migrations):
-        if m.timestamp > current_timestamp:
-            print(f" -> {int_readable(current_timestamp)} current")
-        print(f"    {int_readable(m.timestamp)}  - {m}")
-
-    for m in migrations:
-        # print(f"  {m}")
-        timestamp = get_timestamp(m.migration_id)
-        if timestamp > current_timestamp:
-            migrations_after_current.append(m)
-
-    print(
-        f"\nThere are {len(migrations_after_current)} migrations ahead of current "
-        f"timestamp {int_readable(current_timestamp)}:"
-    )
-    for m in migrations_after_current:
-        time_difference = m.timestamp - current_timestamp
-        print(
-            f"\t {m.migration_id }: Ahead by {int_readable(time_difference)} milliseconds"
-        )
-        m.func()
-        current_timestamp = m.timestamp
-        db.execute_write(set_current_migration, m.migration_id)
-    return "success"
-
-
-# never use this
-@bp.route("/reset")
-def reset():
-    """
-    Remove all migrations and start fresh. rerun the first migration in the file, which
-    creates the migration db object to track current migration.
-    """
-    delete_all_migrations()
-    migrations = create_migration_list()
-    migration_init = migrations[0]
-    migration_init.func()
-    return "success"
+#
+#
+# def migration_1729922231172():
+#     """created new db migration system"""
+#     db.execute_write(create_migration_timestamp_002, "migration_1729921513660")
+#
+#
+# def migration_1729919486297():
+#     description = "created first db migration"
+#     db.execute_write(create_migration_timestamp_001, description)
+#
+#
+# def create_migration_timestamp_002(
+#     tx: ManagedTransaction,
+#     migration_id: str,
+# ):
+#     tx.run(
+#         """
+#         MERGE (m:Migration {
+#             migration_id: $migration_id
+#           })
+#         ON CREATE SET m.created = timestamp()
+#         ON MATCH SET
+#         m.counter = coalesce(m.counter, 0) + 1,
+#         m.accessTime = timestamp()
+#         """,
+#         migration_id=migration_id,
+#     )
+#
+#
+# def create_migration_timestamp_001(
+#     tx: ManagedTransaction,
+#     description,
+# ):
+#     timestamp = time.time()
+#     hash = ns_hash(description + str(timestamp), 24)
+#     id = f"${timestamp}_${hash}_${description[:24]}"
+#
+#     tx.run(
+#         """
+#         MERGE (m:Migration{
+#             migration_id: $id,
+#             description: $description,
+#             timestamp: $timestamp
+#           })
+#         ON CREATE SET m.created = timestamp()
+#         ON MATCH SET
+#         m.counter = coalesce(m.counter, 0) + 1,
+#         m.accessTime = timestamp()
+#         RETURN m
+#         """,
+#         id=id,
+#         description=description,
+#         timestamp=timestamp,
+#     )
