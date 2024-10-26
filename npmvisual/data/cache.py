@@ -1,4 +1,3 @@
-import hashlib
 import os
 import shutil
 import string
@@ -9,6 +8,7 @@ from flask import current_app as app
 from flask import json
 
 from npmvisual.data import bp
+from npmvisual.utils2 import ns_hash
 
 whitelist = set(string.ascii_letters + string.digits)
 _HASH_LENGTH = 40
@@ -166,15 +166,10 @@ def _get_package_path(package_name: str) -> str:
     return os.path.join(cache_path, filename + ".json")
 
 
-def _hash_package(package_name: str) -> str:
-    hash: str = hashlib.sha1(package_name.encode("UTF-8")).hexdigest()
-    return hash[:_HASH_LENGTH]
-
-
 def _convert_to_filename(package_name: str) -> str:
     # for readability, keep some of the filename
     filename = _whitelist(package_name)
-    file_hash = str(_hash_package(package_name))
+    file_hash = str(ns_hash(package_name, _HASH_LENGTH))
     # Most OS have maximum file lengths. make sure it is under 255
     if len(filename) + _HASH_LENGTH > 254:
         filename_new_len = 254 - _HASH_LENGTH

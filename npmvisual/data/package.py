@@ -31,7 +31,7 @@ class Package:
     def addToDB(self):
         print(db)
         # with db.driver() as session:
-        # db.driver?.execute_write("")
+        db.run("")
         # toto
         # r = session.execute_write()
 

@@ -25,6 +25,10 @@ def create_app(config_class=Config):
 
     app.register_blueprint(utils_bp)
 
+    from npmvisual.migrations import bp as migrations_bp
+
+    app.register_blueprint(migrations_bp, url_prefix="/migrations")
+
     # @app.teardown_appcontext
     # def close_db(error):
     #     pass
