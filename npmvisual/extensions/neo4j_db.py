@@ -83,6 +83,22 @@ class Neo4j:
     #     **kwargs: _P.kwargs,
     # ) -> _R:
 
+    def execute_read(
+        self,
+        transaction_function: Callable[Concatenate[ManagedTransaction, P], R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> R:
+        """
+        A very thin wrapper around the Neo4j execute_read. All the Parameters and return
+        types should be identical.
+
+        This is needed because sessions are used short term, and there won't be a single
+        session for the flask app to access.
+        """
+        with self.driver.session(database=self.database) as session:
+            return session.execute_read(transaction_function, *args, **kwargs)
+
     def execute_write(
         self,
         transaction_function: Callable[Concatenate[ManagedTransaction, P], R],
