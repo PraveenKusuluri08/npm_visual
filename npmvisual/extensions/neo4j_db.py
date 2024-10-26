@@ -1,10 +1,11 @@
-from flask.app import Flask
-from typing import Any, Callable, Concatenate, ParamSpec, TypeVar
-from neo4j import GraphDatabase, Session
-from neo4j._sync.driver import Driver
-
-from typing_extensions import Concatenate, ParamSpec
 import functools
+from typing import Callable, Concatenate, ParamSpec, TypeVar
+
+from flask.app import Flask
+from neo4j import GraphDatabase
+from neo4j._sync.driver import Driver
+from neo4j._sync.work.transaction import ManagedTransaction
+from typing_extensions import Concatenate, ParamSpec
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -85,14 +86,21 @@ class Neo4j:
         with self.driver.session(database=self.database) as session:
             return session.write_transaction(*args, **kwargs)
 
-    def execute_write(self, *args, **kwargs):  # if not isinstance(command, str):
-        #     return False
-        # if command == "":
-        #     return False
-        print()
+    def execute_write(
+        self,
+        transaction_function: Callable[Concatenate[ManagedTransaction, P], R],
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> R:
+        """
+        A very thin wrapper around the Neo4j execute_write. All the Parameters and return
+        types should be identical.
+
+        This is needed because sessions are used short term, and there won't be a single
+        session for the flask app to access.
+        """
         with self.driver.session(database=self.database) as session:
-            return session.execute_write(*args, **kwargs)
-        # return True
+            return session.execute_write(transaction_function, *args, **kwargs)
 
     def session_run(self, input_function):
         @functools.wraps(input_function)
@@ -102,5 +110,16 @@ class Neo4j:
             print("wrap ends")
             return return_value
 
-    def get_session(self):
-        return self.driver.session(database=self.database)
+    def session(self, input_function):
+        def wrapper(*args, **kwargs):
+            with self.driver.session(database=self.database) as session:
+                return_value = session  # this is too gross
+                return_value = input_function(*args, **kwargs)
+                print("wrap ends")
+                return return_value
+
+        return wrapper
+
+    # @session
+    def execute_read(*args, **kwargs):
+        kk = 0
