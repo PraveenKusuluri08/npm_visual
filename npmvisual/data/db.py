@@ -1,5 +1,6 @@
 from npmvisual import db
 from npmvisual.data import bp
+from npmvisual.data.db_package import db_package_delete_all
 
 
 @bp.route("/test", methods=["GET"])
@@ -9,6 +10,12 @@ def open_db():
     print(x)
     return "test"
     # get_db()
+
+
+@bp.route("/deletePackages")
+def delete_packages():
+    db_package_delete_all()
+    return "success"
 
 
 #

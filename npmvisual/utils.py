@@ -4,8 +4,9 @@ import networkx as nx
 from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_packages
+from npmvisual.data.db_package import get_package
 
-from .data.package import Package, get_package
+from .data.package import Package
 
 bp = Blueprint("utils", __name__)
 
