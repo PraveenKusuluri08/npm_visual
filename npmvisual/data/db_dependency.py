@@ -46,27 +46,28 @@ def get_dependencies_from_db(package_name: str) -> list[Dependency]:
     return dependencies
 
 
-def db_create_dependency(package_id: str, dependency: Dependency):
-    db.execute_write(
-        lambda tx: tx.run(
+def db_dependency_merge(package_id: str, dependency: Dependency):
+    def merge(tx):
+        return tx.run(
             """
-            MATCH (a {package_id: $a_id}), 
-                  (b {package_id: $b_id})
-            MERGE (a)-[d:DependsOn {version: $version}]->(b)
-            ON CREATE SET 
-                a.created = timestamp(),
-                b.created = timestamp(),
-                d.created = timestamp()
-            ON MATCH SET
-                a.counter = coalesce(a.counter, 0) + 1,
-                a.accessTime = timestamp(),
-                b.counter = coalesce(a.counter, 0) + 1,
-                b.accessTime = timestamp(),
-                d.counter = coalesce(a.counter, 0) + 1,
-                d.accessTime = timestamp()
-            """,
+        MATCH (a {package_id: $a_id}), 
+                (b {package_id: $b_id})
+        MERGE (a)-[d:DependsOn {version: $version}]->(b)
+        ON CREATE SET 
+            a.created = timestamp(),
+            b.created = timestamp(),
+            d.created = timestamp()
+        ON MATCH SET
+            a.counter = coalesce(a.counter, 0) + 1,
+            a.accessTime = timestamp(),
+            b.counter = coalesce(a.counter, 0) + 1,
+            b.accessTime = timestamp(),
+            d.counter = coalesce(a.counter, 0) + 1,
+            d.accessTime = timestamp()
+        """,
             a_id=package_id,
             b_id=dependency.package,
             version=dependency.version,
         )
-    )
+
+    return db.execute_write(merge)

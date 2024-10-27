@@ -4,7 +4,7 @@ from neo4j.graph import Node
 
 from npmvisual import db
 from npmvisual.data import cache
-from npmvisual.data.db_dependency import db_create_dependency, get_dependencies_from_db
+from npmvisual.data.db_dependency import db_dependency_merge, get_dependencies_from_db
 from npmvisual.data.package import Package
 from npmvisual.data.scraper import scrape_package_json
 
@@ -29,7 +29,7 @@ def db_package_delete_all():
     def delete_packages_tx(tx):
         return tx.run(
             """
-            MATCH (p:Person)
+            MATCH (p:Package)
             DETACH DELETE p
             """,
         )
@@ -42,11 +42,12 @@ def db_merge_package_and_dependents(package: Package):
     db_merge_package(package)
 
     for d in package.dependencies:
-        db_create_dependency(package.id, d)
+        db_dependency_merge(package.id, d)
 
 
 def db_merge_package_id_only(package: Package):
     """Add package to db if it does not exist"""
+    print(f"\t merge package {package.id} - id only")
     db.execute_write(
         lambda tx: tx.run(
             """
@@ -64,6 +65,7 @@ def db_merge_package_id_only(package: Package):
 
 
 def db_merge_package(package: Package):
+    print(f"\t merge package {package.id}")
     """Add package to db if it does not exist, update otherwise"""
     db.execute_write(
         lambda tx: tx.run(
@@ -153,7 +155,7 @@ def _get_package_from_online(package_name: str) -> Package | None:
 
 
 def get_package(package_name: str) -> Package | None:
-    print(f"searching for package: {package_name}")
+    print(f"\n\nsearching for package: {package_name}")
     p = _get_package_from_db(package_name)
     if p is not None:
         return p
