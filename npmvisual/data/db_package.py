@@ -37,7 +37,8 @@ def db_package_delete_all():
     db.execute_write(delete_packages_tx)
 
 
-def db_merge_package_and_dependents(package: Package):
+def _db_merge_package_and_dependents(package: Package):
+    # ended up removing since we want to do relationships after all packages are created
     # create or update package in db if it does not already exist
     db_merge_package(package)
 
@@ -135,7 +136,8 @@ def _get_package_from_cache(package_name: str) -> Package | None:
         app.logger.info(f"{package_name} is cached")
         r_dict = cache.load(package_name)
         p = Package.from_package_json(r_dict)
-        db_merge_package_and_dependents(p)
+        # _db_merge_package_and_dependents(p)
+        db_merge_package(p)
         return p
     return None
 
@@ -147,7 +149,8 @@ def _get_package_from_online(package_name: str) -> Package | None:
     if r_dict is not None:
         cache.save(package_name, r_dict)
         p = Package.from_package_json(r_dict)
-        db_merge_package_and_dependents(p)
+        # _db_merge_package_and_dependents(p)
+        db_merge_package(p)
         return p
     # print("diagnose2")
     # diagnose(package_name)

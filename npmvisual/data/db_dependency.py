@@ -47,7 +47,9 @@ def get_dependencies_from_db(package_name: str) -> list[Dependency]:
 
 
 def db_dependency_merge(package_id: str, dependency: Dependency):
-    def merge(tx):
+    print(f"\t\tDependency merge for {dependency}")
+
+    def dependency_merge_tx(tx):
         return tx.run(
             """
         MATCH (a {package_id: $a_id}), 
@@ -70,4 +72,4 @@ def db_dependency_merge(package_id: str, dependency: Dependency):
             version=dependency.version,
         )
 
-    return db.execute_write(merge)
+    return db.execute_write(dependency_merge_tx)
