@@ -80,7 +80,7 @@ def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]
         # print("count = " + count.__str__() + "next = " + next_id)
         if next_id not in data:
             next_package: Package | None = get_package(next_id)
-            print("next_package = " + next_package.__str__())
+            # print("next_package = " + next_package.__str__())
             if next_package is None:
                 return {}
             data[next_id] = next_package

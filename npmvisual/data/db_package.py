@@ -97,7 +97,7 @@ def db_merge_package(package: Package):
 
 
 def _get_package_from_db(package_name: str) -> Package | None:
-    print(f"searching for package in db: {package_name}")
+    # print(f"searching for package in db: {package_name}")
 
     def match_package_tx(tx):
         result = tx.run(
@@ -119,7 +119,7 @@ def _get_package_from_db(package_name: str) -> Package | None:
         return None
 
     node: Node = record["p"]
-    print(f"node: {node}")
+    # print(f"node: {node}")
     if node is None:
         print("Package found in db has no node. None returned. ")
         return None
@@ -137,7 +137,7 @@ def _get_package_from_db(package_name: str) -> Package | None:
 def _get_package_from_cache(
     package_name: str, fully_searched_packages: Set[str]
 ) -> Package | None:
-    print(f"searching for package in cache: {package_name}")
+    # print(f"searching for package in cache: {package_name}")
     # app.logger.info(f"getting {package_name}")
     cache.clean_if_invalid(package_name)
     # print("diagnose1")
@@ -173,7 +173,7 @@ def _scrape_package_from_online(package_name: str) -> bool:
 def get_package(
     package_name: str, fully_searched_packages: Set[str] = set()
 ) -> Package | None:
-    print(f"\n\nsearching for package: {package_name}")
+    # print(f"\n\nsearching for package: {package_name}")
 
     # db is now the single source of truth. update cache to update db. but only get
     # package data from db
@@ -186,11 +186,11 @@ def get_package(
 
         p = _get_package_from_db(package_name)
         if p is not None:
-            print(f"package {package_name} found in the database")
+            # print(f"package {package_name} found in the database")
             return p
 
         count = 0
-        print(f"package not in db. Checking cache {package_name}")
+        # print(f"package not in db. Checking cache {package_name}")
         # app.logger.info(f"getting {package_name}")
         cache.clean_if_invalid(package_name)
         # print("diagnose1")
@@ -208,13 +208,13 @@ def get_package(
 
             if r_dict is not None:
                 cache.save(package_name, r_dict)
-            else:
-                # print("diagnose2")
-                # diagnose(package_name)
-                print(f"Failed to scrape {package_name}")
+            # else:
+            # print("diagnose2")
+            # diagnose(package_name)
+            # print(f"Failed to scrape {package_name}")
             count += 1
 
-        print("cache file written. update db from cache")
+        # print("cache file written. update db from cache")
         r_dict = cache.load(package_name)
         """Update the db package based on the information in the cache file. Do not return a
         Package since the DB is the one source of Truth. Since all Packages are now made from
@@ -230,10 +230,10 @@ def get_package(
         dependency_dict: Dict[str, str] = (
             r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
         )
-        print(f"dependency_dict = {dependency_dict} ---------------------------------")
+        # print(f"dependency_dict = {dependency_dict} ---------------------------------")
         dependencies: list[Dependency] = []
         for package, version in dependency_dict.items():
-            print(f"\taaaaa: b{package}, {version}")
+            # print(f"\taaaaa: b{package}, {version}")
             dependencies.append(Dependency(package, version))
         # print(f"dependencies = {dependencies}")
         temp = Package(

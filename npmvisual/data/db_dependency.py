@@ -12,7 +12,7 @@ def _from_db_record(x):
 
 
 def get_dependencies_from_db(package_name: str) -> list[Dependency]:
-    print(f"searching for package in db: {package_name}")
+    # print(f"searching for package in db: {package_name}")
 
     def match_dependency_tx(tx):
         result = tx.run(
