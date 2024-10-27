@@ -1,13 +1,14 @@
 from dataclasses import dataclass
-from typing import Any, Dict
+from typing import Dict
 
 from flask import current_app as app
+from neo4j._data import Record
 from neo4j._sync.work.transaction import ManagedTransaction
 
 from npmvisual import db
-from npmvisual.data.scraper import scrape_package_json
-
 from npmvisual.data import cache
+from npmvisual.data.dependency import Dependency
+from npmvisual.data.scraper import scrape_package_json
 
 
 @dataclass
@@ -15,29 +16,94 @@ class Package:
     id: str
     description: str
     latest_version: str
-    dependencies: Dict[str, str]
+    dependencies: list[Dependency]
 
-    def __init__(self, r_dict):
-        self.id = r_dict.get("_id")
-        self.description = r_dict.get("description")
-        self.latest_version = r_dict.get("dist-tags", {}).get("latest")
+    @staticmethod
+    def from_package_json(r_dict):
+        id = r_dict.get("_id")
+        description = r_dict.get("description")
+        latest_version = r_dict.get("dist-tags", {}).get("latest")
 
         # some packages have no dependencies. represent this as an empty dict
-        self.dependencies: Dict[str, str] = (
-            r_dict.get("versions", {})
-            .get(self.latest_version, {})
-            .get("dependencies", {})
+        dependency_dict: Dict[str, str] = (
+            r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
         )
+        dependencies: list[Dependency] = []
+        for package, version in dependency_dict.items():
+            dependencies.append(Dependency(package, version))
+        print(f"dependencies = {dependencies}")
+        return Package(id, description, latest_version, dependencies)
+
+    # @staticmethod
+    # def from_db_record(r: Record):
+    #     dependencies: Dict [str, str]
+    #     for d in dependencies:
+    #         dependencies[] = ''
+    #
+    #     p = Package(
+    #         id=r.package_id,
+    #         description=r.description,
+    #         latest_version=r.latest_version,
+    #         dependencies = dependencies,
+    #     )
+    #     return Package(id,description,latest_version, dependencies)
+
+
+def db_create_dependency(package_id: str, dependent_package_id: str):
+    db.execute_write(
+        lambda tx: tx.run(
+            """
+            MATCH (a {package_id: $a_id}), 
+                  (b {package_id: $b_id})
+            MERGE (a)-[r:DependsOn]->(b)
+            ON CREATE SET 
+                a.created = timestamp(),
+                b.created = timestamp(),
+                r.created = timestamp()
+            ON MATCH SET
+                a.counter = coalesce(a.counter, 0) + 1,
+                a.accessTime = timestamp(),
+                b.counter = coalesce(a.counter, 0) + 1,
+                b.accessTime = timestamp(),
+                r.counter = coalesce(a.counter, 0) + 1,
+                r.accessTime = timestamp()
+            """,
+            a_id=package_id,
+            b_id=dependent_package_id,
+        )
+    )
+
+
+def db_merge_package_and_dependents(package: Package):
+    # create or update package in db if it does not already exist
+    db_merge_package(package)
+
+    for p in package.dependencies:
+        db_create_dependency(package.id, p.package)
+
+
+def db_merge_package_id_only(package: Package):
+    """Add package to db if it does not exist"""
+    db.execute_write(
+        lambda tx: tx.run(
+            """
+            MERGE (p:Package {
+                package_id: $package_id
+            })
+            ON CREATE SET p.created = timestamp()
+            ON MATCH SET
+            p.counter = coalesce(p.counter, 0) + 1,
+            p.accessTime = timestamp()
+            """,
+            package_id=package.id,
+        )
+    )
 
 
 def db_merge_package(package: Package):
     """Add package to db if it does not exist, update otherwise"""
-
-    def merge_package_tx(
-        tx: ManagedTransaction,
-        package: Package,
-    ):
-        tx.run(
+    db.execute_write(
+        lambda tx: tx.run(
             """
             MERGE (p:Package {
                 package_id: $package_id,
@@ -53,28 +119,33 @@ def db_merge_package(package: Package):
             description=package.description,
             latest_version=package.latest_version,
         )
-
-    db.execute_write(merge_package_tx, package)
+    )
 
 
 def _get_package_from_db(package_name: str) -> Package | None:
+    print(f"searching for package in db: {package_name}")
+
     def match_package_tx(
         tx: ManagedTransaction,
         package_id: str,
     ):
-        tx.run(
+        result = tx.run(
             """
-            MERGE (p:Package)
+            MATCH (p:Package)
             WHERE p.package_id = $package_id
-            return p as package
+            RETURN p
             """,
             package_id=package_id,
         )
+        return result.single()
 
-    return None
+    x = db.execute_read(match_package_tx, package_name)
+    print(f"x={x}")
+    return
 
 
 def _get_package_from_cache(package_name: str) -> Package | None:
+    print(f"searching for package in cache: {package_name}")
     # app.logger.info(f"getting {package_name}")
     cache.clean_if_invalid(package_name)
     # print("diagnose1")
@@ -82,7 +153,9 @@ def _get_package_from_cache(package_name: str) -> Package | None:
     if cache.exists(package_name):
         app.logger.info(f"{package_name} is cached")
         r_dict = cache.load(package_name)
-        return Package(r_dict)
+        p = Package.from_package_json(r_dict)
+        db_merge_package_and_dependents(p)
+        return p
     return None
 
 
@@ -92,24 +165,30 @@ def _get_package_from_online(package_name: str) -> Package | None:
 
     if r_dict is not None:
         cache.save(package_name, r_dict)
-        return Package(r_dict)
+        p = Package.from_package_json(r_dict)
+        db_merge_package_and_dependents(p)
+        return p
     # print("diagnose2")
     # diagnose(package_name)
     print(f"Failed to scrape {package_name}")
 
 
 def get_package(package_name: str) -> Package | None:
+    print(f"searching for package: {package_name}")
     p = _get_package_from_db(package_name)
     if p is not None:
+        print("getPackage3")
         return p
 
     p = _get_package_from_cache(package_name)
 
+    print("getPackage5")
     if p is not None:
-        db_merge_package(p)
+        print("getPackage6")
         return p
 
-    return _get_package_from_online(package_name)
+    print("getPackage7")
+    p = _get_package_from_online(package_name)
 
 
 def validate(r_dict):

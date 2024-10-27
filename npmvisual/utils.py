@@ -35,8 +35,8 @@ def build_graph(packages: Dict[str, Package]):
         G.add_node(p.id)
 
     for p in packages.values():
-        for e in p.dependencies:
-            G.add_edge(e, p.id)
+        for d in p.dependencies:
+            G.add_edge(d.package, p.id)
     return G
 
 
@@ -78,14 +78,14 @@ def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]
         next_id = to_search.pop()
         # print("count = " + count.__str__() + "next = " + next_id)
         if next_id not in data:
-            next_package = get_package(next_id)
+            next_package: Package | None = get_package(next_id)
             # print("next_package = " + next_package.__str__())
             if next_package is None:
                 return {}
             data[next_id] = next_package
             for d in next_package.dependencies:
-                if d not in data:
-                    to_search.append(d)
+                if d.package not in data:
+                    to_search.append(d.package)
     print(f"graph created with {count} packages")
     return data
 
