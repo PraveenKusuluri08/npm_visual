@@ -49,12 +49,13 @@ def get_dependencies_from_db(package_name: str) -> list[Dependency]:
 def db_dependency_merge(package_id: str, dependency: Dependency):
     print(f"\t\tDependency merge for {dependency}")
 
+    # todo: {version: $version}
     def dependency_merge_tx(tx):
         return tx.run(
             """
         MATCH (a {package_id: $a_id}), 
                 (b {package_id: $b_id})
-        MERGE (a)-[d:DependsOn {version: $version}]->(b)
+        MERGE (a)-[d:DependsOn ]->(b)
         ON CREATE SET 
             a.created = timestamp(),
             b.created = timestamp(),
@@ -66,10 +67,13 @@ def db_dependency_merge(package_id: str, dependency: Dependency):
             b.accessTime = timestamp(),
             d.counter = coalesce(a.counter, 0) + 1,
             d.accessTime = timestamp()
+        RETURN d,a,b
         """,
             a_id=package_id,
             b_id=dependency.package,
             version=dependency.version,
         )
 
-    return db.execute_write(dependency_merge_tx)
+    x = db.execute_write(dependency_merge_tx)
+    print(x)
+    return x

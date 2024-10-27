@@ -41,7 +41,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
     // useFetchGraphData(url);
     // axios.get(url)
   };
-  const [apiText, setApiText] = useState("data/test");
+  const [apiText, setApiText] = useState("data/deletePackages");
 
   return (
     <nav>
