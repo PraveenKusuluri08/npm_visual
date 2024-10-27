@@ -223,8 +223,9 @@ def get_package(
         id = r_dict.get("_id")
         description = r_dict.get("description")
         latest_version = r_dict.get("dist-tags", {}).get("latest")
+        if not description:
+            description = ""
         assert id is not None
-        assert description is not None
         # some packages have no dependencies. represent this as an empty dict
         dependency_dict: Dict[str, str] = (
             r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
