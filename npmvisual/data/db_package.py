@@ -89,7 +89,6 @@ def db_network_search(
             to_search=to_search,
         )
 
-        print(result.graph)
         print(333333333333333333)
         print(result)
         for record in result:
