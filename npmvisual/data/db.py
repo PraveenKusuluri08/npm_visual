@@ -1,6 +1,10 @@
 from npmvisual import db
 from npmvisual.data import bp
-from npmvisual.data.db_package import db_package_delete_all
+from npmvisual.data.db_package import (
+    db_network_search,
+    db_package_delete_all,
+    db_recursive_network_search,
+)
 
 
 @bp.route("/test", methods=["GET"])
@@ -10,6 +14,13 @@ def open_db():
     print(x)
     return "test"
     # get_db()
+
+
+@bp.route("/network")
+def network():
+    db_recursive_network_search()
+    # db_package_delete_all()
+    return "success"
 
 
 @bp.route("/deletePackages")

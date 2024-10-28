@@ -10,6 +10,106 @@ from npmvisual.data.dependency import Dependency
 from npmvisual.data.package import Package
 from npmvisual.data.scraper import scrape_package_json
 
+"""
+Idea on how to call in an efficient manner
+
+search in batches. layers of depth until all nodes found. 
+    track how many levels deep typically runs. 
+    number of db calls = BFS of all packages and dependencies. 
+        add one final db call to get the .....
+
+or use this cypher query 
+
+MATCH (seed:Package {package_id: $seed_id})-[:DependsOn*1..]->(dependency:Package)
+RETURN seed, DISTINCT dependency
+
+this should be recursive. 
+
+
+"""
+
+
+def get_dependencies_from_list(x: list[Node]) -> list[Dependency]:
+    data = []
+    for n in x:
+        data.append(
+            Dependency(
+                n.get("package_id"),
+                # todo. this is wrong. fix this later once I add version information
+                n.get("latest_version"),
+            )
+        )
+    return data
+
+
+def get_package_from_db_node(node: Node, d_list: list[Dependency]):
+    return Package(
+        id=node.get("package_id"),
+        description=node.get("description"),
+        latest_version=node.get("latest_version"),
+        dependencies=d_list,
+    )
+
+
+def _contains(list, filter):
+    for x in list:
+        if filter(x):
+            return True
+    return False
+
+
+def db_recursive_network_search():
+    to_search: list[str] = ["express"]
+    found: list[Package] = []
+
+    depth = 0
+    while len(to_search) > 0 and depth <= 10:
+        to_search, found = db_network_search(to_search, found)
+        depth += 1
+
+
+def db_network_search(
+    to_search: list[str], found: list[Package]
+) -> tuple[list[str], list[Package]]:
+    print(f"searching for {to_search}")
+    print(f"found {len(found)} Packages")
+
+    def get_network_tx(tx):
+        print(f"about to search for {to_search}")
+        result = tx.run(
+            """
+            MATCH (seed:Package)
+            WHERE seed.package_id IN $to_search
+            MATCH (seed)-[rel:DependsOn]->(dependency:Package)
+            RETURN seed, COLLECT({
+                version: rel.version,
+                package_id: dependency.package_id
+            }) AS dependencies
+            """,
+            to_search=to_search,
+        )
+
+        print(result.graph)
+        print(333333333333333333)
+        print(result)
+        for record in result:
+            print(33333333)
+            p_data: Node = record["seed"]
+            print(f"processing package {p_data.get('package_id')}")
+            d_list: list = record["dependencies"]
+            dependencies = []
+            for d in d_list:
+                dependencies.append(Dependency(d["package_id"], d["version"]))
+                if not _contains(found, lambda n: n.id):
+                    print(f"\tadding {d['package_id']} to to_search")
+                    to_search.append(d["package_id"])
+            p = get_package_from_db_node(p_data, dependencies)
+            found.append(p)
+            to_search.remove(p.id)
+
+    db.execute_read(get_network_tx)
+    return to_search, found
+
 
 def db_package_get_all() -> list[Package]:
     def get_packages_tx(tx):
