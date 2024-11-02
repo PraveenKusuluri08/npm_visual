@@ -1,4 +1,3 @@
-from npmvisual import db
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.data.db_package import (

@@ -23,7 +23,7 @@ if not os.path.exists(cache_path):
     os.mkdir(cache_path)
 
 
-def isReadableFile(file_path):
+def is_readable_file(file_path):
     try:
         if not os.path.exists(file_path):
             # print("File path is invalid.")
