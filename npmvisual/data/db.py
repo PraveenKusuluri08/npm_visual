@@ -1,7 +1,7 @@
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.data.db_package import (
-    db_package_delete_all,
+    db_packages_delete_all,
     db_recursive_network_search_and_scrape,
     db_recursive_scrape_slow,
 )
@@ -23,5 +23,5 @@ def scrape_everything():
 
 # @bp.route("/deletePackages")
 def delete_packages():
-    db_package_delete_all()
+    db_packages_delete_all()
     return "success"
