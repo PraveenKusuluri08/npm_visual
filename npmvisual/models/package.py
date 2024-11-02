@@ -4,7 +4,7 @@ from typing import Dict
 
 from neo4j._data import Record
 
-from npmvisual.data.dependency import Dependency
+from npmvisual.models.dependency import Dependency
 
 
 @dataclass

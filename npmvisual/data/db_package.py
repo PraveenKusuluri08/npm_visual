@@ -7,9 +7,9 @@ from neo4j.graph import Node
 from npmvisual import db
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import db_dependency_merge, get_dependencies_from_db
-from npmvisual.data.dependency import Dependency
-from npmvisual.data.package import Package
 from npmvisual.data.scraper import scrape_package_json
+from npmvisual.models.dependency import Dependency
+from npmvisual.models.package import Package
 
 """
 Idea on how to call in an efficient manner

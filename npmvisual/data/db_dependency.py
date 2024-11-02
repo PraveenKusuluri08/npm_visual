@@ -3,8 +3,8 @@ from neo4j.graph import Node
 
 from neo4j.graph import Relationship
 from npmvisual import db
-from npmvisual.data.dependency import Dependency
-from npmvisual.data.package import Package
+from npmvisual.models.dependency import Dependency
+from npmvisual.models.package import Package
 
 
 def _from_db_record(x):

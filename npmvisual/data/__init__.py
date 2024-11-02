@@ -8,7 +8,7 @@ tool decides where to retrieve data from.
 
 from flask import Blueprint
 
-from .package import Package
+from npmvisual.models.package import Package
 
 from .db_package import db_recursive_network_search_and_scrape
 

@@ -1,12 +1,9 @@
-from typing import Dict, List
-
 import networkx as nx
 from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import get_packages
-
-from .data.package import Package
+from npmvisual.models.package import Package
 
 bp = Blueprint("utils", __name__)
 
@@ -14,14 +11,14 @@ bp = Blueprint("utils", __name__)
 @bp.route("/dependencies/<package_name>", methods=["GET"])
 def get_package_dependencies(package_name):
     packages = [package_name]
-    data: Dict[str, Package] = get_packages(packages)
+    data: dict[str, Package] = get_packages(packages)
     return format_for_frontend(data)
 
 
 @bp.route("/getPopularNetwork")
 def get_popular_network():
     to_search = get_popular_package_names()
-    data: Dict[str, Package] = get_packages(to_search)
+    data: dict[str, Package] = get_packages(to_search)
     return format_for_frontend(data)
 
 
