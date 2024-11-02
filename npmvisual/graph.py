@@ -5,17 +5,10 @@ from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_packages
 from npmvisual.data.db_package import db_recursive_network_search_and_scrape
-# from npmvisual.data.db_package import get_package
 
 from .data.package import Package
 
 bp = Blueprint("utils", __name__)
-
-
-# @bp.route("/scrapeAll", methods=["GET"])
-# def scrape_all():
-#     scrape_all_data(1000)
-#     return "success"
 
 
 @bp.route("/dependencies/<package_name>", methods=["GET"])
