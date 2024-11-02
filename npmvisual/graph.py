@@ -37,19 +37,21 @@ def build_graph(packages: Dict[str, Package]):
 
 def build_popular_network():
     to_search = get_popular_packages()
-    return build_graph_network(to_search, 2000)
+    return build_graph_network(to_search)
 
 
-def build_graph_network(packages: List[str], max=1000):
+def build_graph_network(packages: List[str]):
     data: Dict[str, Package] = db_recursive_network_search_and_scrape(packages)
-    graph = build_graph(data)
-    graph_data = nx.node_link_data(graph)
-    return graph_data
+    return format_for_frontend(data)
 
 
 def build_graph_ego_network(package_name: str):
     packages = [package_name]
     data: Dict[str, Package] = db_recursive_network_search_and_scrape(packages)
+    return format_for_frontend(data)
+
+
+def format_for_frontend(data: dict[str, Package]):
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data

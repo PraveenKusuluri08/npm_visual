@@ -21,9 +21,9 @@ def create_app(config_class=Config):
 
     app.register_blueprint(data_bp, url_prefix="/data")
 
-    from npmvisual.utils import bp as utils_bp
+    from npmvisual.graph import bp as graph_bp
 
-    app.register_blueprint(utils_bp)
+    app.register_blueprint(graph_bp)
 
     from npmvisual.migrations import bp as migrations_bp
 
