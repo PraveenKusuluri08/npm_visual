@@ -23,7 +23,7 @@ def network():
     return "success"
 
 
-@bp.route("/deletePackages")
+# @bp.route("/deletePackages")
 def delete_packages():
     db_package_delete_all()
     return "success"
