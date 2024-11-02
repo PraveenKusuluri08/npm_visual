@@ -19,6 +19,10 @@ from npmvisual.data import cache, db, scraper
 
 # @bp.route("/clearCache")
 def clear_cache():
+    """
+    Uncomment this if you know what you are doing. Keep this route commented out for
+    saftey
+    """
     clear_cache()
     return "success"
 
