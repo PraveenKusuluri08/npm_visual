@@ -29,12 +29,6 @@ def create_app(config_class=Config):
 
     app.register_blueprint(migrations_bp, url_prefix="/migrations")
 
-    # @app.teardown_appcontext
-    # def close_db(error):
-    #     pass
-    #     # db.close_db(error)
-
-    #
     app.logger.info("app created")
     return app
 
