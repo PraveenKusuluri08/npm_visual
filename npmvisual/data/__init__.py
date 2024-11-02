@@ -10,4 +10,4 @@ from flask import Blueprint
 
 bp = Blueprint("data", __name__)
 
-from npmvisual.data import db, cache
+from npmvisual.data import db, cache, scraper

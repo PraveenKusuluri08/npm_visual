@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+import time
 from typing import Dict, Set
+
 from flask import current_app as app
-from neo4j._sync.work.transaction import ManagedTransaction
 from neo4j.graph import Node
 
 from npmvisual import db
@@ -50,6 +50,37 @@ def get_package_from_db_node(node: Node, d_list: list[Dependency]):
         latest_version=node.get("latest_version"),
         dependencies=d_list,
     )
+
+
+def db_recursive_scrape_slow(
+    packages_to_search: list[str],
+) -> bool:
+    to_search: list[str] = packages_to_search.copy()
+    found: dict[str, float] = {}
+
+    while len(to_search) > 0:
+        print(f"\nsearching for {to_search}")
+        newly_found = db_network_search(to_search)
+        package: Package
+        for package in newly_found:
+            found[package.id] = time.time()
+            to_search.remove(package.id)
+            for d in package.dependencies:
+                if d.package not in found:
+                    # print(f"\tadding {d.package} to to_search")
+                    to_search.append(d.package)
+        print(f"len(newly_found)={len(newly_found)}")
+        print(f"len(found)={len(found)}")
+        if len(newly_found) == 0:
+            for package_name in to_search:
+                was_already_cached = find_package_and_save_to_cache(package_name)
+                print(f"was_already_cached = {was_already_cached}")
+                save_cached_package_to_db(package_name)
+                if not was_already_cached:
+                    print("sleeping for 30 seconds")
+                    time.sleep(30)
+                # print(f"saved package {y} to db")
+    return True
 
 
 def db_recursive_network_search_and_scrape(

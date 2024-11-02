@@ -12,10 +12,10 @@ from .data.package import Package
 bp = Blueprint("utils", __name__)
 
 
-@bp.route("/scrapeAll", methods=["GET"])
-def scrape_all():
-    scrape_all_data(1000)
-    return "success"
+# @bp.route("/scrapeAll", methods=["GET"])
+# def scrape_all():
+#     scrape_all_data(1000)
+#     return "success"
 
 
 @bp.route("/dependencies/<package_name>", methods=["GET"])
@@ -95,6 +95,6 @@ def build_graph_ego_network(package_name: str):
 #
 
 
-def scrape_all_data(max=1000) -> Dict[str, Package]:
-    to_search = get_popular_packages()
-    return get_package_ego_network(to_search, max)
+# def scrape_all_data(max=1000) -> Dict[str, Package]:
+#     to_search = get_popular_packages()
+#     return get_package_ego_network(to_search, max)

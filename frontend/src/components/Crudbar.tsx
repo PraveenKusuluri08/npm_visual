@@ -6,7 +6,7 @@ import { CopyTimestamp } from "./CopyTimestamp";
 
 function Crudbar({ onSelect }: { onSelect: any }) {
   function scrapeAll() {
-    const url = "/api/scrapeAll";
+    const url = "/api/data/scrapeAll";
     axios.get(url);
   }
   function clearCache() {
