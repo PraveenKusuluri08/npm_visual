@@ -4,7 +4,8 @@ import networkx as nx
 from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_packages
-from npmvisual.data.db_package import get_package
+from npmvisual.data.db_package import db_recursive_network_search_and_scrape
+# from npmvisual.data.db_package import get_package
 
 from .data.package import Package
 
@@ -47,7 +48,7 @@ def build_popular_network():
 
 
 def build_graph_network(packages: List[str], max=1000):
-    data: Dict[str, Package] = get_package_ego_network(packages, max)
+    data: Dict[str, Package] = db_recursive_network_search_and_scrape(packages)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
@@ -55,40 +56,43 @@ def build_graph_network(packages: List[str], max=1000):
 
 def build_graph_ego_network(package_name: str):
     packages = [package_name]
-    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
+    data: Dict[str, Package] = db_recursive_network_search_and_scrape(packages)
     graph = build_graph(data)
     graph_data = nx.node_link_data(graph)
     return graph_data
 
 
 # build_graph_from_seeds
-def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
-    # idea. maybe use a priority queue of some kind
-    to_search.reverse()
-    data: Dict[str, Package] = {}
-    # print(to_search)
-
-    count = 1
-    while count < max:
-        count += 1
-        if len(to_search) == 0:
-            break  # No remaining dependencies remaining. Success
-        # print("\n\n-------------------------------------------------")
-        # print("to_search = " + to_search.__str__())
-        # print("\ndata = " + data.keys().__str__())
-        next_id = to_search.pop()
-        # print("count = " + count.__str__() + "next = " + next_id)
-        if next_id not in data:
-            next_package: Package | None = get_package(next_id)
-            # print("next_package = " + next_package.__str__())
-            if next_package is None:
-                return {}
-            data[next_id] = next_package
-            for d in next_package.dependencies:
-                if d.package not in data:
-                    to_search.append(d.package)
-    print(f"graph created with {count} packages")
-    return data
+# def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
+# return db_recursive_network_search_and_scrape()
+# return {}
+# # idea. maybe use a priority queue of some kind
+# to_search.reverse()
+# data: Dict[str, Package] = {}
+# # print(to_search)
+#
+# count = 1
+# while count < max:
+#     count += 1
+#     if len(to_search) == 0:
+#         break  # No remaining dependencies remaining. Success
+#     # print("\n\n-------------------------------------------------")
+#     # print("to_search = " + to_search.__str__())
+#     # print("\ndata = " + data.keys().__str__())
+#     next_id = to_search.pop()
+#     # print("count = " + count.__str__() + "next = " + next_id)
+#     if next_id not in data:
+#         next_package: Package | None = get_package(next_id)
+#         # print("next_package = " + next_package.__str__())
+#         if next_package is None:
+#             return {}
+#         data[next_id] = next_package
+#         for d in next_package.dependencies:
+#             if d.package not in data:
+#                 to_search.append(d.package)
+# print(f"graph created with {count} packages")
+# return data
+#
 
 
 def scrape_all_data(max=1000) -> Dict[str, Package]:

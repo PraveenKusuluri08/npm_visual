@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Dict, Set
 from flask import current_app as app
 from neo4j._sync.work.transaction import ManagedTransaction
@@ -51,63 +52,74 @@ def get_package_from_db_node(node: Node, d_list: list[Dependency]):
     )
 
 
-def _contains(list, filter):
-    for x in list:
-        if filter(x):
-            return True
-    return False
-
-
-def db_recursive_network_search():
-    to_search: list[str] = ["express"]
-    found: list[Package] = []
+def db_recursive_network_search_and_scrape(
+    packages_to_search: list[str],
+) -> dict[str, Package]:
+    to_search: list[str] = packages_to_search.copy()
+    found: dict[str, Package] = {}
 
     depth = 0
-    while len(to_search) > 0 and depth <= 10:
-        to_search, found = db_network_search(to_search, found)
+    while len(to_search) > 0 and depth <= 50:
+        print(f"\nsearching for {to_search}")
+        newly_found = db_network_search(to_search)
+        package: Package
+        for package in newly_found:
+            found[package.id] = package
+            to_search.remove(package.id)
+            for d in package.dependencies:
+                if d.package not in found:
+                    # print(f"\tadding {d.package} to to_search")
+                    to_search.append(d.package)
+        print(f"len(newly_found)={len(newly_found)}")
+        print(f"len(found)={len(found)}")
+        if len(newly_found) == 0:
+            for package_name in to_search:
+                find_package_and_save_to_cache(package_name)
+                save_cached_package_to_db(package_name)
+                # print(f"saved package {y} to db")
         depth += 1
+    return found
 
 
-def db_network_search(
-    to_search: list[str], found: list[Package]
-) -> tuple[list[str], list[Package]]:
-    print(f"searching for {to_search}")
-    print(f"found {len(found)} Packages")
+def db_network_search(to_search: list[str]) -> list[Package]:
+    # print(f"searching for {to_search}")
+    found: list[Package] = []
 
     def get_network_tx(tx):
-        print(f"about to search for {to_search}")
+        # print(f"\nabout to search for {to_search}")
         result = tx.run(
             """
             MATCH (seed:Package)
             WHERE seed.package_id IN $to_search
-            MATCH (seed)-[rel:DependsOn]->(dependency:Package)
-            RETURN seed, COLLECT({
-                version: rel.version,
-                package_id: dependency.package_id
-            }) AS dependencies
+            OPTIONAL MATCH (seed)-[rel:DependsOn]->(dependency:Package)
+            WITH seed, rel, dependency
+            RETURN seed, 
+                COLLECT({
+                    version: rel.version,
+                    package_id: dependency.package_id
+                })
+                AS dependencies
             """,
             to_search=to_search,
         )
 
-        print(333333333333333333)
-        print(result)
+        # print(f"search result={result}")
         for record in result:
-            print(33333333)
             p_data: Node = record["seed"]
-            print(f"processing package {p_data.get('package_id')}")
+            # print(f"processing package {p_data.get('package_id')}")
             d_list: list = record["dependencies"]
+            # print(f"dependencies of record are {d_list}")
             dependencies = []
             for d in d_list:
+                # print(type(d["version"]))
+                if d["version"] is None and d["package_id"] is None:
+                    continue
                 dependencies.append(Dependency(d["package_id"], d["version"]))
-                if not _contains(found, lambda n: n.id):
-                    print(f"\tadding {d['package_id']} to to_search")
-                    to_search.append(d["package_id"])
             p = get_package_from_db_node(p_data, dependencies)
             found.append(p)
-            to_search.remove(p.id)
 
     db.execute_read(get_network_tx)
-    return to_search, found
+    return found
 
 
 def db_package_get_all() -> list[Package]:
@@ -145,7 +157,7 @@ def _db_merge_package_and_dependents(package: Package, fully_searched_packages: 
     fully_searched_packages.add(package.id)
 
     for d in package.dependencies:
-        get_package(package.id)
+        get_package_and_dependencies(package.id)
         # db_merge_package_id_only(d.package)
         db_dependency_merge(package.id, d)
 
@@ -269,9 +281,12 @@ def _scrape_package_from_online(package_name: str) -> bool:
     return False
 
 
-def get_package(
+def get_package_and_dependencies(
     package_name: str, fully_searched_packages: Set[str] = set()
 ) -> Package | None:
+    """
+    This code sucks. delete it.
+    """
     # print(f"\n\nsearching for package: {package_name}")
 
     # db is now the single source of truth. update cache to update db. but only get
@@ -346,7 +361,7 @@ def get_package(
 
         for d in dependencies:
             if d.package not in fully_searched_packages:
-                get_package(d.package, fully_searched_packages)
+                get_package_and_dependencies(d.package, fully_searched_packages)
                 fully_searched_packages.add(d.package)
             db_dependency_merge(package_name, d)
         outerCount += 1
@@ -369,3 +384,48 @@ def update_all():
 
     # def __init__(self, fname):
     # dict.__init__(self, fname=fname)
+    #
+    #
+
+
+def find_package_and_save_to_cache(package_name: str) -> bool:
+    cache.clean_if_invalid(package_name)
+    for _ in range(4):
+        if cache.exists(package_name):
+            return True
+        app.logger.info(f"{package_name} is not cached. Scraping from online")
+        r_dict = scrape_package_json(package_name)
+
+        if r_dict is not None:
+            cache.save(package_name, r_dict)
+    return False
+
+
+def save_cached_package_to_db(package_name: str) -> Package | None:
+    r_dict = cache.load(package_name)
+    """Update the db package based on the information in the cache file. Do not return a
+    Package since the DB is the one source of Truth. Since all Packages are now made from
+    DB data, it is easy to know where problems arise.
+    """
+    id = r_dict.get("_id")
+    description = r_dict.get("description")
+    latest_version = r_dict.get("dist-tags", {}).get("latest")
+    if not description:
+        description = ""
+    assert id is not None
+
+    # some packages have no dependencies. represent this as an empty dict
+    dependency_dict: Dict[str, str] = (
+        r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
+    )
+    dependencies: list[Dependency] = []
+    for package, version in dependency_dict.items():
+        dependencies.append(Dependency(package, version))
+    temp = Package(
+        id,
+        latest_version,
+        dependencies,
+        description,
+    )
+    db_merge_package(temp)
+    return temp

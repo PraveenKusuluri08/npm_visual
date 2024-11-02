@@ -1,6 +1,7 @@
 import functools
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
+from graphdatascience import GraphDataScience
 from flask.app import Flask
 from neo4j import GraphDatabase
 from neo4j._sync.driver import Driver
@@ -50,6 +51,10 @@ class Neo4j:
         self.driver = GraphDatabase.driver(URI, auth=AUTH)
         self.driver.verify_connectivity()
         print("db connection established")
+
+        # gds = GraphDataScience(URI, AUTH)
+        # print(gds.version())
+        # assert gds.version()
         # self.driver = driver.session(database=database)
         return self.driver
 
