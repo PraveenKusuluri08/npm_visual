@@ -8,8 +8,7 @@ from npmvisual import db
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import db_dependency_merge, get_dependencies_from_db
 from npmvisual.data.scraper import scrape_package_json
-from npmvisual.models.dependency import Dependency
-from npmvisual.models.package import Package
+from npmvisual.models import Dependency, Package
 
 """
 Idea on how to call in an efficient manner

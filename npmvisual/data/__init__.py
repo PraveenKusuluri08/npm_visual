@@ -8,7 +8,7 @@ tool decides where to retrieve data from.
 
 from flask import Blueprint
 
-from npmvisual.models.package import Package
+from npmvisual.models import Package
 
 from .db_package import db_recursive_network_search_and_scrape
 
@@ -17,7 +17,7 @@ bp = Blueprint("data", __name__)
 from npmvisual.data import cache, db, scraper
 
 
-@bp.route("/clearCache")
+# @bp.route("/clearCache")
 def clear_cache():
     clear_cache()
     return "success"

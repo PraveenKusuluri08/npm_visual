@@ -1,14 +1,7 @@
-from os import walk
-from neo4j.graph import Node
+from neo4j.graph import Node, Relationship
 
-from neo4j.graph import Relationship
 from npmvisual import db
-from npmvisual.models.dependency import Dependency
-from npmvisual.models.package import Package
-
-
-def _from_db_record(x):
-    pass
+from npmvisual.models import Dependency
 
 
 def get_dependencies_from_db(package_name: str) -> list[Dependency]:
@@ -75,5 +68,5 @@ def db_dependency_merge(package_id: str, dependency: Dependency):
         )
 
     x = db.execute_write(dependency_merge_tx)
-    print(x)
+    # print(x)
     return x

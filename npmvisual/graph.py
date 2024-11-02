@@ -3,7 +3,7 @@ from flask import Blueprint, jsonify
 
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import get_packages
-from npmvisual.models.package import Package
+from npmvisual.models import Package
 
 bp = Blueprint("utils", __name__)
 
