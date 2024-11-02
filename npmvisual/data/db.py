@@ -1,6 +1,6 @@
 from npmvisual import db
 import time
-from npmvisual.commonpackages import get_popular_packages
+from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.data.db_package import (
     db_network_search,
@@ -30,7 +30,7 @@ def network():
 
 @bp.route("/scrapeAll", methods=["GET"])
 def scrape_everything():
-    to_search = get_popular_packages()
+    to_search = get_popular_package_names()
     db_recursive_scrape_slow(to_search)
     return "success"
 

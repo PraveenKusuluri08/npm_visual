@@ -1,5 +1,5 @@
 # TODO. turn this into a json file or something
-def get_popular_packages() -> list[str]:
+def get_popular_package_names() -> list[str]:
     return [
         "lodash",
         "chalk",

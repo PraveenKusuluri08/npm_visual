@@ -7,7 +7,6 @@ from typing import Any, Dict
 from flask import current_app as app
 from flask import json
 
-from npmvisual.data import bp
 from npmvisual.utils2 import ns_hash
 
 whitelist = set(string.ascii_letters + string.digits)
@@ -142,7 +141,6 @@ def load(package_name: str) -> Dict[str, Any]:
         raise e
 
 
-@bp.route("/clearCache")
 def clear_cache():
     for filename in os.listdir(cache_path):
         file_path = os.path.join(cache_path, filename)

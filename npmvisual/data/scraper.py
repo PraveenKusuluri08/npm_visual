@@ -1,10 +1,9 @@
 from typing import Any
-from npmvisual.data import bp
 
 import requests
 from flask import current_app as app
 
-from npmvisual.commonpackages import get_popular_packages
+from npmvisual.commonpackages import get_popular_package_names
 
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.
