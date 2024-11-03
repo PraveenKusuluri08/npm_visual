@@ -7,7 +7,7 @@ from typing import Any, Dict
 from flask import current_app as app
 from flask import json
 
-from npmvisual.utils2 import ns_hash
+from npmvisual.utils import ns_hash
 
 whitelist = set(string.ascii_letters + string.digits)
 _HASH_LENGTH = 40
