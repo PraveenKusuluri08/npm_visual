@@ -1,6 +1,7 @@
 from neo4j.graph import Node, Relationship
 
 from npmvisual import db
+from npmvisual._models.package import Package
 from npmvisual.models import Dependency
 
 
@@ -68,5 +69,43 @@ def db_dependency_merge(package_id: str, dependency: Dependency):
         )
 
     x = db.execute_write(dependency_merge_tx)
+    # print(x)
+    return x
+
+
+def db_merge_package_full(package: Package):
+    print(f"\t\tDependency merge for {package}")
+
+    def _merge_package_tx(tx):
+        return tx.run(
+            """
+            MATCH (a:Package 
+                    {
+                        package_id: $package.id,
+                        description: $package.description,
+                        latest_version: $package.latest_version
+                    })
+            UNWIND $package.dependencies as dependency
+            MERGE (b:Package {package_id: dependency.package})
+            MERGE (a)-[d:DependsOn {version: dependency.version}]->(b)
+            ON CREATE SET 
+                a.created = timestamp(),
+                b.created = timestamp(),
+                d.created = timestamp()
+            ON MATCH SET
+                a.counter = coalesce(a.counter, 0) + 1,
+                a.accessTime = timestamp(),
+
+                b.counter = coalesce(a.counter, 0) + 1,
+                b.accessTime = timestamp(),
+                
+                d.counter = coalesce(a.counter, 0) + 1,
+                d.accessTime = timestamp()
+            RETURN d,a,b
+            """,
+            package=package.to_dict(),
+        )
+
+    x = db.execute_write(_merge_package_tx)
     # print(x)
     return x

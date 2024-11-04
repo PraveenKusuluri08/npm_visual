@@ -22,7 +22,7 @@ from npmvisual.commonpackages import get_popular_package_names
 # http.mount("http://", adapter)
 
 
-def scrape_package_json(package_name) -> Any:
+def scrape_package_json(package_name: str) -> Any:
     # print(f"scraping package named {name}")
     url = f"https://registry.npmjs.org/{package_name}"
     app.logger.info(f"scraping package.json from {url}")

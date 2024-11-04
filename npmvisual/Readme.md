@@ -22,3 +22,5 @@ https://github.com/npm/cli
 https://github.com/nice-registry/all-the-packages
 https://github.com/nice-registry/welcome?tab=readme-ov-file#why
 https://github.com/nice-registry/package-stream <-------- seems active.
+
+https://github.com/npm/registry/blob/main/docs/follower.md <--------- much better

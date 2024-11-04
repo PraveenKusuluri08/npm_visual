@@ -1,3 +1,6 @@
+import json
+from json.encoder import INFINITY
+import os
 import time
 from typing import Dict, Set
 
@@ -6,7 +9,11 @@ from neo4j.graph import Node
 
 from npmvisual import db
 from npmvisual.data import cache
-from npmvisual.data.db_dependency import db_dependency_merge, get_dependencies_from_db
+from npmvisual.data.db_dependency import (
+    db_dependency_merge,
+    db_merge_package_full,
+    get_dependencies_from_db,
+)
 from npmvisual.data.scraper import scrape_package_json
 from npmvisual.models import Dependency, Package
 
@@ -43,7 +50,8 @@ def db_recursive_scrape_slow(
             for package_name in to_search:
                 was_already_cached = _find_package_and_save_to_cache(package_name)
                 print(f"was_already_cached = {was_already_cached}")
-                _save_cached_package_to_db(package_name)
+                r_dict = cache.load(package_name)
+                save_json_package_to_db(r_dict)
                 if not was_already_cached:
                     print("sleeping for 30 seconds")
                     time.sleep(30)
@@ -74,7 +82,9 @@ def db_recursive_network_search_and_scrape(
         if len(newly_found) == 0:
             for package_name in to_search:
                 _find_package_and_save_to_cache(package_name)
-                _save_cached_package_to_db(package_name)
+                r_dict = cache.load(package_name)
+                temp = _json_package_to_package(r_dict)
+                db_merge_package(temp)
                 # print(f"saved package {y} to db")
         depth += 1
     return found
@@ -257,12 +267,17 @@ def _find_package_and_save_to_cache(package_name: str) -> bool:
     return False
 
 
-def _save_cached_package_to_db(package_name: str) -> Package | None:
-    r_dict = cache.load(package_name)
+def save_json_package_to_db(r_dict) -> Package | None:
     """Update the db package based on the information in the cache file. Do not return a
     Package since the DB is the one source of Truth. Since all Packages are now made from
     DB data, it is easy to know where problems arise.
     """
+    temp = _json_package_to_package(r_dict)
+    db_merge_package(temp)
+    return temp
+
+
+def _json_package_to_package(r_dict) -> Package:
     id = r_dict.get("_id")
     description = r_dict.get("description")
     latest_version = r_dict.get("dist-tags", {}).get("latest")
@@ -277,11 +292,70 @@ def _save_cached_package_to_db(package_name: str) -> Package | None:
     dependencies: list[Dependency] = []
     for package, version in dependency_dict.items():
         dependencies.append(Dependency(package, version))
-    temp = Package(
+    return Package(
         id,
         latest_version,
         dependencies,
         description,
     )
-    db_merge_package(temp)
-    return temp
+
+
+def _get_all_package_names(max: int = 300, offset: int = 0) -> set:
+    names = set()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    file_path = os.path.join(dir_path + "/package_cache/names.json")
+    min = max
+    max = offset + max
+    with open(file_path) as file:
+        data = json.load(file)
+        i: int = 0
+        for package_name in data:
+            i += 1
+            if i < min:
+                continue
+            names.add(package_name)
+            if i >= max:
+                break
+    print(
+        f"created a set of all package names with {len(names)} elements."
+        f"This is {i-len(names)} less than the original file"
+    )
+    return names
+    # print(f"seaching and saving {package_name}")
+    # i += 1
+    # if i > 100:
+    #     return
+    # r_dict = scrape_package_json(package_name)
+    # print("r_dict found")
+    # d = save_json_package_to_db(r_dict)
+    # print(f"saved: {d}")
+
+
+def db_recursive_network_scrape_everything():
+    limit = 300
+    offset = 100
+    sleep_time = 10  # seconds
+
+    all_packages_not_yet_scraped: set = _get_all_package_names(limit, offset)
+    failed_to_scrape = set()
+    total_count = len(all_packages_not_yet_scraped)
+    finished = set()
+    this_batch: set[Package] = set()
+
+    count = 0
+    while all_packages_not_yet_scraped and count < limit:
+        next_package_name = all_packages_not_yet_scraped.pop()
+        print(f"\nAdding {count}/{total_count} : {len(failed_to_scrape)} failed.")
+        print(f"\tNext Package: {next_package_name}. ")
+        count += 1
+        r_dict = scrape_package_json(next_package_name)
+        if r_dict is None:
+            failed_to_scrape.add(next_package_name)
+        else:
+            next_package: Package = _json_package_to_package(r_dict)
+            db_merge_package_full(next_package)
+            finished.add(next_package)
+
+            print(f"\tadded package to db: {next_package}")
+
+    print(f"\nScraped Everything{count}/{total_count} : {len(failed_to_scrape)} failed.")

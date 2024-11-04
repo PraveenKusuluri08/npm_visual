@@ -13,14 +13,19 @@ class Package:
     dependencies: list[Dependency]
     description: str = ""
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "latest_version": self.latest_version,
+            "description": self.description,
+            "dependencies": [
+                dep.to_dict() for dep in self.dependencies
+            ],  # Convert dependencies to dicts
+        }
+
     @staticmethod
     def from_db_record(r: Record, dependencies: list[Dependency]):
-        # print(r)
-        # pprint.pp(r)
         from_db = r["p"]
-        # for d in dependencies:
-        #     dependencies[] = ''
-
         p = Package(
             id=from_db.package_id,
             description=from_db.description,
