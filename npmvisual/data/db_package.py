@@ -1,8 +1,7 @@
 import json
-from json.encoder import INFINITY
 import os
 import time
-from typing import Dict, Set
+from typing import Set
 
 from flask import current_app as app
 from neo4j.graph import Node
@@ -10,7 +9,6 @@ from neo4j.graph import Node
 from npmvisual import db
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import (
-    db_dependency_merge,
     db_merge_package_full,
     get_dependencies_from_db,
 )
@@ -51,10 +49,11 @@ def db_recursive_scrape_slow(
                 was_already_cached = _find_package_and_save_to_cache(package_name)
                 print(f"was_already_cached = {was_already_cached}")
                 r_dict = cache.load(package_name)
-                save_json_package_to_db(r_dict)
+                temp = Package.from_json(r_dict)
+                db_merge_package_full(temp)
                 if not was_already_cached:
-                    print("sleeping for 30 seconds")
-                    time.sleep(30)
+                    print("sleeping for 3 seconds")
+                    time.sleep(3)
                 # print(f"saved package {y} to db")
     return True
 
@@ -83,9 +82,8 @@ def db_recursive_network_search_and_scrape(
             for package_name in to_search:
                 _find_package_and_save_to_cache(package_name)
                 r_dict = cache.load(package_name)
-                temp = _json_package_to_package(r_dict)
-                db_merge_package(temp)
-                # print(f"saved package {y} to db")
+                temp = Package.from_json(r_dict)
+                db_merge_package_full(temp)
         depth += 1
     return found
 
@@ -159,101 +157,6 @@ def db_packages_delete_all():
     db.execute_write(delete_packages_tx)
 
 
-def _db_merge_package_and_dependents(package: Package, fully_searched_packages: Set[str]):
-    # ended up removing since we want to do relationships after all packages are created
-    # create or update package in db if it does not already exist
-    db_merge_package(package)
-    fully_searched_packages.add(package.id)
-
-    for d in package.dependencies:
-        get_package_and_dependencies(package.id)
-        # db_merge_package_id_only(d.package)
-        db_dependency_merge(package.id, d)
-
-
-def db_merge_package_id_only(package_id: str):
-    """Add package to db if it does not exist"""
-    print(f"\t merge package {package_id} - id only")
-
-    def merge_package_id_only(tx):
-        result = tx.run(
-            """
-            MERGE (p:Package {
-                package_id: $package_id
-            })
-            ON CREATE SET p.created = timestamp()
-            ON MATCH SET
-            p.counter = coalesce(p.counter, 0) + 1,
-            p.accessTime = timestamp()
-            """,
-            package_id=package_id,
-        )
-        return result
-
-    return db.execute_write(merge_package_id_only)
-
-
-def db_merge_package(package: Package):
-    print(f"\t merge package {package.id}")
-    """Add package to db if it does not exist, update otherwise"""
-    db.execute_write(
-        lambda tx: tx.run(
-            """
-            MERGE (p:Package {
-                package_id: $package_id,
-                description: $description,
-                latest_version: $latest_version
-            })
-            ON CREATE SET p.created = timestamp()
-            ON MATCH SET
-            p.counter = coalesce(p.counter, 0) + 1,
-            p.accessTime = timestamp()
-            """,
-            package_id=package.id,
-            description=package.description,
-            latest_version=package.latest_version,
-        )
-    )
-
-
-def _get_package_from_db(package_name: str) -> Package | None:
-    # print(f"searching for package in db: {package_name}")
-
-    def match_package_tx(tx):
-        result = tx.run(
-            """
-            MATCH (p:Package)
-            WHERE p.package_id = $package_id
-            RETURN p
-            """,
-            package_id=package_name,
-        )
-        return result.single()
-
-    record = db.execute_read(match_package_tx)
-
-    # print(f"record: {record}")
-
-    if record is None:
-        print("Package not found in db. None returned")
-        return None
-
-    node: Node = record["p"]
-    # print(f"node: {node}")
-    if node is None:
-        print("Package found in db has no node. None returned. ")
-        return None
-
-    dependencies = get_dependencies_from_db(package_name)
-    p = Package(
-        id=node.get("package_id"),
-        description=node.get("description"),
-        latest_version=node.get("latest_version"),
-        dependencies=dependencies,
-    )
-    return p
-
-
 def _find_package_and_save_to_cache(package_name: str) -> bool:
     cache.clean_if_invalid(package_name)
     for _ in range(4):
@@ -265,39 +168,6 @@ def _find_package_and_save_to_cache(package_name: str) -> bool:
         if r_dict is not None:
             cache.save(package_name, r_dict)
     return False
-
-
-def save_json_package_to_db(r_dict) -> Package | None:
-    """Update the db package based on the information in the cache file. Do not return a
-    Package since the DB is the one source of Truth. Since all Packages are now made from
-    DB data, it is easy to know where problems arise.
-    """
-    temp = _json_package_to_package(r_dict)
-    db_merge_package(temp)
-    return temp
-
-
-def _json_package_to_package(r_dict) -> Package:
-    id = r_dict.get("_id")
-    description = r_dict.get("description")
-    latest_version = r_dict.get("dist-tags", {}).get("latest")
-    if not description:
-        description = ""
-    assert id is not None
-
-    # some packages have no dependencies. represent this as an empty dict
-    dependency_dict: Dict[str, str] = (
-        r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
-    )
-    dependencies: list[Dependency] = []
-    for package, version in dependency_dict.items():
-        dependencies.append(Dependency(package, version))
-    return Package(
-        id,
-        latest_version,
-        dependencies,
-        description,
-    )
 
 
 def _get_all_package_names(max: int = 300, offset: int = 0) -> set:
@@ -321,14 +191,6 @@ def _get_all_package_names(max: int = 300, offset: int = 0) -> set:
         f"This is {i-len(names)} less than the original file"
     )
     return names
-    # print(f"seaching and saving {package_name}")
-    # i += 1
-    # if i > 100:
-    #     return
-    # r_dict = scrape_package_json(package_name)
-    # print("r_dict found")
-    # d = save_json_package_to_db(r_dict)
-    # print(f"saved: {d}")
 
 
 def db_recursive_network_scrape_everything():
@@ -352,7 +214,7 @@ def db_recursive_network_scrape_everything():
         if r_dict is None:
             failed_to_scrape.add(next_package_name)
         else:
-            next_package: Package = _json_package_to_package(r_dict)
+            next_package: Package = Package.from_json(r_dict)
             db_merge_package_full(next_package)
             finished.add(next_package)
 

@@ -40,39 +40,6 @@ def get_dependencies_from_db(package_name: str) -> list[Dependency]:
     return dependencies
 
 
-def db_dependency_merge(package_id: str, dependency: Dependency):
-    print(f"\t\tDependency merge for {dependency}")
-
-    # todo: {version: $version}
-    def dependency_merge_tx(tx):
-        return tx.run(
-            """
-        MATCH (a {package_id: $a_id}), 
-                (b {package_id: $b_id})
-        MERGE (a)-[d:DependsOn ]->(b)
-        ON CREATE SET 
-            a.created = timestamp(),
-            b.created = timestamp(),
-            d.created = timestamp()
-        ON MATCH SET
-            a.counter = coalesce(a.counter, 0) + 1,
-            a.accessTime = timestamp(),
-            b.counter = coalesce(a.counter, 0) + 1,
-            b.accessTime = timestamp(),
-            d.counter = coalesce(a.counter, 0) + 1,
-            d.accessTime = timestamp()
-        RETURN d,a,b
-        """,
-            a_id=package_id,
-            b_id=dependency.package,
-            version=dependency.version,
-        )
-
-    x = db.execute_write(dependency_merge_tx)
-    # print(x)
-    return x
-
-
 def db_merge_package_full(package: Package):
     print(f"\t\tDependency merge for {package}")
 

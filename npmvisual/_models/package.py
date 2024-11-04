@@ -1,4 +1,5 @@
 # import pprint
+from __future__ import annotations
 from dataclasses import dataclass
 
 from neo4j._data import Record
@@ -24,7 +25,7 @@ class Package:
         }
 
     @staticmethod
-    def from_db_record(r: Record, dependencies: list[Dependency]):
+    def from_db_record(r: Record, dependencies: list[Dependency]) -> Package:
         from_db = r["p"]
         p = Package(
             id=from_db.package_id,
@@ -33,3 +34,26 @@ class Package:
             dependencies=dependencies,
         )
         return p
+
+    @staticmethod
+    def from_json(r_dict) -> Package:
+        id = r_dict.get("_id")
+        description = r_dict.get("description")
+        latest_version = r_dict.get("dist-tags", {}).get("latest")
+        if not description:
+            description = ""
+        assert id is not None
+
+        # some packages have no dependencies. represent this as an empty dict
+        dependency_dict: dict[str, str] = (
+            r_dict.get("versions", {}).get(latest_version, {}).get("dependencies", {})
+        )
+        dependencies: list[Dependency] = []
+        for package, version in dependency_dict.items():
+            dependencies.append(Dependency(package, version))
+        return Package(
+            id,
+            latest_version,
+            dependencies,
+            description,
+        )

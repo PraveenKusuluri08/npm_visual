@@ -1,7 +1,4 @@
 from npmvisual.commonpackages import get_popular_package_names
-import os
-import requests
-import json
 from npmvisual.data import bp
 from npmvisual.data.db_package import (
     db_packages_delete_all,
@@ -9,7 +6,6 @@ from npmvisual.data.db_package import (
     db_recursive_network_search_and_scrape,
     db_recursive_scrape_slow,
 )
-from npmvisual.data.scraper import scrape_package_json
 
 
 @bp.route("/network")
@@ -20,7 +16,7 @@ def network():
 
 
 @bp.route("/scrapePopular", methods=["GET"])
-def scrape_everything():
+def scrape_popular():
     to_search = get_popular_package_names()
     db_recursive_scrape_slow(to_search)
     return "success"
