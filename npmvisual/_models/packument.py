@@ -8,12 +8,12 @@ from pydantic.functional_validators import model_validator
 
 class Repository(BaseModel):
     directory: str | None = None
-    type: str | None = None
+    repository_type: str | None = Field(None, alias="type")
     url: str
 
 
 class Funding(BaseModel):
-    type: str
+    funding_type: str = Field(..., alias="type")
     url: str
 
 
@@ -30,7 +30,7 @@ class PeerDependencyMeta(BaseModel):
 
 
 class DeprecatedLicense(BaseModel):
-    type: str
+    license_type: str = Field(..., alias="type")
     url: str
 
 
