@@ -110,6 +110,10 @@ class Contact(BaseModel):
 
 
 class PackageJSON(BaseModel):
+    """
+    this is in the tarball for the project. it really could have anything in it.
+    """
+
     model_config = ConfigDict(extra="allow")  # Allow extra fields
 
     # Required Fields
@@ -180,11 +184,17 @@ class PackageJSON(BaseModel):
 
 
 class PackumentVersion(PackageJSON):
+    """
+    Note: Contacts (bugs, author, contributors, repository, etc) can be simple
+    strings in package.json, but not in registry metadata.
+    """
+
     _id: str
     _npm_version: str = Field(..., alias="_npmVersion")
     dist: Dist
 
     _has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
+    # optional (ref: not defined in uuid@1.4.0)
     _node_version: str | None = Field(None, alias="_nodeVersion")
     _npm_user: Contact | None = Field(None, alias="_npmUser")
     git_head: str | None = Field(None, alias="gitHead")
@@ -200,6 +210,10 @@ class PackumentVersion(PackageJSON):
 
 # Packument (root model for npm metadata)
 class Packument(BaseModel):
+    """
+    This is what you get from the npm api.
+    """
+
     _id: str
     _rev: str
     time: dict[str, str]  # modified and created can be required, other fields allowed
@@ -212,7 +226,7 @@ class Packument(BaseModel):
     # Users are represented as a dict with string keys and `True` values
     users: dict[str, bool] | None = None
 
-    # Hoisted fields from PackumentVersion
+    # Hoisted fields from latest PackumentVersion
     name: str
     git_head: str | None = Field(None, alias="gitHead")
     author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
