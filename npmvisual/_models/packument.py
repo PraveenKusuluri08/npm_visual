@@ -238,18 +238,17 @@ class ManifestVersion(PackumentVersion):
     version: str
 
 
-"""
-abbreviated metadata format (aka corgi)
-
-https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md#abbreviated-metadata-format
-returned from registry requests with accept header values conianing
-`application/vnd.npm.install-v1+json`
-
-Manifest (root metadata with versions)
-"""
-
-
 class Manifest(BaseModel):
+    """
+    abbreviated metadata format (aka corgi)
+
+    https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md#abbreviated-metadata-format
+    returned from registry requests with accept header values conianing
+    `application/vnd.npm.install-v1+json`
+
+    Manifest (root metadata with versions)
+    """
+
     modified: str
     versions: dict[str, ManifestVersion]
     _cached: bool | None = None
