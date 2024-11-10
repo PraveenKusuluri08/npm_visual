@@ -17,7 +17,9 @@ requests = "^2.32.3"
 matplotlib = "^3.9.2"
 neo4j = "^5.25.0"
 typing-extensions = "^4.12.2"
-graphdatascience = {extras = ["ogb"], version = "^1.12"}
+graphdatascience = { extras = ["ogb"], version = "^1.12" }
+pydantic = "^2.9.2"
+neomodel = "^5.4.0"
 
 
 [build-system]
@@ -26,6 +28,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 90
+target-version = "py312"
 
 [tool.ruff.lint]
 # select = ["ALL"] # Only uncomment if we want to get pedantic
