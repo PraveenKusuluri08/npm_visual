@@ -8,7 +8,6 @@ class NSBaseModel(BaseModel):
     All child models should inherit from this class to use the `prettyPrint` method.
     """
 
-    def prettyPrint(self):
         def _trim_string_with_ellipsis(input_string: str, max_length: int) -> str:
             if len(input_string) > max_length:
                 return input_string[: max_length - 3] + "..."
