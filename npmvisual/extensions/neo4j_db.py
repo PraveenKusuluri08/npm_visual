@@ -7,6 +7,7 @@ from neo4j import GraphDatabase
 from neo4j._sync.driver import Driver
 from neo4j._sync.work.transaction import ManagedTransaction
 from typing_extensions import Concatenate, ParamSpec
+from neomodel import config as neomodel_config
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -51,6 +52,10 @@ class Neo4j:
         self.driver = GraphDatabase.driver(URI, auth=AUTH)
         self.driver.verify_connectivity()
         print("db connection established")
+
+        # Configure Neomodel connection to use the same driver
+        # https://neomodel.readthedocs.io/en/stable/configuration.html
+        neomodel_config.DRIVER = self.driver
 
         # gds = GraphDataScience(URI, AUTH)
         # print(gds.version())
