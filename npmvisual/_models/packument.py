@@ -48,7 +48,7 @@ class Dist(BaseModel):
     )
 
     # the number of files in the tarball. this is on most packages published >= 2018
-    fileCount: int | None = None
+    file_count: int | None = Field(None, alias="fileCount")
 
     # subresource integrity string! `npm view ssri`
     # https://w3c.github.io/webappsec-subresource-integrity/
@@ -69,14 +69,14 @@ class Dist(BaseModel):
     tarball: str
 
     # the unpacked size of the files in the tarball. >= 2018
-    unpackedSize: int | None = None
+    unpacked_size: int | None = Field(None, alias="unpackedSize")
 
 
 # DevEngineDependency (used in DevEngines)
 class DevEngineDependency(BaseModel):
     name: str
     version: str | None = None
-    onFail: (
+    on_fail: (
         Annotated[
             str,
             StringConstraints(
@@ -85,7 +85,7 @@ class DevEngineDependency(BaseModel):
             ),
         ]
         | None
-    ) = "warn"
+    ) = Field("warn", alias="onFail")
 
 
 class DevEngines(BaseModel):
@@ -93,7 +93,9 @@ class DevEngines(BaseModel):
     cpu: DevEngineDependency | list[DevEngineDependency] | None = None
     libc: DevEngineDependency | list[DevEngineDependency] | None = None
     runtime: DevEngineDependency | list[DevEngineDependency] | None = None
-    packageManager: DevEngineDependency | list[DevEngineDependency] | None = None
+    package_manager: DevEngineDependency | list[DevEngineDependency] | None = Field(
+        None, alias="packageManager"
+    )
 
 
 class Bugs(BaseModel):
@@ -119,15 +121,17 @@ class PackageJSON(BaseModel):
     bin: dict[str, str] | None = None
     browser: dict[str, str] | str | None = None
     bugs: Bugs | str | None = None
-    bundledDependencies: list[str] | bool | None = None
-    bundleDependencies: list[str] | bool | None = None
+    bundled_dependencies: list[str] | bool | None = Field(
+        None, alias="bundledDependencies"
+    )
+    bundle_dependencies: list[str] | bool | None = Field(None, alias="bundleDependencies")
     config: dict[str, Any] | None = None
     contributors: list[Contact | str] | None = None
     cpu: list[str] | None = None
     dependencies: dict[str, str] | None = None
     description: str | None = None
-    devDependencies: dict[str, str] | None = None
-    devEngines: DevEngines | None = None
+    dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
+    dev_engines: DevEngines | None = Field(None, alias="devEngines")
     directories: dict[str, str] | None = None
     engines: dict[str, str] | None = None
     files: list[str] | None = None
@@ -138,13 +142,17 @@ class PackageJSON(BaseModel):
     licenses: DeprecatedLicense | list[DeprecatedLicense] | None = None
     main: str | None = None
     man: str | list[str] | None = None
-    optionalDependencies: dict[str, str] | None = None
+    optional_dependencies: dict[str, str] | None = Field(
+        None, alias="optionalDependencies"
+    )
     os: list[str] | None = None
     overrides: Overrides | None = None
-    peerDependencies: dict[str, str] | None = None
-    peerDependenciesMeta: dict[str, PeerDependencyMeta] | None = None
+    peer_dependencies: dict[str, str] | None = Field(None, alias="peerDependencies")
+    peer_dependencies_meta: dict[str, PeerDependencyMeta] | None = Field(
+        None, alias="peerDependenciesMeta"
+    )
     private: bool | None = None
-    publishConfig: dict[str, Any] | None = None
+    publish_config: dict[str, Any] | None = None
     repository: Repository | str | None = None
     scripts: dict[str, str] | None = None
     # https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html#editing-the-packagejson
@@ -173,19 +181,19 @@ class PackageJSON(BaseModel):
 
 class PackumentVersion(PackageJSON):
     _id: str
-    _npmVersion: str
+    _npm_version: str = Field(..., alias="_npmVersion")
     dist: Dist
 
-    _hasShrinkwrap: bool | None = None
-    _nodeVersion: str | None = None
-    _npmUser: Contact | None = None
-    gitHead: str | None = None
+    _has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
+    _node_version: str | None = Field(None, alias="_nodeVersion")
+    _npm_user: Contact | None = Field(None, alias="_npmUser")
+    git_head: str | None = Field(None, alias="gitHead")
     author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
     bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
     contributors: list[Contact] | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
-    readmeFilename: str | None = None
+    readme_filename: str | None = Field(None, alias="readmeFilename")
     repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
     deprecated: str | None = None
 
@@ -206,13 +214,13 @@ class Packument(BaseModel):
 
     # Hoisted fields from PackumentVersion
     name: str
-    gitHead: str | None = None
+    git_head: str | None = Field(None, alias="gitHead")
     author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
     bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
     contributors: list[Contact] | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
-    readmeFilename: str | None = None
+    readme_filename: str | None = Field(None, alias="readmeFilename")
     repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
     description: str | None = None
     homepage: str | None = None
@@ -222,19 +230,23 @@ class Packument(BaseModel):
 
 # ManifestVersion (same structure as PackumentVersion, but trimmed)
 class ManifestVersion(PackumentVersion):
-    _hasShrinkwrap: bool | None = None
+    _has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
     bin: dict[str, str] | None = None
-    bundledDependencies: list[str] | bool | None = None
-    bundleDependencies: list[str] | bool | None = None
+    bundled_dependencies: list[str] | bool | None = Field(
+        None, alias="bundledDependencies"
+    )
+    bundle_dependencies: list[str] | bool | None = Field(None, alias="bundleDependencies")
     dependencies: dict[str, str] | None = None
     deprecated: str | None = None
-    devDependencies: dict[str, str] | None = None
+    dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
     directories: dict[str, str] | None = None
     dist: Dist
     engines: dict[str, str] | None = None
     name: str
-    optionalDependencies: dict[str, str] | None = None
-    peerDependencies: dict[str, str] | None = None
+    optional_dependencies: dict[str, str] | None = Field(
+        None, alias="optionalDependencies"
+    )
+    peer_dependencies: dict[str, str] | None = Field(None, alias="peerDependencies")
     version: str
 
 
@@ -243,7 +255,7 @@ class Manifest(BaseModel):
     abbreviated metadata format (aka corgi)
 
     https://github.com/npm/registry/blob/master/docs/responses/package-metadata.md#abbreviated-metadata-format
-    returned from registry requests with accept header values conianing
+    returned from registry requests with accept header values containing
     `application/vnd.npm.install-v1+json`
 
     Manifest (root metadata with versions)
