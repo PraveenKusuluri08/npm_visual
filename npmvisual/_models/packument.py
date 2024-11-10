@@ -1,47 +1,49 @@
 from typing import Annotated, Any, Union
 
 from flask import current_app as app
-from pydantic import BaseModel, Field, StringConstraints
+from pydantic import RootModel, Field, StringConstraints, ValidationError
 from pydantic.config import ConfigDict
 from pydantic.functional_validators import model_validator
 
+from npmvisual._models.ns_base_model import NSBaseModel
 
-class Repository(BaseModel):
+
+class Repository(NSBaseModel):
     directory: str | None = None
     repository_type: str | None = Field(None, alias="type")
     url: str
 
 
-class Funding(BaseModel):
+class Funding(NSBaseModel):
     funding_type: str = Field(..., alias="type")
     url: str
 
 
-class Overrides(BaseModel):
+class Overrides(RootModel):
     # This needs recursion, hence using a forward reference
-    __root__: dict[str, Union[str, "Overrides"]]
+    root: dict[str, Union[str, "Overrides"]]
 
     class Config:
         arbitrary_types_allowed = True
 
 
-class PeerDependencyMeta(BaseModel):
+class PeerDependencyMeta(NSBaseModel):
     optional: bool
 
 
-class DeprecatedLicense(BaseModel):
+class DeprecatedLicense(NSBaseModel):
     license_type: str = Field(..., alias="type")
     url: str
 
 
 # Signature (used in dist)
-class Signature(BaseModel):
+class Signature(NSBaseModel):
     sig: str
     keyid: str
 
 
 # Dist (properties of Packument.versions)
-class Dist(BaseModel):
+class Dist(NSBaseModel):
     # deprecated?  (ref: found in uuid@0.0.2)
     bin: dict[str, dict[str, str]] | None = (
         None  # A dictionary for `shasum` and `tarball`
@@ -73,7 +75,7 @@ class Dist(BaseModel):
 
 
 # DevEngineDependency (used in DevEngines)
-class DevEngineDependency(BaseModel):
+class DevEngineDependency(NSBaseModel):
     name: str
     version: str | None = None
     on_fail: (
@@ -88,7 +90,7 @@ class DevEngineDependency(BaseModel):
     ) = Field("warn", alias="onFail")
 
 
-class DevEngines(BaseModel):
+class DevEngines(NSBaseModel):
     os: DevEngineDependency | list[DevEngineDependency] | None = None
     cpu: DevEngineDependency | list[DevEngineDependency] | None = None
     libc: DevEngineDependency | list[DevEngineDependency] | None = None
@@ -98,18 +100,18 @@ class DevEngines(BaseModel):
     )
 
 
-class Bugs(BaseModel):
+class Bugs(NSBaseModel):
     email: str | None = None
     url: str | None = None
 
 
-class Contact(BaseModel):
+class Contact(NSBaseModel):
     name: str
     email: str | None = None
     url: str | None = None
 
 
-class PackageJSON(BaseModel):
+class PackageJSON(NSBaseModel):
     """
     this is in the tarball for the project. it really could have anything in it.
     """
@@ -163,24 +165,23 @@ class PackageJSON(BaseModel):
     types: str | None = None
     workspaces: list[str] | dict[str, str] | None = None
 
-    @model_validator(mode="before")
-    def detect_extra_fields(cls, values):
-        # Extract the defined field names from the class
-        defined_fields = set(cls.__annotations__.keys())
-        input_fields = set(values.keys())
-
-        # Detect extra fields
-        extra_fields = input_fields - defined_fields
-
-        if extra_fields:
-            # Issue a warning for extra fields
-            app.logger.warning(
-                f"Extra fields detected: {', '.join(extra_fields)}",
-                UserWarning,
-                stacklevel=2,
-            )
-
-        return values
+    # @model_validator(mode="before")
+    # def detect_extra_fields(cls, values):
+    #     # Extract the defined field names from the class
+    #     defined_fields = set(cls.__annotations__.keys())
+    #     input_fields = set(values.keys())
+    #
+    #     # Detect extra fields
+    #     extra_fields = input_fields - defined_fields
+    #
+    #     if extra_fields:
+    #         # Issue a warning for extra fields
+    #         app.logger.warning(
+    #             f"Extra fields detected: {', '.join(extra_fields)}",
+    #             stacklevel=2,
+    #         )
+    #
+    #     return values
 
 
 class PackumentVersion(PackageJSON):
@@ -189,14 +190,16 @@ class PackumentVersion(PackageJSON):
     strings in package.json, but not in registry metadata.
     """
 
-    _id: str
-    _npm_version: str = Field(..., alias="_npmVersion")
+    id: str = Field(..., alias="_id")
+    # This is supposed to be required according to interfaces.d.ts of npm @types. But
+    # packages like @amory/transform-react-pug don't have it. So I made it optional
+    npm_version: str | None = Field(None, alias="_npmVersion")
     dist: Dist
 
-    _has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
+    has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
     # optional (ref: not defined in uuid@1.4.0)
-    _node_version: str | None = Field(None, alias="_nodeVersion")
-    _npm_user: Contact | None = Field(None, alias="_npmUser")
+    node_version: str | None = Field(None, alias="_nodeVersion")
+    npm_user: Contact | None = Field(None, alias="_npmUser")
     git_head: str | None = Field(None, alias="gitHead")
     author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
     bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
@@ -209,17 +212,17 @@ class PackumentVersion(PackageJSON):
 
 
 # Packument (root model for npm metadata)
-class Packument(BaseModel):
+class Packument(NSBaseModel):
     """
     This is what you get from the npm api.
     """
 
-    _id: str
-    _rev: str
+    id: str = Field(..., alias="_id")
+    rev: str = Field(..., alias="_rev")
     time: dict[str, str]  # modified and created can be required, other fields allowed
     versions: dict[str, PackumentVersion]
 
-    _cached: bool | None = None
+    cached: bool | None = Field(None, alias="_cached")
     dist_tags: dict[str, str | None] = Field(
         ..., alias="dist-tags"
     )  # dist-tags can include 'latest'
@@ -241,10 +244,18 @@ class Packument(BaseModel):
     keywords: list[str] | None = None
     license: str | None = None
 
+    @classmethod
+    def from_json(cls, json_data: dict[str, Any]) -> "Packument | None":
+        try:
+            return cls.model_validate(json_data)  # Validate and create the model
+        except ValidationError as e:
+            print(f"Validation error: {e}")
+            return None
+
 
 # ManifestVersion (same structure as PackumentVersion, but trimmed)
 class ManifestVersion(PackumentVersion):
-    _has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
+    has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
     bin: dict[str, str] | None = None
     bundled_dependencies: list[str] | bool | None = Field(
         None, alias="bundledDependencies"
@@ -264,7 +275,7 @@ class ManifestVersion(PackumentVersion):
     version: str
 
 
-class Manifest(BaseModel):
+class Manifest(NSBaseModel):
     """
     abbreviated metadata format (aka corgi)
 
@@ -277,7 +288,7 @@ class Manifest(BaseModel):
 
     modified: str
     versions: dict[str, ManifestVersion]
-    _cached: bool | None = None
+    cached: bool | None = Field(None, alias="_cached")
     name: str
     dist_tags: dict[str, str | None] = Field(
         ..., alias="dist-tags"
