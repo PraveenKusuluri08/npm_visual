@@ -1,24 +1,23 @@
-import './App.css'
-import GraphDiagram from "./components/GraphDiagram"
-import Crudbar from './components/Crudbar'
-import { useState } from 'react'
+import "./App.css";
+import GraphDiagram from "./components/GraphDiagram";
+import Crudbar from "./components/Crudbar";
+import { useState } from "react";
 
 function App() {
-
-  const [packageName, setPackageName] = useState("")
+  const [packageName, setPackageName] = useState("");
 
   const onPackageChanged = (packageName: string) => {
-    setPackageName(packageName)
-  }
+    setPackageName(packageName);
+  };
 
   return (
     <>
       <Crudbar onSelect={onPackageChanged} />
       <div className="page">
-        <GraphDiagram packageName={packageName} />
+        {/* <GraphDiagram packageName={packageName} /> */}
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
