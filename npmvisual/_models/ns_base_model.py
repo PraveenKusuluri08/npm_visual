@@ -29,46 +29,55 @@ class NSBaseModel(BaseModel):
                 value = NSBaseModel.format_string(value, len(level_indent + attr) + 2)
                 output += f"{level_indent}{attr}: {value}\n"
 
-            # Handle lists: print each item on a new line with an extra tab
             elif isinstance(value, list):
                 output += f"{level_indent}{attr}:\n"
-                for count, item in enumerate(value):
-                    if isinstance(item, NSBaseModel):
-                        item_output = item.to_readable_str(level + 1)
-                        if (
-                            NSBaseModel.is_multiline_string(item_output)
-                            and count != len(value) - 1
-                        ):
-                            item_output += f"{level_indent}{indent},\n"
-                    elif isinstance(item, str):
-                        item_output = f"{level_indent}{NSBaseModel.format_string(item, len(level_indent + attr) + 2)}\n"
-                    else:
-                        item_output = f"{level_indent}{item}"
-                    output += item_output
-
-            # Handle dicts: print each key-value pair on a new line with an extra tab
+                output += NSBaseModel.format_list(attr, value, level, indent)
             elif isinstance(value, dict):
                 output += f"{level_indent}{attr}:\n"
-                for key, val in value.items():
-                    if isinstance(val, NSBaseModel):
-                        # output += f"{indent}{key} \n"
-                        output += val.to_readable_str(level + 1)
-                    else:
-                        output += f"{level_indent}{indent}{key}: {val}\n"
-
-            # Handle nested NSBaseModel instances
+                output += NSBaseModel.format_dict(value, level, indent)
             elif isinstance(value, NSBaseModel):
                 output += f"{level_indent}{attr}:\n"
                 output += value.to_readable_str(level + 1)
-
-            # Handle other regular attributes (strings, integers, etc.)
             else:
                 output += f"{level_indent}{attr}: {value}\n"
 
         return output
 
+    @staticmethod
+    def format_list(
+        attr: str,
+        value: list,
+        level: int,
+        indent: str,
+    ):
+        output = ""
+        for count, item in enumerate(value):
+            if isinstance(item, NSBaseModel):
+                output += item.to_readable_str(level + 1)
+                if NSBaseModel.is_multiline_string(output) and count != len(value) - 1:
+                    output += f"{indent*level}{indent},\n"
+            elif isinstance(item, str):
+                output += f"{indent*level}{NSBaseModel.format_string(item, len(indent*level + attr) + 2)}\n"
+            else:
+                output += f"{indent*level}{item}"
+        return output
+
+    @staticmethod
+    def format_dict(
+        value: dict,
+        level: int,
+        indent: str,
+    ):
+        output = ""
+        for key, val in value.items():
+            if isinstance(val, NSBaseModel):
+                # output += f"{indent}{key} \n"
+                output += val.to_readable_str(level + 1)
+            else:
+                output += f"{indent*(level+1)}{key}: {val}\n"
+        return output
+
     def pretty_print(self):
-        # print(self.to_pretty_string())
         print(self.to_readable_str())
 
     @staticmethod
@@ -120,3 +129,59 @@ class NSBaseModel(BaseModel):
         """Returns the width of the terminal, defaulting to 80 characters."""
         width = shutil.get_terminal_size((80, 20)).columns
         return width
+
+    #     for attr, value in self.__dict__.items():
+    #         if value is None:
+    #             continue
+    #         elif isinstance(value, str):
+    #             output += NSBaseModel.format_string(value, len(level_indent + attr) + 2)
+    #             output += f"{level_indent}{attr}: {value}\n"
+    #         elif isinstance(value, list):
+    #             output += f"{level_indent}{attr}:\n"
+    #             output += NSBaseModel.format_list(attr, value, level, indent)
+    #         elif isinstance(value, dict):
+    #             output += f"{level_indent}{attr}:\n"
+    #             output += NSBaseModel.format_dict(value, level, indent)
+    #         elif isinstance(value, NSBaseModel):
+    #             output += f"{level_indent}{attr}:\n"
+    #             output += value.to_readable_str(level + 1)
+    #         else:
+    #             output += f"{level_indent}{attr}: {value}\n"
+    #
+    #     return output
+    #
+    # @staticmethod
+    # def format_list(
+    #     attr: str,
+    #     value: list,
+    #     level: int,
+    #     indent: str,
+    # ):
+    #     output = ""
+    #     for count, item in enumerate(value):
+    #         if isinstance(item, NSBaseModel):
+    #             output = item.to_readable_str(level + 1)
+    #             if NSBaseModel.is_multiline_string(output) and count != len(value) - 1:
+    #                 output += f"{indent*level}{indent},\n"
+    #         elif isinstance(item, str):
+    #             output = f"{indent*level}{NSBaseModel.format_string(item, len(indent*level + attr) + 2)}\n"
+    #         else:
+    #             output = f"{indent*level}{item}"
+    #     return output
+    #
+    # @staticmethod
+    # def format_dict(
+    #     value: dict,
+    #     level: int,
+    #     indent: str,
+    # ):
+    #     output = ""
+    #     for key, val in value.items():
+    #         if isinstance(val, NSBaseModel):
+    #             # output += f"{indent}{key} \n"
+    #             output += val.to_readable_str(level + 1)
+    #         else:
+    #             output += f"{indent*(level+1)}{key}: {val}\n"
+    #     return output
+    #
+    #
