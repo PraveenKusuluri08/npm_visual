@@ -318,7 +318,6 @@ class PackageJSON(NSBaseModel):
     def __str__(self):
         output = "PackageJSON Information:\n"
 
-        # Helper function to format fields into columns
         def format_field(name, value, width=20):
             return f"{name:<{width}}: {value}"
 
@@ -454,6 +453,71 @@ class PackumentVersion(PackageJSON):
     readme_filename: str | None = Field(None, alias="readmeFilename")
     repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
     deprecated: str | None = None
+
+    def __str__(self):
+        def format_field(name, value, width=20):
+            return f"{name:<{width}}: {value}"
+
+        output = "PackumentVersion Information:\n"
+
+        # Required Fields
+        output += f"{format_field('id', self.id)}\n"
+        output += f"{format_field('dist', str(self.dist))}\n"
+
+        # Optional Fields
+        if self.npm_version:
+            output += f"{format_field('npm_version', str(self.npm_version))}\n"
+        if self.has_shrinkwrap:
+            output += f"{format_field('has_shrinkwrap', str(self.has_shrinkwrap))}\n"
+        if self.node_version:
+            output += f"{format_field('node_version', self.node_version)}\n"
+        if self.npm_user:
+            output += f"{format_field('npm_user', str(self.npm_user))}\n"
+        if self.git_head:
+            output += f"{format_field('git_head', self.git_head)}\n"
+        if self.author:
+            output += f"{format_field('author', str(self.author))}\n"
+        elif super().author:
+            output += f"{format_field('author', str(super().author))}\n"
+        if self.bugs:
+            output += f"{format_field('bugs', str(self.bugs))}\n"
+        elif super().bugs:
+            output += f"{format_field('bugs', str(super().bugs))}\n"
+        if self.contributors:
+            output += f"{format_field('contributors', str(self.contributors))}\n"
+        elif super().contributors:
+            output += f"{format_field('contributors', str(super().contributors))}\n"
+        if self.repository:
+            output += f"{format_field('repository', str(self.repository))}\n"
+        elif super().repository:
+            output += f"{format_field('repository', str(super().repository))}\n"
+        if self.maintainers:
+            output += f"{format_field('maintainers', str(self.maintainers))}\n"
+        if self.readme:
+            output += f"{format_field('readme', self.readme[:100] + '...')}\n"  # Truncate readme to first 100 chars
+        if self.readme_filename:
+            output += f"{format_field('readme_filename', self.readme_filename)}\n"
+        if self.deprecated:
+            output += f"{format_field('deprecated', self.deprecated)}\n"
+
+        # Include fields from PackageJSON (super class)
+        output += super().__str__()
+
+        return output.strip()
+
+    def __repr__(self):
+        return (
+            f"PackumentVersion(id={repr(self.id)}, npm_version={repr(self.npm_version)}, "
+            f"dist={repr(self.dist)}, has_shrinkwrap={repr(self.has_shrinkwrap)}, "
+            f"node_version={repr(self.node_version)}, npm_user={repr(self.npm_user)}, "
+            f"git_head={repr(self.git_head)}, author={repr(self.author) if self.author else repr(super().author)}, "
+            f"bugs={repr(self.bugs) if self.bugs else repr(super().bugs)}, "
+            f"contributors={repr(self.contributors) if self.contributors else repr(super().contributors)}, "
+            f"maintainers={repr(self.maintainers)}, readme={repr(self.readme)}, "
+            f"readme_filename={repr(self.readme_filename)}, repository={repr(self.repository) if self.repository else repr(super().repository)}, "
+            f"deprecated={repr(self.deprecated)}, "
+            f"{super().__repr__()[1:]} )"  # Append parent class fields after the opening parenthesis
+        )
 
 
 # Packument (root model for npm metadata)
