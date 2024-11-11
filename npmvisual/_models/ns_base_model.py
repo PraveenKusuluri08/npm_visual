@@ -31,7 +31,6 @@ class NSBaseModel(BaseModel):
 
             # Handle lists: print each item on a new line with an extra tab
             elif isinstance(value, list):
-                # output += f"{indent}---------- start of list[NSBaseModel] indent={indent}, level={level} ----------------------\n"
                 output += f"{level_indent}{attr}:\n"
                 for count, item in enumerate(value):
                     if isinstance(item, NSBaseModel):
@@ -46,11 +45,9 @@ class NSBaseModel(BaseModel):
                     else:
                         item_output = f"{level_indent}{item}"
                     output += item_output
-                # output += f"{indent}---------- end of list[NSBaseModel] ----------------------\n"
 
             # Handle dicts: print each key-value pair on a new line with an extra tab
             elif isinstance(value, dict):
-                # output += f"{indent}---------- start of dict[Any, NSBaseModel] indent={indent}, level={level} ----------------------\n"
                 output += f"{level_indent}{attr}:\n"
                 for key, val in value.items():
                     if isinstance(val, NSBaseModel):
@@ -58,16 +55,11 @@ class NSBaseModel(BaseModel):
                         output += val.to_readable_str(level + 1)
                     else:
                         output += f"{level_indent}{indent}{key}: {val}\n"
-                # output += (
-                #     f"{indent}---------- end of dict[Any, NSBaseModel] -------------\n"
-                # )
 
             # Handle nested NSBaseModel instances
             elif isinstance(value, NSBaseModel):
-                # output += f"{indent}---------- start of NSBaseModel indent={indent}, level={level} ----------------------\n"
                 output += f"{level_indent}{attr}:\n"
                 output += value.to_readable_str(level + 1)
-                # output += f"{indent}-------- end of NSBaseModel ----------------------\n"
 
             # Handle other regular attributes (strings, integers, etc.)
             else:
