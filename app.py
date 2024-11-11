@@ -2,7 +2,7 @@ from npmvisual import create_app
 
 app = create_app()
 
-if app.config["DEBUG"]:
+if False and app.config["DEBUG"]:
     import os
     import time
 
