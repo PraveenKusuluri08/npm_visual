@@ -4,7 +4,7 @@ import shutil
 from pydantic import BaseModel
 
 
-class NSBaseModel(BaseModel):
+class NSPrettyPrintable:
     """
     A base class that provides the `prettyPrint` method for pretty-printing any Pydantic model.
     All child models should inherit from this class to use the `prettyPrint` method.
@@ -26,16 +26,18 @@ class NSBaseModel(BaseModel):
                 continue
 
             elif isinstance(value, str):
-                value = NSBaseModel.format_string(value, len(level_indent + attr) + 2)
+                value = NSPrettyPrintable.format_string(
+                    value, len(level_indent + attr) + 2
+                )
                 output += f"{level_indent}{attr}: {value}\n"
 
             elif isinstance(value, list):
                 output += f"{level_indent}{attr}:\n"
-                output += NSBaseModel.format_list(attr, value, level, indent)
+                output += NSPrettyPrintable.format_list(attr, value, level, indent)
             elif isinstance(value, dict):
                 output += f"{level_indent}{attr}:\n"
-                output += NSBaseModel.format_dict(value, level, indent)
-            elif isinstance(value, NSBaseModel):
+                output += NSPrettyPrintable.format_dict(value, level, indent)
+            elif isinstance(value, NSPrettyPrintable):
                 output += f"{level_indent}{attr}:\n"
                 output += value.to_readable_str(level + 1)
             else:
@@ -52,12 +54,15 @@ class NSBaseModel(BaseModel):
     ):
         output = ""
         for count, item in enumerate(value):
-            if isinstance(item, NSBaseModel):
+            if isinstance(item, NSPrettyPrintable):
                 output += item.to_readable_str(level + 1)
-                if NSBaseModel.is_multiline_string(output) and count != len(value) - 1:
+                if (
+                    NSPrettyPrintable.is_multiline_string(output)
+                    and count != len(value) - 1
+                ):
                     output += f"{indent*level}{indent},\n"
             elif isinstance(item, str):
-                output += f"{indent*level}{NSBaseModel.format_string(item, len(indent*level + attr) + 2)}\n"
+                output += f"{indent*level}{NSPrettyPrintable.format_string(item, len(indent*level + attr) + 2)}\n"
             else:
                 output += f"{indent*level}{item}"
         return output
@@ -70,7 +75,7 @@ class NSBaseModel(BaseModel):
     ):
         output = ""
         for key, val in value.items():
-            if isinstance(val, NSBaseModel):
+            if isinstance(val, NSPrettyPrintable):
                 # output += f"{indent}{key} \n"
                 output += val.to_readable_str(level + 1)
             else:
@@ -112,10 +117,10 @@ class NSBaseModel(BaseModel):
         """Formats the readme field to be a one-liner with special characters cleaned up."""
         if not readme:
             return "N/A"
-        readme = NSBaseModel._trim_string_with_ellipsis(
-            readme, NSBaseModel.get_terminal_width() - size_of_other_chars_on_line
+        readme = NSPrettyPrintable._trim_string_with_ellipsis(
+            readme, NSPrettyPrintable.get_terminal_width() - size_of_other_chars_on_line
         )
-        return NSBaseModel.clean_special_characters(readme)
+        return NSPrettyPrintable.clean_special_characters(readme)
 
     @staticmethod
     def _trim_string_with_ellipsis(input_string: str, max_length: int = 80) -> str:

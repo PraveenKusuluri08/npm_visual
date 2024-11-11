@@ -12,7 +12,7 @@ from npmvisual import db
 
 # from npmvisual._models.package import package_from_json
 from npmvisual._models.package_version import PackageVersion, package_version_from_json
-from npmvisual._models.packument import Packument, format_packument
+from npmvisual._models.packument import Packument
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import (
     db_merge_package_full,

@@ -1,14 +1,14 @@
 from typing import Annotated, Any, Union
 
 from flask import current_app as app
-from pydantic import RootModel, Field, StringConstraints, ValidationError
+from pydantic import RootModel, BaseModel, Field, StringConstraints, ValidationError
 from pydantic.config import ConfigDict
 from pydantic.functional_validators import model_validator
 
-from npmvisual._models.ns_base_model import NSBaseModel
+from npmvisual._models.ns_base_model import NSPrettyPrintable
 
 
-class Repository(NSBaseModel):
+class Repository(BaseModel, NSPrettyPrintable):
     directory: str | None = None
     repository_type: str | None = Field(None, alias="type")
     url: str
@@ -26,7 +26,7 @@ class Repository(NSBaseModel):
         return f"Repository(directory={repr(self.directory)}, repository_type={repr(self.repository_type)}, url={repr(self.url)})"
 
 
-class Funding(NSBaseModel):
+class Funding(BaseModel, NSPrettyPrintable):
     funding_type: str = Field(..., alias="type")
     url: str
 
@@ -37,7 +37,7 @@ class Funding(NSBaseModel):
         return f"Funding(funding_type={repr(self.funding_type)}, url={repr(self.url)})"
 
 
-class Overrides(RootModel):
+class Overrides(RootModel, NSPrettyPrintable):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     # This needs recursion, hence using a forward reference
     root: dict[str, Union[str, "Overrides"]]
@@ -57,7 +57,7 @@ class Overrides(RootModel):
         return f"Overrides({Overrides.recursive_repr(self)})"
 
 
-class PeerDependencyMeta(NSBaseModel):
+class PeerDependencyMeta(BaseModel, NSPrettyPrintable):
     optional: bool
 
     def __str__(self):
@@ -67,7 +67,7 @@ class PeerDependencyMeta(NSBaseModel):
         return f"PeerDependencyMeta(optional={self.optional})"
 
 
-class DeprecatedLicense(NSBaseModel):
+class DeprecatedLicense(BaseModel, NSPrettyPrintable):
     license_type: str = Field(..., alias="type")
     url: str
 
@@ -79,7 +79,7 @@ class DeprecatedLicense(NSBaseModel):
 
 
 # Signature (used in dist)
-class Signature(NSBaseModel):
+class Signature(BaseModel, NSPrettyPrintable):
     sig: str
     keyid: str
 
@@ -91,7 +91,7 @@ class Signature(NSBaseModel):
 
 
 # Dist (properties of Packument.versions)
-class Dist(NSBaseModel):
+class Dist(BaseModel, NSPrettyPrintable):
     # deprecated?  (ref: found in uuid@0.0.2)
     bin: dict[str, dict[str, str]] | None = (
         None  # A dictionary for `shasum` and `tarball`
@@ -151,7 +151,7 @@ class Dist(NSBaseModel):
 
 
 # DevEngineDependency (used in DevEngines)
-class DevEngineDependency(NSBaseModel):
+class DevEngineDependency(BaseModel, NSPrettyPrintable):
     name: str
     version: str | None = None
     on_fail: (
@@ -176,7 +176,7 @@ class DevEngineDependency(NSBaseModel):
         return f"DevEngineDependency(name={repr(self.name)}, version={repr(self.version)}, on_fail={repr(self.on_fail)})"
 
 
-class DevEngines(NSBaseModel):
+class DevEngines(BaseModel, NSPrettyPrintable):
     os: DevEngineDependency | list[DevEngineDependency] | None = None
     cpu: DevEngineDependency | list[DevEngineDependency] | None = None
     libc: DevEngineDependency | list[DevEngineDependency] | None = None
@@ -209,7 +209,7 @@ class DevEngines(NSBaseModel):
         )
 
 
-class Bugs(NSBaseModel):
+class Bugs(BaseModel, NSPrettyPrintable):
     email: str | None = None
     url: str | None = None
 
@@ -225,7 +225,7 @@ class Bugs(NSBaseModel):
         return f"Bugs(email={repr(self.email)}, url={repr(self.url)})"
 
 
-class Contact(NSBaseModel):
+class Contact(BaseModel, NSPrettyPrintable):
     name: str
     email: str | None = None
     url: str | None = None
@@ -243,7 +243,7 @@ class Contact(NSBaseModel):
         return f"Contact(name={repr(self.name)}, email={repr(self.email)}, url={repr(self.url)})"
 
 
-class PackageJSON(NSBaseModel):
+class PackageJSON(BaseModel, NSPrettyPrintable):
     """
     this is in the tarball for the project. it really could have anything in it.
     """
@@ -428,7 +428,7 @@ def get_non_null_attributes(obj):
     return {key: value for key, value in vars(obj).items() if value is not None}
 
 
-class PackumentVersion(PackageJSON):
+class PackumentVersion(PackageJSON, NSPrettyPrintable):
     """
     Note: Contacts (bugs, author, contributors, repository, etc) can be simple
     strings in package.json, but not in registry metadata.
@@ -521,7 +521,7 @@ class PackumentVersion(PackageJSON):
 
 
 # Packument (root model for npm metadata)
-class Packument(NSBaseModel):
+class Packument(BaseModel, NSPrettyPrintable):
     """
     This is what you get from the npm api.
     """
@@ -563,7 +563,7 @@ class Packument(NSBaseModel):
 
 
 # ManifestVersion (same structure as PackumentVersion, but trimmed)
-class ManifestVersion(PackumentVersion):
+class ManifestVersion(PackumentVersion, NSPrettyPrintable):
     has_shrinkwrap: bool | None = Field(None, alias="_hasShrinkwrap")
     bin: dict[str, str] | None = None
     bundled_dependencies: list[str] | bool | None = Field(
@@ -584,7 +584,7 @@ class ManifestVersion(PackumentVersion):
     version: str
 
 
-class Manifest(NSBaseModel):
+class Manifest(BaseModel, NSPrettyPrintable):
     """
     abbreviated metadata format (aka corgi)
 
@@ -602,139 +602,6 @@ class Manifest(NSBaseModel):
     dist_tags: dict[str, str | None] = Field(
         ..., alias="dist-tags"
     )  # dist-tags (can include 'latest')
-
-
-# Clean special characters like \n, \t to make them readable
-def clean_special_characters(value: str) -> str:
-    """Cleans special characters like \\n, \\t, etc. for better readability."""
-    value = value.replace("\\n", " \\n ")  # Show newline escape as a label
-    value = value.replace("\\t", " \\t ")  # Show tab escape as a label
-    # Handle other escape sequences if needed
-    return value
-
-
-# Truncate long fields to a fixed length
-def truncate_field(value: str, max_length: int = 100) -> str:
-    """Truncates a string to the specified length."""
-    return value[:max_length] + "..." if len(value) > max_length else value
-
-
-# Format the 'readme' field (truncate and clean up special characters)
-def format_readme(readme: str | None) -> str:
-    """Formats the readme field to be a one-liner with special characters cleaned up."""
-    if not readme:
-        return "N/A"
-    cleaned_readme = clean_special_characters(readme)
-    return truncate_field(cleaned_readme)
-
-
-# Format individual fields (other than readme) with special character cleanup
-def format_field(field_name: str, value: Any) -> str:
-    """Formats individual fields for output, cleaning up special characters."""
-    if isinstance(value, str):
-        cleaned_value = clean_special_characters(value)
-        return f"{field_name}: {truncate_field(cleaned_value)}"
-    elif isinstance(value, list):
-        return f"{field_name}: " + ", ".join([str(item) for item in value])
-    elif isinstance(value, dict):
-        return f"{field_name}: " + ", ".join([f"{k}: {v}" for k, v in value.items()])
-    elif isinstance(value, bool):
-        return f"{field_name}: {'Yes' if value else 'No'}"
-    elif value is None:
-        return f"{field_name}: N/A"
-    return f"{field_name}: {value}"
-
-
-# Format DevEngines class
-def format_dev_engines(dev_engines: "DevEngines | None") -> str:
-    """Formats the DevEngines field."""
-    if not dev_engines:
-        return "N/A"
-
-    dev_engines_info = []
-
-    # Check and format for each category (os, cpu, runtime, package_manager)
-    if dev_engines.os:
-        dev_engines_info.append("OS:")
-        if isinstance(dev_engines.os, list):
-            for dep in dev_engines.os:
-                dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-        else:
-            dep = dev_engines.os
-            dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-
-    if dev_engines.cpu:
-        dev_engines_info.append("CPU:")
-        if isinstance(dev_engines.cpu, list):
-            for dep in dev_engines.cpu:
-                dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-        else:
-            dep = dev_engines.cpu
-            dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-
-    if dev_engines.runtime:
-        dev_engines_info.append("Runtime:")
-        if isinstance(dev_engines.runtime, list):
-            for dep in dev_engines.runtime:
-                dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-        else:
-            dep = dev_engines.runtime
-            dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-
-    if dev_engines.package_manager:
-        dev_engines_info.append("Package Manager:")
-        if isinstance(dev_engines.package_manager, list):
-            for dep in dev_engines.package_manager:
-                dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-        else:
-            dep = dev_engines.package_manager
-            dev_engines_info.append(f"  - {dep.name} {dep.version or ''}")
-
-    return "\n".join(dev_engines_info) if dev_engines_info else "N/A"
-
-
-# Format the Packument class
-def format_packument(packument: "Packument") -> str:
-    """Formats the entire Packument for output."""
-    packument_info = []
-
-    # Format basic fields
-    basic_fields = [
-        "name",
-        "description",
-        "homepage",
-        "license",
-        "keywords",
-        "git_head",
-        "repository",
-        "bugs",
-        "maintainers",
-        "contributors",
-        "readme",
-    ]
-
-    for field in basic_fields:
-        value = getattr(packument, field, None)
-        if value is not None:
-            packument_info.append(format_field(field.capitalize(), value))
-
-    # Handle dist_tags field specifically
-    if packument.dist_tags:
-        packument_info.append(
-            f"Dist Tags: {', '.join([f'{k}: {v}' for k, v in packument.dist_tags.items()])}"
-        )
-
-    # Handle versions field specifically (to print versions)
-    if packument.versions:
-        packument_info.append("Versions: " + ", ".join(packument.versions.keys()))
-
-    # Handle other specific fields
-    if packument.time:
-        packument_info.append(f"Created: {packument.time.get('created', 'N/A')}")
-        packument_info.append(f"Modified: {packument.time.get('modified', 'N/A')}")
-
-    # Return the final formatted string
-    return "\n".join(packument_info)
 
 
 # from __future__ import annotations
