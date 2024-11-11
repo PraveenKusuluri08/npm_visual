@@ -2,9 +2,9 @@ from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.data.db_package import (
     db_packages_delete_all,
-    db_recursive_network_scrape_everything,
     db_recursive_network_search_and_scrape,
     db_recursive_scrape_slow,
+    db_scrape_everything,
 )
 
 
@@ -31,7 +31,7 @@ def delete_packages():
 @bp.route("/scrapeAll")
 def fetch_all_packages():
     # search_and_save_everything()
-    db_recursive_network_scrape_everything()
+    db_scrape_everything()
     return "dkjkd"
     # start = 0
     # size = 2500  # Adjust the size based on what the API allows
