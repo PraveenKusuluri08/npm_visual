@@ -40,6 +40,8 @@ class Neo4j:
         self.config = app.config
         self._connect()
 
+        app.teardown_appcontext(self.teardown)
+
     def _connect(self):
         URI = (
             "neo4j://" + self.config["NEO4J_HOST"]
@@ -72,6 +74,7 @@ class Neo4j:
         return self.driver
 
     def teardown(self, exception):
+        print(f"closing db. exception: {exception}")
         if self.driver:
             self.driver.close()
             print("db connection closed")

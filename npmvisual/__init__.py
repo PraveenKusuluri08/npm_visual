@@ -1,5 +1,7 @@
 import logging
 import os
+import signal
+import sys
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask
@@ -16,6 +18,24 @@ def create_app(config_class=Config):
     load_logs(app)
 
     db.init_app(app)
+
+    @app.teardown_appcontext
+    def teardown_db(exception):
+        "App teardown detected. removing db."
+        if db:
+            db.teardown(exception)
+
+    #
+    # Signal handler for graceful shutdown
+    def handle_sigint(signal, frame):
+        print("Shutting down gracefully...")
+        if db.driver:  # Ensure the driver exists and is connected
+            db.driver.close()
+            print("db connection closed")
+        sys.exit(0)
+
+    # Register signal handler to catch the interrupt signal (Ctrl+C)
+    signal.signal(signal.SIGINT, handle_sigint)
 
     from npmvisual.data import bp as data_bp
 
