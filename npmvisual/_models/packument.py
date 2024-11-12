@@ -561,6 +561,26 @@ class Packument(BaseModel, NSPrettyPrintable):
             print(f"Validation error: {e}")
             return None
 
+    def get_latest_version(self) -> str | None:
+        if not self.versions:
+            return None
+        if len(self.versions) == 1:
+            return next(iter(self.versions.keys()))  # Get the first key
+
+        dist_tags = self.dist_tags
+        if dist_tags and dist_tags.get("latest"):
+            return dist_tags.get("latest")
+
+        from packaging import version
+
+        return max(self.versions.keys(), key=version.parse)
+
+    def get_dependencies(self, version_key: str) -> list[str] | None:
+        version = self.versions[version_key]
+        if version.dependencies is None:
+            return None
+        return list(version.dependencies.keys())
+
 
 # ManifestVersion (same structure as PackumentVersion, but trimmed)
 class ManifestVersion(PackumentVersion, NSPrettyPrintable):

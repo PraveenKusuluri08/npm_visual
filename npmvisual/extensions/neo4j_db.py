@@ -1,4 +1,5 @@
 import functools
+import logging
 from typing import Callable, Concatenate, ParamSpec, TypeVar
 
 from graphdatascience import GraphDataScience
@@ -7,7 +8,10 @@ from neo4j import GraphDatabase
 from neo4j._sync.driver import Driver
 from neo4j._sync.work.transaction import ManagedTransaction
 from typing_extensions import Concatenate, ParamSpec
+
+import neomodel
 from neomodel import config as neomodel_config
+from neomodel import db as neomodel_db
 
 P = ParamSpec("P")
 R = TypeVar("R")
@@ -26,6 +30,7 @@ class Neo4j:
     def __init__(self):
         self.app = None
         self.driver: Driver
+        self.driver2: Driver
 
     def init_app(self, app):
         self.app = app
@@ -50,34 +55,66 @@ class Neo4j:
             self.config["NEO4J_USERNAME"],
             self.config["NEO4J_PASSWORD"],
         )
+        self.URI = URI
+        self.AUTH = AUTH
         self.database = self.config["NEO4J_DB"]
         self.driver = GraphDatabase.driver(URI, auth=AUTH)
-        self.driver.verify_connectivity()
-        print("db connection established")
 
-        # Configure Neomodel connection to use the same driver
+        self.verify_connectivity()  # Configure Neomodel connection to use the same driver
+
         # https://neomodel.readthedocs.io/en/stable/configuration.html
-        neomodel_config.DRIVER = self.driver
 
         # gds = GraphDataScience(URI, AUTH)
         # print(gds.version())
         # assert gds.version()
-        # self.driver = driver.session(database=database)
+        # import neomodel
+        # from neomodel import config as neomodel_config
+
+        # neomodel_config.DRIVER = self.driver
+        self.neomodel_db = neomodel_db
+        self.neomodel_config = neomodel_config
+        self.neomodel = neomodel
+        neomodel_db.set_connection(driver=self.driver)
         return self.driver
+
+    def verify_connectivity(self):
+        # Ensure the connection is working
+        try:
+            self.driver.verify_connectivity()
+            logging.info("Neo4j connection established.")
+        except Exception as e:
+            logging.error(f"Error connecting to Neo4j: {e}")
+            raise
 
     def get_driver(self):
-        return self.driver
-
-    def get_db(self):
         if not self.driver:
             return self._connect()
         return self.driver
 
+    def get_config(self):
+        return self.neomodel_config
+
+    def get_db(self):
+        return self.neomodel_db
+
     def teardown(self, exception):
         print(f"closing db. exception: {exception}")
         if self.driver:
+            print(self.driver)
+            assert neomodel_db == self.neomodel_db
+
+            if neomodel_db:
+                print("neomodel_db exists")
+            if self.neomodel_db:
+                print("self.neomodel_db exists")
+
+            if neomodel_db:
+                neomodel_db.close_connection()
+                print("closed neomodel_db")
+            # if self.neomodel_db:
+            #     neomodel_db.close_connection()
             self.driver.close()
-            print("db connection closed")
+            print("db connection closed for driver")
 
     def run(self, command):
         assert self.driver is not None, "Driver is not initialized!"
@@ -127,3 +164,13 @@ class Neo4j:
         """
         with self.driver.session(database=self.database) as session:
             return session.execute_write(transaction_function, *args, **kwargs)
+
+    def save(self, neomodelClass):
+        print("3333333333333333333 save called 33333333333333333333")
+        # neomodel_db.set_connection(driver=self.driver)
+
+        # with self.driver.session(database=self.database) as session:
+        neomodelClass.save()
+
+        print("44444444444444 save ended 33333333333333333333")
+        # neomodel_db.close_connection()

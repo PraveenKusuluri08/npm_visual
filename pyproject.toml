@@ -21,6 +21,7 @@ graphdatascience = { extras = ["ogb"], version = "^1.12" }
 pydantic = "^2.9.2"
 neomodel = "^5.4.0"
 psutil = "^6.1.0"
+packaging = "^24.2"
 
 
 [build-system]

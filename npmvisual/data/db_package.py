@@ -11,6 +11,8 @@ from neo4j.graph import Node
 from npmvisual import db
 
 # from npmvisual._models.package import package_from_json
+# from npmvisual._models.neomodel_connection_test import NeomodelConnectionTest
+from npmvisual._models.packageNode import PackageNode
 from npmvisual._models.package_version import PackageVersion, package_version_from_json
 from npmvisual._models.packument import Packument
 from npmvisual.data import cache
@@ -18,7 +20,7 @@ from npmvisual.data.db_dependency import (
     db_merge_package_full,
 )
 from npmvisual.data.scraper import scrape_package_json
-from npmvisual.models import Dependency, Package
+from npmvisual.models import Dependency, NeomodelConnectionTest, Package
 
 
 def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
@@ -217,6 +219,19 @@ def _get_all_package_names(max: int = 300, offset: int = 0) -> set:
 
 
 def db_scrape_everything():
+    x = NeomodelConnectionTest(name="testing4")
+    x.save()
+    print(x)
+
+    # item = NeomodelConnectionTest()
+    #
+    # from npmvisual import db
+    #
+    # db.save(item)
+    # item.save()
+    print("scrape everything called")
+
+    # create_an_item()
     limit = 1
     # remove this in a bit
     n = _get_num_of_packages_in_names_json()
@@ -251,12 +266,23 @@ def db_scrape_everything():
             # )
             new_packument = Packument.from_json(json_dict)
             if new_packument is not None:
-                print(
-                    "\n packument created. Pretty Printing------------------------------------------------------\n"
-                )
-                print(" My Pretty Print ###############################################")
-                new_packument.pretty_print()
-                print(" My Pretty Print End ###########################################")
+                # print(
+                #     "\n packument created. Pretty Printing------------------------------------------------------\n"
+                # )
+                # print(" My Pretty Print ###############################################")
+                # new_packument.pretty_print()
+                # print(" My Pretty Print End ###########################################")
+                all = PackageNode.nodes.all()
+                for p in all:
+                    p.delete()
+                p_node = PackageNode.from_packument(new_packument)
+                p_node.save()
+
+                # from npmvisual import db
+
+                # db.save(p_node)
+                print("success")
+
             #
             # all_versions: dict[str, Any] | None = json_dict.get("versions")
             # if all_versions:
