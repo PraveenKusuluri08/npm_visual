@@ -30,11 +30,6 @@ def create_app(config_class=Config):
     load_logs(app)
     db.init_app(app)
 
-    # Initialize Neo4j driver only within the app context
-    # Set Flask app config
-    # app.config.update(neomodel_db_NODE_CLASS_REGISTRY=db._NODE_CLASS_REGISTRY)
-
-    # Signal handler for graceful shutdown
     def handle_sigint(signal, frame):
         print("Shutting down gracefully...")
         if neomodel_db.driver:  # Ensure the driver exists and is connected
@@ -50,9 +45,7 @@ def create_app(config_class=Config):
 
     from npmvisual.graph import bp as graph_bp
 
-    app.register_blueprint(
-        graph_bp,
-    )
+    app.register_blueprint(graph_bp)
 
     from npmvisual.migrations import bp as migrations_bp
 
