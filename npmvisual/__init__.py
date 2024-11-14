@@ -10,6 +10,7 @@ from neomodel import db as neomodel_db
 from config import Config
 from npmvisual.extensions.neo4j_db import Neo4j
 
+# make outside of flask to be ouside of flask context
 db = Neo4j(config_class=Config)
 
 
@@ -17,6 +18,7 @@ def create_app(config_class=Config):
     app = flask.Flask(__name__)
     app.config.from_object(config_class)
     load_logs(app)
+    # activate extensions after flask exists to tell db manager how to connect to it.
     db.init_app(app)
 
     def handle_sigint(signal, frame):
