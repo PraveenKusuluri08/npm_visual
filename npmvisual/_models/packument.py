@@ -122,25 +122,6 @@ class Dist(BaseModel, NSPrettyPrintable):
     # the unpacked size of the files in the tarball. >= 2018
     unpacked_size: int | None = Field(None, alias="unpackedSize")
 
-    def __str__(self):
-        output = "Dist:\n"
-        if self.bin is not None:
-            output += f"\t{'bin':<20}: {self.bin}\n"
-        if self.file_count is not None:
-            output += f"\t{'file_count':<20}: {self.file_count}\n"
-        if self.integrity is not None:
-            output += f"\t{'integrity':<20}: {self.integrity}\n"
-        if self.npm_signature is not None:
-            output += f"\t{'npm_signature':<20}: {self.npm_signature}\n"
-        output += f"\t{'shasum':<20}: {self.shasum}\n"
-        if self.signatures:
-            output += f"\t{'signatures':<20}: {[repr(sig) for sig in self.signatures]}\n"
-        if self.tarball is not None:
-            output += f"\t{'tarball':<20}: {self.tarball}\n"
-        if self.unpacked_size is not None:
-            output += f"\t{'unpacked_size':<20}: {self.unpacked_size}\n"
-        return output
-
     def __repr__(self):
         # This will return a more technical representation for debugging
         return (
@@ -149,6 +130,9 @@ class Dist(BaseModel, NSPrettyPrintable):
             f"shasum={self.shasum}, signatures={self.signatures}, "
             f"tarball={self.tarball}, unpacked_size={self.unpacked_size})"
         )
+
+    def __str__(self):
+        return self.to_readable_str()
 
 
 # DevEngineDependency (used in DevEngines)
@@ -187,21 +171,7 @@ class DevEngines(BaseModel, NSPrettyPrintable):
     )
 
     def __str__(self):
-        def _format_field(field_name: str, field_value):
-            if field_value is None:
-                return ""
-            if isinstance(field_value, list):
-                return f"\t{field_name}:\n" + "".join(
-                    [f"\t  - {item}\n" for item in field_value]
-                )
-            return f"\t{field_name}: {field_value}\n"
-
-        output = "DevEngines:\n"
-        for field_name in ["os", "cpu", "libc", "runtime", "package_manager"]:
-            field_value = getattr(self, field_name)
-            field_str = _format_field(field_name, field_value)
-            output += field_str
-        return output.strip()
+        return self.to_readable_str()
 
     def __repr__(self):
         return (
@@ -327,88 +297,7 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     #     return values
 
     def __str__(self):
-        output = "PackageJSON Information:\n"
-
-        def format_field(name, value, width=20):
-            return f"{name:<{width}}: {value}"
-
-        # Required Fields
-        output += f"{format_field('name', self.name)}\n"
-        output += f"{format_field('version', self.version)}\n"
-
-        # Optional Fields
-        if self.author:
-            output += f"{format_field('author', str(self.author))}\n"
-        if self.bin:
-            output += f"{format_field('bin', str(self.bin))}\n"
-        if self.bugs:
-            output += f"{format_field('bugs', str(self.bugs))}\n"
-        if self.bundled_dependencies:
-            output += f"{format_field('bundled_dependencies', str(self.bundled_dependencies))}\n"
-        if self.bundle_dependencies:
-            output += (
-                f"{format_field('bundle_dependencies', str(self.bundle_dependencies))}\n"
-            )
-        if self.config:
-            output += f"{format_field('config', str(self.config))}\n"
-        if self.contributors:
-            output += f"{format_field('contributors', str(self.contributors))}\n"
-        if self.cpu:
-            output += f"{format_field('cpu', str(self.cpu))}\n"
-        if self.dependencies:
-            output += f"{format_field('dependencies', str(self.dependencies))}\n"
-        if self.description:
-            output += f"{format_field('description', str(self.description))}\n"
-        if self.dev_dependencies:
-            output += f"{format_field('dev_dependencies', str(self.dev_dependencies))}\n"
-        if self.dev_engines:
-            output += f"{format_field('dev_engines', str(self.dev_engines))}\n"
-        if self.directories:
-            output += f"{format_field('directories', str(self.directories))}\n"
-        if self.engines:
-            output += f"{format_field('engines', str(self.engines))}\n"
-        if self.files:
-            output += f"{format_field('files', str(self.files))}\n"
-        if self.funding:
-            output += f"{format_field('funding', str(self.funding))}\n"
-        if self.homepage:
-            output += f"{format_field('homepage', self.homepage)}\n"
-        if self.keywords:
-            output += f"{format_field('keywords', str(self.keywords))}\n"
-        if self.license:
-            output += f"{format_field('license', self.license)}\n"
-        if self.licenses:
-            output += f"{format_field('licenses', str(self.licenses))}\n"
-        if self.main:
-            output += f"{format_field('main', self.main)}\n"
-        if self.man:
-            output += f"{format_field('man', str(self.man))}\n"
-        if self.optional_dependencies:
-            output += f"{format_field('optional_dependencies', str(self.optional_dependencies))}\n"
-        if self.os:
-            output += f"{format_field('os', str(self.os))}\n"
-        if self.overrides:
-            output += f"{format_field('overrides', str(self.overrides))}\n"
-        if self.peer_dependencies:
-            output += (
-                f"{format_field('peer_dependencies', str(self.peer_dependencies))}\n"
-            )
-        if self.peer_dependencies_meta:
-            output += f"{format_field('peer_dependencies_meta', str(self.peer_dependencies_meta))}\n"
-        if self.private:
-            output += f"{format_field('private', str(self.private))}\n"
-        if self.publish_config:
-            output += f"{format_field('publish_config', str(self.publish_config))}\n"
-        if self.repository:
-            output += f"{format_field('repository', str(self.repository))}\n"
-        if self.scripts:
-            output += f"{format_field('scripts', str(self.scripts))}\n"
-        if self.types:
-            output += f"{format_field('types', self.types)}\n"
-        if self.workspaces:
-            output += f"{format_field('workspaces', str(self.workspaces))}\n"
-
-        return output.strip()
+        return self.to_readable_str()
 
     def __repr__(self):
         return (
@@ -481,55 +370,7 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     deprecated: str | bool | None = None  # I added bool to the options.
 
     def __str__(self):
-        def format_field(name, value, width=20):
-            return f"{name:<{width}}: {value}"
-
-        output = "PackumentVersion Information:\n"
-
-        # Required Fields
-        output += f"{format_field('id', self.id)}\n"
-        output += f"{format_field('dist', str(self.dist))}\n"
-
-        # Optional Fields
-        if self.npm_version:
-            output += f"{format_field('npm_version', str(self.npm_version))}\n"
-        if self.has_shrinkwrap:
-            output += f"{format_field('has_shrinkwrap', str(self.has_shrinkwrap))}\n"
-        if self.node_version:
-            output += f"{format_field('node_version', self.node_version)}\n"
-        if self.npm_user:
-            output += f"{format_field('npm_user', str(self.npm_user))}\n"
-        if self.git_head:
-            output += f"{format_field('git_head', self.git_head)}\n"
-        if self.author:
-            output += f"{format_field('author', str(self.author))}\n"
-        elif super().author:
-            output += f"{format_field('author', str(super().author))}\n"
-        if self.bugs:
-            output += f"{format_field('bugs', str(self.bugs))}\n"
-        elif super().bugs:
-            output += f"{format_field('bugs', str(super().bugs))}\n"
-        if self.contributors:
-            output += f"{format_field('contributors', str(self.contributors))}\n"
-        elif super().contributors:
-            output += f"{format_field('contributors', str(super().contributors))}\n"
-        if self.repository:
-            output += f"{format_field('repository', str(self.repository))}\n"
-        elif super().repository:
-            output += f"{format_field('repository', str(super().repository))}\n"
-        if self.maintainers:
-            output += f"{format_field('maintainers', str(self.maintainers))}\n"
-        if self.readme:
-            output += f"{format_field('readme', self.readme[:100] + '...')}\n"  # Truncate readme to first 100 chars
-        if self.readme_filename:
-            output += f"{format_field('readme_filename', self.readme_filename)}\n"
-        if self.deprecated:
-            output += f"{format_field('deprecated', self.deprecated)}\n"
-
-        # Include fields from PackageJSON (super class)
-        output += super().__str__()
-
-        return output.strip()
+        return self.to_readable_str()
 
     def __repr__(self):
         return (
@@ -580,19 +421,26 @@ class Packument(BaseModel, NSPrettyPrintable):
     keywords: list[str] | None = None
     license: str | None = None
 
+    def __str__(self):
+        return self.to_readable_str()
+
     @classmethod
     def from_json(cls, json_data: dict[str, Any]) -> "Packument | None":
-        try:
-            return cls.model_validate(json_data)  # Validate and create the model
-        except ValidationError as e:
-            print(f"Validation error: {e}")
-            return None
+        return cls.model_validate(json_data)
+
+        # add this back once we are ready for production. Currently, we want to fix all
+        # errors.
+        # try:
+        #     return cls.model_validate(json_data)
+        # except ValidationError as e:
+        #     print(f"Validation error: {e}")
+        #     return None
 
     def get_latest_version(self) -> str | None:
         if not self.versions:
             return None
         if len(self.versions) == 1:
-            return next(iter(self.versions.keys()))  # Get the first key
+            return next(iter(self.versions.keys()))
 
         dist_tags = self.dist_tags
         if dist_tags and dist_tags.get("latest"):
@@ -630,6 +478,9 @@ class ManifestVersion(PackumentVersion, NSPrettyPrintable):
     peer_dependencies: dict[str, str] | None = Field(None, alias="peerDependencies")
     version: str
 
+    def __str__(self):
+        return self.to_readable_str()
+
 
 class Manifest(BaseModel, NSPrettyPrintable):
     """
@@ -649,6 +500,9 @@ class Manifest(BaseModel, NSPrettyPrintable):
     dist_tags: dict[str, str | None] = Field(
         ..., alias="dist-tags"
     )  # dist-tags (can include 'latest')
+
+    def __str__(self):
+        return self.to_readable_str()
 
 
 # from __future__ import annotations
