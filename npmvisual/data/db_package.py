@@ -473,8 +473,8 @@ def scrape_package(package_name: str) -> PackageNode | None:
     # versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
     # if versions and len(versions) > 0:
     #     last_item: Any = sorted(versions.items())[-1][1]
-    #     funding = last_item.get("funding")
-    #     print(f"funding:{funding}")
+    #     funding = last_item.get("bugs")
+    #     print(f"bugs:{funding}")
 
     if not json_dict:
         return None

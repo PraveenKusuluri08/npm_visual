@@ -80,7 +80,7 @@ infinity = Infinity()
 def get_all_package_names(max: int = 300, offset: int = 0) -> set[str]:
     names = set()
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.join(dir_path + "/package_cache/names.json")
+    file_path = os.path.join(dir_path + "/data/package_cache/names.json")
     min = max
     max = offset + max
     with open(file_path) as file:

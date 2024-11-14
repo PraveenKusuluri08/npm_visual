@@ -6,7 +6,7 @@ import { CopyTimestamp } from "./CopyTimestamp";
 
 function Crudbar({ onSelect }: { onSelect: any }) {
   function scrapeAll() {
-    const url = "/api/data/scrapeAll";
+    const url = "/api/data/scrapeAllPackages";
     axios.get(url);
   }
   function clearCache() {
@@ -37,7 +37,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
     const packageName = input.value;
     onSelect(packageName);
     // alert("you want to search " + packageName)
-    const url = `/api/dependencies/${packageName}`;
+    const url = `/api/getNetwork/${packageName}`;
     // useFetchGraphData(url);
     axios.get(url);
   };
@@ -60,7 +60,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
         <span className="text">Clear Cache (for development)</span>
       </button>
       <button className="button-48" onClick={() => getPopularNetwork()}>
-        <span className="text">Build Big Network</span>
+        <span className="text">getPopularNetwork</span>
       </button>
       <button className="button-48" onClick={() => scrapeAll()}>
         <span className="text">Scrape Everything</span>

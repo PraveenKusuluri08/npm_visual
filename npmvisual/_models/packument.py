@@ -1,4 +1,6 @@
 from typing import Annotated, Any, Union
+from pydantic.types import Discriminator, Tag
+from typing_extensions import TypedDict
 
 from flask import current_app as app
 from pydantic import RootModel, BaseModel, Field, StringConstraints, ValidationError
@@ -211,20 +213,28 @@ class DevEngines(BaseModel, NSPrettyPrintable):
         )
 
 
-class Bugs(BaseModel, NSPrettyPrintable):
-    email: str | None = None
-    url: str | None = None
+class Bugs(TypedDict):
+    email: str | None
+    url: str | None
 
-    def __str__(self):
-        output = "Bugs Information:\n"
-        if self.email:
-            output += f"\tEmail: {self.email}\n"
-        if self.url:
-            output += f"\tURL: {self.url}\n"
-        return output.strip()
-
-    def __repr__(self):
-        return f"Bugs(email={repr(self.email)}, url={repr(self.url)})"
+    #
+    #     if isinstance(values.get("url"), str):
+    #         values["url"] = values["url"]  # You could populate email here if necessary
+    #     if isinstance(values.get("url"), str):
+    #         values["url"] = values["url"]  # You could populate email here if necessary
+    #     return values
+    #
+    # def __str__(self):
+    #     output = "Bugs Information:\n"
+    #     if self.email:
+    #         output += f"\tEmail: {self.email}\n"
+    #     if self.url:
+    #         output += f"\tURL: {self.url}\n"
+    #     return output.strip()
+    #
+    # def __repr__(self):
+    #     return f"Bugs(email={repr(self.email)}, url={repr(self.url)})"
+    #
 
 
 class Contact(BaseModel, NSPrettyPrintable):
@@ -432,6 +442,13 @@ def get_non_null_attributes(obj):
     return {key: value for key, value in vars(obj).items() if value is not None}
 
 
+# def get_descriminator_value(v: Any) -> str:
+#     if isinstance(v, dict):
+#         return v.get("url", v.get("email"))
+#     return getattr(v, "url", getattr(v, "email", None))
+#
+
+
 class PackumentVersion(PackageJSON, NSPrettyPrintable):
     """
     Note: Contacts (bugs, author, contributors, repository, etc) can be simple
@@ -451,6 +468,14 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     git_head: str | None = Field(None, alias="gitHead")
     author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
     bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
+
+    # bugs: Annotated[
+    #     Union[
+    #         Annotated[Bugs, Tag("bugs")],
+    #         Annotated[str, Tag("string")],
+    #     ],
+    #     Discriminator(get_descriminator_value),
+    # ]
     contributors: list[Contact] | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None

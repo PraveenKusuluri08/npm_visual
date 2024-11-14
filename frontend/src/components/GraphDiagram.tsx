@@ -1,12 +1,18 @@
 // import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
-import { ChangeEvent, ChangeEventHandler, FormEvent, useEffect, useState } from "react";
-import { ForceGraph3D } from 'react-force-graph';
-import GraphData from "../utils/models"
-import axios from "axios"
+import {
+  ChangeEvent,
+  ChangeEventHandler,
+  FormEvent,
+  useEffect,
+  useState,
+} from "react";
+import { ForceGraph3D } from "react-force-graph";
+import GraphData from "../utils/models";
+import axios from "axios";
 import { getCache } from "../utils/cache";
-import { useResizeDetector } from 'react-resize-detector';
-import './GraphDiagram.css';
+import { useResizeDetector } from "react-resize-detector";
+import "./GraphDiagram.css";
 
 const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   const { width, height, ref } = useResizeDetector();
@@ -16,39 +22,38 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   useEffect(() => {
     widthToUse = width ? width : 1000;
     heightToUse = height ? height : 1000;
-  }, [width])
+  }, [width]);
 
-  const [graphData, setPackageData] = useState<GraphData>()
+  const [graphData, setPackageData] = useState<GraphData>();
   useEffect(() => {
     if (packageName != "") {
-      console.log('setting axios call')
+      console.log("setting axios call");
       let url;
-      if (packageName == "getPopularNetwork")
-        url = '/api/getPopularNetwork';
-      else
-        url = `/api/dependencies/${packageName}`;
+      if (packageName == "getPopularNetwork") url = "/api/getPopularNetwork";
+      else url = `/api/getNetwork/${packageName}`;
       // Prevent many calls to the same API.
       const apiCache = getCache();
       if (!apiCache.doesCallExist(url)) {
-        apiCache.addCall(url)
-        axios.get(url)
+        apiCache.addCall(url);
+        axios
+          .get(url)
           .then((data) => {
-            console.log('setting package data')
-            setPackageData(data.data)
+            console.log("setting package data");
+            setPackageData(data.data);
           })
           .catch((error) => {
-            console.log("Error fetching data", error)
+            console.log("Error fetching data", error);
           })
           .finally(() => {
             apiCache.removeCall(url);
-          })
-      }
-      else {
-        console.log(`did not sent request to ${url}, request already in progress`);
+          });
+      } else {
+        console.log(
+          `did not sent request to ${url}, request already in progress`,
+        );
       }
     }
-  }, [packageName])
-
+  }, [packageName]);
 
   interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
@@ -60,8 +65,8 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
   }
 
   useEffect(() => {
-    console.log('second useEffect called')
-    console.log(graphData)
+    console.log("second useEffect called");
+    console.log(graphData);
     const heightToUse = height ? height : 1000;
     const widthToUse = width ? width : 1000;
 
@@ -69,10 +74,10 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     if (graphData !== undefined) {
       const svg = d3
         .select("#graph")
-        .attr('height', '100%')
-        .attr('width', '100%')
-        .attr('viewBox', '0 0 ' + widthToUse + ' ' + heightToUse)
-        .attr('preserveAspectRatio', 'none');
+        .attr("height", "100%")
+        .attr("width", "100%")
+        .attr("viewBox", "0 0 " + widthToUse + " " + heightToUse)
+        .attr("preserveAspectRatio", "none");
       // .attr("width", newWidth)
       // .attr("height", height)
       // .attr("transform", "translate(100px,200px)");
@@ -84,7 +89,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
           "link",
           d3
             .forceLink<GraphNode, GraphLink>(graphData.links)
-            .id((d: GraphNode) => d.id)
+            .id((d: GraphNode) => d.id),
         )
         .force("charge", d3.forceManyBody().strength(-5))
         .force("center", d3.forceCenter(widthToUse / 2.2, heightToUse / 2));
@@ -110,7 +115,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
             .drag<SVGCircleElement, GraphNode>()
             .on("start", dragStarted)
             .on("drag", dragged)
-            .on("end", dragEnded)
+            .on("end", dragEnded),
         );
 
       const label = svg
@@ -172,10 +177,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
       <h1>{packageName}</h1>
       <svg width="100%" height="1000px" id="graph"></svg>
 
-      <ForceGraph3D
-        graphData={graphData}
-      />
-
+      <ForceGraph3D graphData={graphData} />
     </div>
   );
 };
