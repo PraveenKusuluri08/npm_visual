@@ -1,19 +1,20 @@
-import functools
 import logging
-from typing import Callable, Concatenate, ParamSpec, TypeVar
+import os
+from collections.abc import Callable
+from typing import Any, Concatenate, ParamSpec, TypeVar
 
-from graphdatascience import GraphDataScience
 from flask.app import Flask
 from neo4j import GraphDatabase
 from neo4j._sync.driver import Driver
 from neo4j._sync.work.transaction import ManagedTransaction
-from typing_extensions import Concatenate, ParamSpec
+from neomodel import config as neomodel_config
+from typing_extensions import ParamSpec
 
-#
-# import neomodel
-# from neomodel import config as neomodel_config
-# from neomodel import db as neomodel_db
-#
+import npmvisual.models
+from config import Config
+
+# from graphdatascience import GraphDataScience
+
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -21,17 +22,25 @@ R = TypeVar("R")
 class Neo4j:
     app: Flask | None
 
-    # def session_run(
-    #     f: (**P) -> R
-    # )-> (bool, **P) -> R:
-    #     def
-    #     pass
-    #
-
-    def __init__(self):
+    def __init__(self, config_class=Config):
+        self.config: Config | Any
         self.app = None
         self.driver: Driver
         self.driver2: Driver
+        self.configure_neomodel()
+
+    def configure_neomodel(self):
+        NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
+        NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
+        NEO4J_HOST = os.environ.get("NEO4J_HOST")
+        NEO4J_DB = os.environ.get("NEO4J_DB")
+        NEO4J_PORT = os.environ.get("NEO4J_PORT", "7687")  # default to 7687 if not set
+
+        NEO4J_BOLT_URL = f"bolt://{NEO4J_USERNAME}:{NEO4J_PASSWORD}@localhost:7687"
+        neomodel_config.DATABASE_URL = NEO4J_BOLT_URL
+
+        x = npmvisual.models.NeomodelConnectionTest()
+        x.save()
 
     def init_app(self, app):
         self.app = app

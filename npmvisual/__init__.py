@@ -1,27 +1,16 @@
 import logging
-from logging.handlers import RotatingFileHandler
-from config import Config
 import os
 import signal
 import sys
+from logging.handlers import RotatingFileHandler
+
 import flask
-import npmvisual.models
-from neomodel import config, db as neomodel_db
+from neomodel import db as neomodel_db
+
+from config import Config
 from npmvisual.extensions.neo4j_db import Neo4j
 
-db = Neo4j()
-
-NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
-NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
-NEO4J_HOST = os.environ.get("NEO4J_HOST")
-NEO4J_DB = os.environ.get("NEO4J_DB")
-NEO4J_PORT = os.environ.get("NEO4J_PORT", "7687")  # default to 7687 if not set
-
-NEO4J_BOLT_URL = f"bolt://{NEO4J_USERNAME}:{NEO4J_PASSWORD}@localhost:7687"
-config.DATABASE_URL = NEO4J_BOLT_URL
-
-x = npmvisual.models.NeomodelConnectionTest()
-x.save()
+db = Neo4j(config_class=Config)
 
 
 def create_app(config_class=Config):
