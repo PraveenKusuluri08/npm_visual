@@ -5,12 +5,11 @@ import os
 import signal
 import sys
 import flask
-from neo4j._sync.driver import GraphDatabase
 import npmvisual.models
-from neomodel import config, db
+from neomodel import config, db as neomodel_db
 from npmvisual.extensions.neo4j_db import Neo4j
 
-n4j = Neo4j()
+db = Neo4j()
 
 NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
 NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
@@ -29,7 +28,7 @@ def create_app(config_class=Config):
     app = flask.Flask(__name__)
     app.config.from_object(config_class)
     load_logs(app)
-    n4j.init_app(app)
+    db.init_app(app)
 
     # Initialize Neo4j driver only within the app context
     # Set Flask app config
@@ -38,8 +37,8 @@ def create_app(config_class=Config):
     # Signal handler for graceful shutdown
     def handle_sigint(signal, frame):
         print("Shutting down gracefully...")
-        if db.driver:  # Ensure the driver exists and is connected
-            db.driver.close()
+        if neomodel_db.driver:  # Ensure the driver exists and is connected
+            neomodel_db.driver.close()
             print("db connection closed")
         sys.exit(0)
 

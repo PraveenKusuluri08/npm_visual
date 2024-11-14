@@ -9,10 +9,11 @@ from neo4j._sync.driver import Driver
 from neo4j._sync.work.transaction import ManagedTransaction
 from typing_extensions import Concatenate, ParamSpec
 
-import neomodel
-from neomodel import config as neomodel_config
-from neomodel import db as neomodel_db
-
+#
+# import neomodel
+# from neomodel import config as neomodel_config
+# from neomodel import db as neomodel_db
+#
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -71,10 +72,10 @@ class Neo4j:
         # from neomodel import config as neomodel_config
 
         # neomodel_config.DRIVER = self.driver
-        self.neomodel_db = neomodel_db
-        self.neomodel_config = neomodel_config
-        self.neomodel = neomodel
-        neomodel_db.set_connection(driver=self.driver)
+        # self.neomodel_db = neomodel_db
+        # self.neomodel_config = neomodel_config
+        # self.neomodel = neomodel
+        # neomodel_db.set_connection(driver=self.driver)
         return self.driver
 
     def verify_connectivity(self):
@@ -91,26 +92,25 @@ class Neo4j:
             return self._connect()
         return self.driver
 
-    def get_config(self):
-        return self.neomodel_config
-
-    def get_db(self):
-        return self.neomodel_db
+    # def get_config(self):
+    #     return self.neomodel_config
+    #
+    # def get_db(self):
+    #     return self.neomodel_db
 
     def teardown(self, exception):
         print(f"closing db. exception: {exception}")
         if self.driver:
-            print(self.driver)
-            assert neomodel_db == self.neomodel_db
-
-            if neomodel_db:
-                print("neomodel_db exists")
-            if self.neomodel_db:
-                print("self.neomodel_db exists")
-
-            if neomodel_db:
-                neomodel_db.close_connection()
-                print("closed neomodel_db")
+            # assert neomodel_db == self.neomodel_db
+            #
+            # if neomodel_db:
+            #     print("neomodel_db exists")
+            # if self.neomodel_db:
+            #     print("self.neomodel_db exists")
+            #
+            # if neomodel_db:
+            #     neomodel_db.close_connection()
+            #     print("closed neomodel_db")
             # if self.neomodel_db:
             #     neomodel_db.close_connection()
             self.driver.close()
@@ -164,13 +164,3 @@ class Neo4j:
         """
         with self.driver.session(database=self.database) as session:
             return session.execute_write(transaction_function, *args, **kwargs)
-
-    def save(self, neomodelClass):
-        print("3333333333333333333 save called 33333333333333333333")
-        # neomodel_db.set_connection(driver=self.driver)
-
-        # with self.driver.session(database=self.database) as session:
-        neomodelClass.save()
-
-        print("44444444444444 save ended 33333333333333333333")
-        # neomodel_db.close_connection()

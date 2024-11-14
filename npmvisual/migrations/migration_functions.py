@@ -24,7 +24,9 @@ def migration_1731556705326():
     ):
         tx.run(
             """
-            CREATE CONSTRAINT ON (p:PackageNode) ASSERT p.package_id IS UNIQUE;
+            CREATE CONSTRAINT unique_package_node_id 
+            FOR (n:PackageNode) 
+            REQUIRE n.package_id IS UNIQUE
             """,
             migration_id=migration_id,
         )
