@@ -82,7 +82,8 @@ class DeprecatedLicense(BaseModel, NSPrettyPrintable):
 
 # Signature (used in dist)
 class Signature(BaseModel, NSPrettyPrintable):
-    sig: str
+    # nick changed to comply with npm api
+    sig: str | None
     keyid: str
 
     def __str__(self):
@@ -104,22 +105,25 @@ class Dist(BaseModel, NSPrettyPrintable):
 
     # subresource integrity string! `npm view ssri`
     # https://w3c.github.io/webappsec-subresource-integrity/
-    integrity: str | None = None
+    integrity: str | list[str] | None = None
 
     # PGP signature for the tarball
     npm_signature: str | None = Field(None, alias="npm-signature")
 
     # the sha1 sum of the tarball
-    shasum: str
+    shasum: str | list[str]
 
     # Out-of-date blog post about this, below. (Says this is "npm-signature", but
     # that's not what the registry provides).
     # https://blog.npmjs.org/post/172999548390/new-pgp-machinery
     # Nick added Any. This should be fixed
-    signatures: Any  # dict[str, str | bool | Any] | list[Signature]
+    signatures: (
+        dict[str, Any] | dict[str, str | bool | int | Any] | list[Signature] | None
+    ) = None
+    # signatures: Any  # dict[str, str | bool | Any] | list[Signature]
 
     # the url to the tarball for the package version
-    tarball: str
+    tarball: str | list[str]
 
     # the unpacked size of the files in the tarball. >= 2018
     unpacked_size: int | None = Field(None, alias="unpackedSize")
@@ -212,7 +216,7 @@ class Bugs(BaseModel, NSPrettyPrintable):
 
 
 class Contact(BaseModel, NSPrettyPrintable):
-    name: str
+    name: str | dict[str, str] | None = None
     email: str | None = None
     url: str | None = None
 
@@ -258,7 +262,10 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     cpu: list[str] | None = None
     dependencies: dict[str, str] | None = None
     description: str | None = None
-    dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
+    # nick added nested dicts to align with npm api
+    dev_dependencies: dict[str, str | dict[str, str | dict[str, str]]] | None = Field(
+        None, alias="devDependencies"
+    )
     dev_engines: DevEngines | None = Field(None, alias="devEngines")
     directories: dict[str, str] | None = None
     # Nick added string and list[str] to align with NPM api
@@ -267,13 +274,23 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     # Nick changed this a lot to align with the npm api
     funding: dict[str, str] | list[Funding] | Funding | str | None = None
     homepage: str | None = None
-    keywords: list[str] | None = None
+    keywords: list[str] | str | None = None
     # Nick added list[DeprecatedLicense] to align with the npm api
-    license: str | dict[str, str] | list[DeprecatedLicense] | None = None
-    # Nick added str to align with the npm api
-    licenses: DeprecatedLicense | list[DeprecatedLicense] | str | None = None
+    license: (
+        str | dict[str, str] | list[dict[str, str]] | list[DeprecatedLicense] | None
+    ) = None
+    # Nick added str  and dict[str, list] to align with the npm api
+    licenses: (
+        DeprecatedLicense
+        | list[str]
+        | list[DeprecatedLicense]
+        # | Dist
+        | dict[str, list[DeprecatedLicense]]
+        | str
+        | None
+    ) = None
     main: str | None = None
-    man: str | list[str] | None = None
+    man: str | list[str | dict[str, str]] | None = None
     optional_dependencies: dict[str, str] | None = Field(
         None, alias="optionalDependencies"
     )
@@ -287,7 +304,7 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     publish_config: dict[str, Any] | None = None
     repository: Repository | str | None = None
     # nick added nested dict to align with npm api
-    scripts: dict[str, str | dict[str, str | bool]] | None = None
+    scripts: dict[str, str | dict[str, str | int | bool]] | None = None
     # https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html#editing-the-packagejson
     # Nick added list[str] to align with npm api
     types: str | list[str] | None = None
@@ -362,7 +379,7 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     bugs: Bugs | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
 
     # Nick added str to align with npm api
-    contributors: list[Contact] | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    contributors: list[Contact] | str | dict[str, list[Contact]] | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
@@ -412,14 +429,17 @@ class Packument(BaseModel, NSPrettyPrintable):
     git_head: str | None = Field(None, alias="gitHead")
     # Nick added str to align with npm api
     author: Contact | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
-    bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    bugs: Bugs | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     contributors: list[Contact] | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
-    repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    repository: Repository | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     description: str | None = None
-    homepage: str | None = None
+    # nick added list[str] to align with npm api
+    homepage: str | list[str] | None = None
     keywords: list[str] | None = None
     license: str | None = None
 

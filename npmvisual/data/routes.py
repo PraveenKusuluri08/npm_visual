@@ -65,4 +65,4 @@ def scrape_all_packages() -> str:
 
 @bp.route("/scrapePackage/<package_name>")
 def scrape_package(package_name: str) -> str:
-    return scrape_packages(list(package_name))
+    return scrape_packages([package_name])
