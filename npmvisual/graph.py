@@ -1,12 +1,12 @@
 import networkx as nx
 from flask import Blueprint, jsonify, request
 
+import npmvisual.utils as utils
 from npmvisual._models.packageNode import PackageNode
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
     search_and_scrape_recursive,
 )
-from npmvisual.utils import get_all_package_names
 
 bp = Blueprint("network", __name__)
 
@@ -20,8 +20,12 @@ def get_networks(package_names: list[str]):  # todo add type
     return _get_networks(package_names)
 
 
-def _get_networks(package_names: list[str]):  # todo add type
-    (found, not_found) = search_and_scrape_recursive(set(package_names))
+def _get_networks(
+    package_names: list[str], max_count: int | utils.Infinity = utils.infinity
+):  # todo add type
+    (found, not_found) = search_and_scrape_recursive(
+        set(package_names), max_count=utils.infinity
+    )
     if not_found:
         print(
             f"Successfully created network of size {len(found)}.\n"
@@ -33,12 +37,12 @@ def _get_networks(package_names: list[str]):  # todo add type
 @bp.route("/getPopularNetworks", methods=["GET"])
 def get_popular_networks():
     to_search = get_popular_package_names()
-    return _get_networks(list(to_search))
+    return _get_networks(list(to_search), max_count=100)
 
 
 @bp.route("/getAllNetworks", methods=["GET"])
 def get_all_networks():
-    to_search = get_all_package_names()
+    to_search = utils.get_all_package_names()
     return _get_networks(list(to_search))
 
 

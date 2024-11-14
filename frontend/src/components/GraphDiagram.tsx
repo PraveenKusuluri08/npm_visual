@@ -29,7 +29,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     if (packageName != "") {
       console.log("setting axios call");
       let url;
-      if (packageName == "getPopularNetwork") url = "/api/getPopularNetwork";
+      if (packageName == "getPopularNetwork") url = "/api/getPopularNetworks";
       else url = `/api/getNetwork/${packageName}`;
       // Prevent many calls to the same API.
       const apiCache = getCache();
