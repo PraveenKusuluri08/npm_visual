@@ -40,8 +40,14 @@ class PackageNode(StructuredNode, NSPrettyPrintable):
     keywords = ArrayProperty(StringProperty(), required=False)
     license = StringProperty(required=False)
 
-    dependency_id_list: list[str] | None = ArrayProperty(StringProperty(), required=False)  # type: ignore
+    dependency_id_list: list[str] = ArrayProperty(StringProperty(), required=True)  # type: ignore
     dependencies = RelationshipTo("PackageNode", "DEPENDS_ON", cardinality=ZeroOrMore)
+
+    def __str__(self):
+        return f"{self.__class__.__name__} (id={self.package_id})"
+
+    def id_attr(self) -> str:
+        return "package_id"
 
     @classmethod
     def from_packument(cls, packument: Packument):
@@ -49,7 +55,8 @@ class PackageNode(StructuredNode, NSPrettyPrintable):
         if not version:
             raise Exception("no latest version")
         dependency_id_list = packument.get_dependencies(version)
-        print(f"dependency_id_list={dependency_id_list}")
+        assert dependency_id_list is not None
+
         return cls(
             package_id=packument.id,
             rev=packument.rev,

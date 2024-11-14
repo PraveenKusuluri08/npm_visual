@@ -1,7 +1,7 @@
 import re
 import shutil
 
-from pydantic import BaseModel
+from npmvisual import utils
 
 
 class NSPrettyPrintable:
@@ -10,7 +10,26 @@ class NSPrettyPrintable:
     All child models should inherit from this class to use the `prettyPrint` method.
     """
 
-    def to_readable_str(self, level=1, indent="    "):
+    def __str__(self) -> str:
+        # Try to get the 'name' and 'id' attributes
+        name = getattr(self, "name", "Unnamed")
+        obj_id = getattr(self, self.id_attr(), "No ID")
+
+        # Return a formatted string with the class name, and its name and id
+        return f"{self.__class__.__name__} (name={name}, id={obj_id})"
+
+    def id_attr(self) -> str:
+        return "id"
+
+    def to_readable_str(
+        self,
+        level=1,
+        indent="    ",
+        list_limit: int | utils.Infinity = 5,
+        dict_limit: int | utils.Infinity = 5,
+        version_limit: int | utils.Infinity = 1,
+        current_key: str | None = None,
+    ):
         """
         A generic method to convert the model's attributes to a readable string.
         Allows children to override this method for custom formatting.
@@ -33,13 +52,36 @@ class NSPrettyPrintable:
 
             elif isinstance(value, list):
                 output += f"{level_indent}{attr}:\n"
-                output += NSPrettyPrintable.format_list(attr, value, level, indent)
+                output += NSPrettyPrintable.format_list(
+                    attr,
+                    value,
+                    level + 1,
+                    indent,
+                    list_limit=list_limit,
+                    dict_limit=dict_limit,
+                    version_limit=version_limit,
+                )
             elif isinstance(value, dict):
                 output += f"{level_indent}{attr}:\n"
-                output += NSPrettyPrintable.format_dict(value, level, indent)
+                if current_key == "versions" and version_limit != utils.infinity:
+                    dict_limit = version_limit
+                output += NSPrettyPrintable.format_dict(
+                    value,
+                    level,
+                    indent,
+                    list_limit,
+                    dict_limit,
+                    version_limit,
+                    next_dict_limit=dict_limit,
+                )
             elif isinstance(value, NSPrettyPrintable):
                 output += f"{level_indent}{attr}:\n"
-                output += value.to_readable_str(level + 1)
+                output += value.to_readable_str(
+                    level + 1,
+                    list_limit=list_limit,
+                    dict_limit=dict_limit,
+                    version_limit=version_limit,
+                )
             else:
                 output += f"{level_indent}{attr}: {value}\n"
 
@@ -51,18 +93,31 @@ class NSPrettyPrintable:
         value: list,
         level: int,
         indent: str,
-    ):
+        list_limit: int | utils.Infinity,
+        dict_limit: int | utils.Infinity,
+        version_limit: int | utils.Infinity,
+    ) -> str:
         output = ""
         for count, item in enumerate(value):
+            if count > list_limit:
+                output += f"{indent*level}... ({len(value) - count} hidden for brevity)\n"
+                break
             if isinstance(item, NSPrettyPrintable):
-                output += item.to_readable_str(level + 1)
+                output += item.to_readable_str(
+                    level + 1,
+                    list_limit=list_limit,
+                    dict_limit=dict_limit,
+                    version_limit=version_limit,
+                )
                 if (
                     NSPrettyPrintable.is_multiline_string(output)
                     and count != len(value) - 1
                 ):
                     output += f"{indent*level}{indent},\n"
             elif isinstance(item, str):
-                output += f"{indent*level}{NSPrettyPrintable.format_string(item, len(indent*level + attr) + 2)}\n"
+                output += f"{indent*level}{NSPrettyPrintable.format_string(
+                item, 
+                len(indent*(level+1) + attr) + 2)}\n"
             else:
                 output += f"{indent*level}{item}"
         return output
@@ -72,18 +127,48 @@ class NSPrettyPrintable:
         value: dict,
         level: int,
         indent: str,
+        list_limit: int | utils.Infinity,
+        dict_limit: int | utils.Infinity,
+        version_limit: int | utils.Infinity,
+        next_dict_limit: int | utils.Infinity,
     ):
         output = ""
+        count = 0
         for key, val in value.items():
+            if count > dict_limit:
+                output += f"{indent*(level+1)}... ({len(value.items())-count} hidden for brevity)\n"
+                break
+            count += 1
             if isinstance(val, NSPrettyPrintable):
                 # output += f"{indent}{key} \n"
-                output += val.to_readable_str(level + 1)
+                if next_dict_limit:
+                    dict_limit = next_dict_limit
+                output += val.to_readable_str(
+                    level + 1,
+                    list_limit=list_limit,
+                    dict_limit=dict_limit,
+                    version_limit=version_limit,
+                    current_key=key,
+                )
             else:
                 output += f"{indent*(level+1)}{key}: {val}\n"
         return output
 
-    def pretty_print(self):
-        print(self.to_readable_str())
+    def pretty_print(
+        self,
+        extra_level: int = 0,
+        list_limit: int | utils.Infinity = 5,
+        dict_limit: int | utils.Infinity = 5,
+        version_limit: int | utils.Infinity = 2,
+    ):
+        print(
+            self.to_readable_str(
+                level=extra_level,
+                list_limit=list_limit,
+                dict_limit=dict_limit,
+                version_limit=version_limit,
+            )
+        )
 
     @staticmethod
     def clean_special_characters(value: str) -> str:

@@ -5,6 +5,7 @@ from typing import Any
 
 from flask import current_app as app
 from neo4j.graph import Node
+import npmvisual.utils as utils
 
 from npmvisual import db
 
@@ -331,17 +332,22 @@ def search_and_scrape_recursive(
 ) -> tuple[dict[str, PackageNode], set[str]]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
+    print(f"start of search_and_scrape_recursive: package_names:{package_names}")
     to_search: set[str] = package_names.copy()
     found: dict[str, PackageNode] = {}
     not_found: set[str] = set()
 
     count = 0
     while count < max_count:
-        print(f"searching for: {to_search}")
+        print(f"  db searching for: {to_search}")
         (newly_found, newly_not_found) = search_packages(to_search)
+
+        print(f"  found in db: {found.keys()}")
 
         for name, packageNode in newly_found.items():
             found[name] = packageNode
+
+            print(f"   removing {name}")
             to_search.remove(name)
             count += 1
             if count >= max_count:
@@ -369,10 +375,21 @@ def search_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
     to_search: set[str] = package_names.copy()
     found: dict[str, PackageNode] = {}
 
-    newly_found = PackageNode.nodes.filter(package_id__in=package_names)
-    for name, packageNode in newly_found.items():
-        found[name] = packageNode
-        to_search.remove(name)
+    newly_found = PackageNode.nodes.filter(package_id__in=list(package_names))
+    ids = []
+    for packageNode in newly_found:
+        ids.append(packageNode.package_id)
+
+    duplicates = utils.find_duplicates(ids)
+    print("33" * 88)
+    print(duplicates)
+    for packageNode in newly_found:
+        print(f"   -search_packages(): {packageNode.package_id}")
+        # print(f"   xsearch_packages(): {packageNode.__str__()}")
+        # print(f"   +search_packages(): {packageNode.pretty_print(3,3,10)}")
+        assert packageNode and packageNode.package_id
+        found[packageNode.package_id] = packageNode
+        to_search.remove(packageNode.package_id)
 
     return (found, to_search)
 
@@ -411,6 +428,7 @@ def save_packages(packages: set[PackageNode]):
 
 
 def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
+    print(f"    scrape_packages: scraping: {package_names}")
     found: dict[str, PackageNode] = {}
     not_found: set[str] = set()
     for p in package_names:
@@ -419,14 +437,24 @@ def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
             found[p] = pn
         else:
             not_found.add(p)
+    print(f"    scrape_packages: found: {found.keys()}")
     return (found, not_found)
 
 
 def scrape_package(package_name: str) -> PackageNode | None:
     json_dict = scrape_package_json(package_name)
+    versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
+    if versions and len(versions) > 0:
+        last_item: Any = sorted(versions.items())[-1][1]
+        funding = last_item.get("funding")
+        print(f"funding:{funding}")
+
     if not json_dict:
         return None
     packument = Packument.from_json(json_dict)
     if not packument:
         return None
-    return PackageNode.from_packument(packument)
+    pn = PackageNode.from_packument(packument)
+    if pn:
+        pn.save()
+    return pn

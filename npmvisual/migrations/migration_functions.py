@@ -15,6 +15,23 @@ I made a handy CopyTimestamp.tsx component on the website. use that.
 """
 
 
+def migration_1731556705326():
+    """Ensuring PackageNodes are unique"""
+
+    def create_migration_system_tx(
+        tx: ManagedTransaction,
+        migration_id: str,
+    ):
+        tx.run(
+            """
+            CREATE CONSTRAINT ON (p:PackageNode) ASSERT p.package_id IS UNIQUE;
+            """,
+            migration_id=migration_id,
+        )
+
+    db.execute_write(create_migration_system_tx, "migration_1731556705326")
+
+
 def migration_1729922231172():
     """created new db migration system"""
 

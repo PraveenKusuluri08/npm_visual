@@ -1,6 +1,7 @@
 import hashlib
 import json
 import os
+from typing import Any
 
 
 def ns_hash(name: str, length=40) -> str:
@@ -61,3 +62,16 @@ def get_all_package_names(max: int = 300, offset: int = 0) -> set[str]:
         f"This is {i-len(names)} less than the original file"
     )
     return names
+
+
+def find_duplicates(lst: list[Any]):
+    seen = set()
+    duplicates = set()
+
+    for item in lst:
+        if item in seen:
+            duplicates.add(item)
+        else:
+            seen.add(item)
+
+    return duplicates

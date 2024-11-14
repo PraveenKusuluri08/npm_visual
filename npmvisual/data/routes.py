@@ -2,11 +2,13 @@ from npmvisual._models.packageNode import PackageNode
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.utils import get_all_package_names
+
 from .db_package import (
     scrape_packages as db_scrape_packages,
+)
+from .db_package import (
     search_packages,
 )
-
 
 # @bp.route("/deletePackages")
 # def delete_packages():

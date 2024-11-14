@@ -11,7 +11,7 @@ from npmvisual._models.ns_base_model import NSPrettyPrintable
 class Repository(BaseModel, NSPrettyPrintable):
     directory: str | None = None
     repository_type: str | None = Field(None, alias="type")
-    url: str
+    url: str | None = None  # Nick added None to allign with NPM api.
 
     def __str__(self):
         parts = []
@@ -27,8 +27,10 @@ class Repository(BaseModel, NSPrettyPrintable):
 
 
 class Funding(BaseModel, NSPrettyPrintable):
-    funding_type: str = Field(..., alias="type")
-    url: str
+    # Nick added dict[str, str] and None to allign with npm api
+    funding_type: str | dict[str, str] | None = Field(..., alias="type")
+    # Nick added dict[str, str] to allign with npm api
+    url: str | dict[str, str]
 
     def __str__(self):
         return f"Funding(type={self.funding_type}, url={self.url})"
@@ -245,7 +247,7 @@ class Contact(BaseModel, NSPrettyPrintable):
 
 class PackageJSON(BaseModel, NSPrettyPrintable):
     """
-    this is in the tarball for the project. it really could have anything in it.
+    This is in the tarball for the project. it really could have anything in it.
     """
 
     model_config = ConfigDict(extra="allow")  # Allow extra fields
@@ -257,7 +259,8 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     # Optional Fields
     author: Contact | str | None = None
     bin: dict[str, str] | None = None
-    browser: dict[str, str] | str | None = None
+    # Nick added bool to the dict to align with the NPM api
+    browser: dict[str, str | bool] | str | None = None
     bugs: Bugs | str | None = None
     bundled_dependencies: list[str] | bool | None = Field(
         None, alias="bundledDependencies"
@@ -271,9 +274,11 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
     dev_engines: DevEngines | None = Field(None, alias="devEngines")
     directories: dict[str, str] | None = None
-    engines: dict[str, str] | None = None
+    engines: dict[str, str] | str | None = (
+        None  # Nick added string to allign with NPM api
+    )
     files: list[str] | None = None
-    funding: Funding | str | list[Funding | str] | None = None
+    funding: dict[str, str] | Funding | str | None = None
     homepage: str | None = None
     keywords: list[str] | None = None
     license: str | None = None
@@ -526,7 +531,9 @@ class Packument(BaseModel, NSPrettyPrintable):
     """
 
     id: str = Field(..., alias="_id")
-    rev: str = Field(..., alias="_rev")
+    rev: str | None = Field(
+        None, alias="_rev"
+    )  # Nick added None to align with the npm api
     time: dict[str, str]  # modified and created can be required, other fields allowed
     versions: dict[str, PackumentVersion]
 
@@ -574,10 +581,10 @@ class Packument(BaseModel, NSPrettyPrintable):
 
         return max(self.versions.keys(), key=version.parse)
 
-    def get_dependencies(self, version_key: str) -> list[str] | None:
+    def get_dependencies(self, version_key: str) -> list[str]:
         version = self.versions[version_key]
         if version.dependencies is None:
-            return None
+            return []
         return list(version.dependencies.keys())
 
 
