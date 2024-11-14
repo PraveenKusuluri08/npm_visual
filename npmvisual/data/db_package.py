@@ -289,9 +289,7 @@ def db_scrape_everything():
                 # print(
                 #     "\n packument created. Pretty Printing------------------------------------------------------\n"
                 # )
-                print(" My Pretty Print ###############################################")
                 new_packument.pretty_print()
-                print(" My Pretty Print End ###########################################")
                 all = PackageNode.nodes.all()
                 for p in all:
                     p.delete()
@@ -340,7 +338,6 @@ def search_and_scrape_recursive(
     print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
     count = 0
     while len(to_search) != 0 and count < max_count:
-        print(f"search_and_scrape_recursive round {count} -------------------")
         nsprint(f"  db searching for: {to_search}")
         (in_db, not_in_db) = search_packages_recursive(to_search)
         found.update(in_db)
@@ -349,9 +346,9 @@ def search_and_scrape_recursive(
         if len(not_in_db) == 0:
             break
 
-        print(f"  Some packages not in db. Searching online: {not_in_db}")
+        nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
         (scraped, not_scraped) = scrape_packages(not_in_db)
-        print(
+        nsprint(
             f"  Scraping round {count} complete."
             f"  Scrapped the following packages: {scraped.keys()}"
         )
@@ -375,9 +372,8 @@ def search_packages_recursive(
     not_found: set[str] = set()
 
     while len(to_search) > 0:
-        print("---====================----")
+        print()
         nsprint(f"searching db for: {to_search}", 1)
-        print("-------------------")
         (newly_found, newly_not_found) = search_packages(to_search)
         not_found.update(newly_not_found)
         nsprint(f"found in db: {[newly_found.keys()]}", 1)

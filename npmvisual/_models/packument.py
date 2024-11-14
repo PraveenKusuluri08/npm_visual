@@ -70,7 +70,7 @@ class PeerDependencyMeta(BaseModel, NSPrettyPrintable):
 
 class DeprecatedLicense(BaseModel, NSPrettyPrintable):
     license_type: str = Field(..., alias="type")
-    url: str
+    url: str | None = None  # Nick added None to align with NPM api
 
     def __str__(self):
         return f"license_type: {self.license_type}, url: {self.url}"
@@ -180,28 +180,33 @@ class DevEngines(BaseModel, NSPrettyPrintable):
         )
 
 
-class Bugs(TypedDict):
-    email: str | None
-    url: str | None
+class Bugs(BaseModel, NSPrettyPrintable):
+    email: str | None = None
+    url: str | None = None
 
-    #
-    #     if isinstance(values.get("url"), str):
-    #         values["url"] = values["url"]  # You could populate email here if necessary
-    #     if isinstance(values.get("url"), str):
-    #         values["url"] = values["url"]  # You could populate email here if necessary
-    #     return values
-    #
-    # def __str__(self):
-    #     output = "Bugs Information:\n"
-    #     if self.email:
-    #         output += f"\tEmail: {self.email}\n"
-    #     if self.url:
-    #         output += f"\tURL: {self.url}\n"
-    #     return output.strip()
-    #
-    # def __repr__(self):
-    #     return f"Bugs(email={repr(self.email)}, url={repr(self.url)})"
-    #
+
+# class Bugs(TypedDict):
+#     email: str | None
+#     url: str | None
+
+#
+#     if isinstance(values.get("url"), str):
+#         values["url"] = values["url"]  # You could populate email here if necessary
+#     if isinstance(values.get("url"), str):
+#         values["url"] = values["url"]  # You could populate email here if necessary
+#     return values
+#
+# def __str__(self):
+#     output = "Bugs Information:\n"
+#     if self.email:
+#         output += f"\tEmail: {self.email}\n"
+#     if self.url:
+#         output += f"\tURL: {self.url}\n"
+#     return output.strip()
+#
+# def __repr__(self):
+#     return f"Bugs(email={repr(self.email)}, url={repr(self.url)})"
+#
 
 
 class Contact(BaseModel, NSPrettyPrintable):
@@ -251,7 +256,8 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
     dev_engines: DevEngines | None = Field(None, alias="devEngines")
     directories: dict[str, str] | None = None
-    engines: dict[str, str] | str | None = None  # Nick added string to align with NPM api
+    # Nick added string and list[str] to align with NPM api
+    engines: dict[str, str] | list[str] | str | None = None
     files: list[str] | None = None
     # Nick changed this a lot to align with the npm api
     funding: dict[str, str] | list[Funding] | Funding | str | None = None
@@ -352,8 +358,10 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     node_version: str | None = Field(None, alias="_nodeVersion")
     npm_user: Contact | None = Field(None, alias="_npmUser")
     git_head: str | None = Field(None, alias="gitHead")
-    author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
-    bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    author: Contact | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    bugs: Bugs | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
 
     # bugs: Annotated[
     #     Union[
@@ -366,7 +374,8 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     maintainers: list[Contact] | None = None
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
-    repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    repository: Repository | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     deprecated: str | bool | None = None  # I added bool to the options.
 
     def __str__(self):
