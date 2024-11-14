@@ -452,7 +452,7 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
     repository: Repository | None = None  # type: ignore[reportIncompatibleVariableOverride]
-    deprecated: str | None = None
+    deprecated: str | bool | None = None  # I added bool to the options.
 
     def __str__(self):
         def format_field(name, value, width=20):
@@ -510,11 +510,10 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
             f"PackumentVersion(id={repr(self.id)}, npm_version={repr(self.npm_version)}, "
             f"dist={repr(self.dist)}, has_shrinkwrap={repr(self.has_shrinkwrap)}, "
             f"node_version={repr(self.node_version)}, npm_user={repr(self.npm_user)}, "
-            f"git_head={repr(self.git_head)}, author={repr(self.author) if self.author else repr(super().author)}, "
+            # f"git_head={repr(self.git_head)}, author={repr(self.author) if self.author else repr(super().author)}, "
             f"bugs={repr(self.bugs) if self.bugs else repr(super().bugs)}, "
-            f"contributors={repr(self.contributors) if self.contributors else repr(super().contributors)}, "
             f"maintainers={repr(self.maintainers)}, readme={repr(self.readme)}, "
-            f"readme_filename={repr(self.readme_filename)}, repository={repr(self.repository) if self.repository else repr(super().repository)}, "
+            # f"readme_filename={repr(self.readme_filename)}, repository={repr(self.repository) if self.repository else repr(super().repository)}, "
             f"deprecated={repr(self.deprecated)}, "
             f"{super().__repr__()[1:]} )"  # Append parent class fields after the opening parenthesis
         )
@@ -591,7 +590,7 @@ class ManifestVersion(PackumentVersion, NSPrettyPrintable):
     )
     bundle_dependencies: list[str] | bool | None = Field(None, alias="bundleDependencies")
     dependencies: dict[str, str] | None = None
-    deprecated: str | None = None
+    deprecated: str | bool | None = None
     dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
     directories: dict[str, str] | None = None
     dist: Dist

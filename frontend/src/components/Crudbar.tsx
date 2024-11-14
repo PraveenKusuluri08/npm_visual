@@ -37,9 +37,9 @@ function Crudbar({ onSelect }: { onSelect: any }) {
     const packageName = input.value;
     onSelect(packageName);
     // alert("you want to search " + packageName)
-    // const url = `/api/dependencies/${packageName}`;
+    const url = `/api/dependencies/${packageName}`;
     // useFetchGraphData(url);
-    // axios.get(url)
+    axios.get(url);
   };
   const [apiText, setApiText] = useState("data/deletePackages");
 

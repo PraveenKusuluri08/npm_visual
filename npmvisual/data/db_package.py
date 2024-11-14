@@ -1,9 +1,7 @@
 import json
-import pprint
 import os
 import random
-import time
-from typing import Any, Dict, Set
+from typing import Any
 
 from flask import current_app as app
 from neo4j.graph import Node
@@ -12,8 +10,9 @@ from npmvisual import db
 
 # from npmvisual._models.package import package_from_json
 # from npmvisual._models.neomodel_connection_test import NeomodelConnectionTest
-from npmvisual._models.packageNode import PackageNode
+from npmvisual._models import package
 from npmvisual._models.package_version import PackageVersion, package_version_from_json
+from npmvisual._models.packageNode import PackageNode
 from npmvisual._models.packument import Packument
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import (
@@ -21,6 +20,7 @@ from npmvisual.data.db_dependency import (
 )
 from npmvisual.data.scraper import scrape_package_json
 from npmvisual.models import Dependency, NeomodelConnectionTest, Package
+from npmvisual.utils import Infinity, infinity
 
 
 def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
@@ -68,36 +68,78 @@ def db_recursive_scrape_slow(
     return True
 
 
-def db_recursive_network_search_and_scrape(
+def gb_recursive_network_search_and_scrape(
     packages_to_search: list[str],
-) -> dict[str, Package]:
+) -> dict[str, PackageNode]:
     to_search: list[str] = packages_to_search.copy()
-    found: dict[str, Package] = {}
+    found: dict[str, PackageNode] = {}
+    could_not_find: list[str] = []
 
-    """
     depth = 0
     while len(to_search) > 0 and depth <= 50:
         print(f"\nsearching for {to_search}")
-        newly_found = db_search(to_search)
-        package: Package
+        # newly_found = db_search(to_search)
+        newly_found = PackageNode.nodes.filter(package_id__in=to_search)
+        package: PackageNode
         for package in newly_found:
-            found[package.id] = package
-            to_search.remove(package.id)
-            for d in package.dependencies:
-                if d.package not in found:
-                    # print(f"\tadding {d.package} to to_search")
-                    to_search.append(d.package)
+            # package.pretty_print()
+            found[package.package_id] = package
+            to_search.remove(package.package_id)
+            if package.dependency_id_list:
+                print(333)
+                for d in package.dependency_id_list:
+                    print(f"adding d 22222")
+                    if d not in found:
+                        print(f"adding d 33333")
+                        # print(f"\tadding {d.package} to to_search")
+                        to_search.append(d)
         print(f"len(newly_found)={len(newly_found)}")
         print(f"len(found)={len(found)}")
+        count = 0
         if len(newly_found) == 0:
             for package_name in to_search:
-                _find_package_and_save_to_cache(package_name)
-                r_dict = cache.load(package_name)
-                temp = Package.from_json(r_dict)
-                db_merge_package_full(temp)
+                if count > 20:
+                    break
+                count += 1
+                next_to_add = find_or_scrape(package_name)
+                if next_to_add:
+                    found[package_name] = next_to_add
+                else:
+                    could_not_find.append(package_name)
+
+                # _find_package_and_save_to_cache(package_name)
+                # r_dict = cache.load(package_name)
+
         depth += 1
-    """
     return found
+
+
+def find_or_scrape(package_name: str) -> PackageNode | None:
+    found = PackageNode.nodes.get(package_name=package_name)
+    if found:
+        return found
+    print(f"searching internet for {package_name}")
+    json_dict: dict[str, Any] | None = scrape_package_json(package_name)
+    if json_dict is None:
+        return None
+    with open(f"output{1}.json", "w") as file:
+        json.dump(json_dict, file, indent=4)
+
+    print("7" * 100)
+    new_packument = Packument.from_json(json_dict)
+    print("8" * 100)
+    print(new_packument)
+    print("9" * 100)
+
+    if new_packument is None:
+        return None
+
+    temp = PackageNode.from_packument(new_packument)
+    print(f"saving {package_name} to db")
+    temp.save()
+    return temp
+    # temp = Package.from_json(r_dict)
+    # db_merge_package_full(temp)
 
 
 def db_search(to_search: list[str]) -> list[Package]:
@@ -189,29 +231,6 @@ def _get_num_of_packages_in_names_json() -> int:
         return sum(1 for line in file)
 
 
-def _get_all_package_names(max: int = 300, offset: int = 0) -> set:
-    names = set()
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.join(dir_path + "/package_cache/names.json")
-    min = max
-    max = offset + max
-    with open(file_path) as file:
-        data = json.load(file)
-        i: int = 0
-        for package_name in data:
-            i += 1
-            if i < min:
-                continue
-            names.add(package_name)
-            if i >= max:
-                break
-    print(
-        f"created a set of all package names with {len(names)} elements."
-        f"This is {i-len(names)} less than the original file"
-    )
-    return names
-
-
 # def db_scrape_everything2():
 #     jim = Person(name="Jim", age=3).save()
 #     jim.age = 4
@@ -269,9 +288,9 @@ def db_scrape_everything():
                 # print(
                 #     "\n packument created. Pretty Printing------------------------------------------------------\n"
                 # )
-                # print(" My Pretty Print ###############################################")
-                # new_packument.pretty_print()
-                # print(" My Pretty Print End ###########################################")
+                print(" My Pretty Print ###############################################")
+                new_packument.pretty_print()
+                print(" My Pretty Print End ###########################################")
                 all = PackageNode.nodes.all()
                 for p in all:
                     p.delete()
@@ -304,3 +323,110 @@ def db_scrape_everything():
             #         # print(f"\tadded package to db: {next_package}")
 
     print(f"\nScraped Everything{count}/{total_count} : {len(failed_to_scrape)} failed.")
+
+
+def search_and_scrape_recursive(
+    package_names: set[str],
+    max_count: int | Infinity = infinity,
+) -> tuple[dict[str, PackageNode], set[str]]:
+    # todo, consider adding depth limit by tracking the depth each package is away from
+    # seeds
+    to_search: set[str] = package_names.copy()
+    found: dict[str, PackageNode] = {}
+    not_found: set[str] = set()
+
+    count = 0
+    while count < max_count:
+        print(f"searching for: {to_search}")
+        (newly_found, newly_not_found) = search_packages(to_search)
+
+        for name, packageNode in newly_found.items():
+            found[name] = packageNode
+            to_search.remove(name)
+            count += 1
+            if count >= max_count:
+                break
+
+        for p in found.values():
+            if p.dependency_id_list:
+                for dependency in p.dependency_id_list:
+                    if dependency not in found:
+                        to_search.add(dependency)
+
+        # do not use info scraped directly from internet. get it from db next iteration
+        (newly_scraped, newly_not_scraped) = scrape_packages(to_search)
+        for name in newly_not_scraped:
+            if name not in found:
+                not_found.add(name)
+                to_search.remove(name)
+
+        if len(to_search) == 0:
+            break
+    return (found, not_found)
+
+
+def search_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
+    to_search: set[str] = package_names.copy()
+    found: dict[str, PackageNode] = {}
+
+    newly_found = PackageNode.nodes.filter(package_id__in=package_names)
+    for name, packageNode in newly_found.items():
+        found[name] = packageNode
+        to_search.remove(name)
+
+    return (found, to_search)
+
+
+# def search_and_scrape(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
+#     to_search: set[str] = package_names.copy()
+#     found: dict[str, PackageNode] = {}
+#     not_found: set[str] = set()
+#
+#     newly_found = PackageNode.nodes.filter(package_id__in=package_names)
+#     for name, packageNode in newly_found.items():
+#         found[name] = packageNode
+#         to_search.remove(name)
+#
+#     # Ensure 'scraped' is properly typed
+#     scraped: dict[str, PackageNode]
+#     could_not_scrape: set[str]
+#     (scraped, could_not_scrape) = scrape_packages(to_search)
+#
+#     # Iterate over the dictionary correctly
+#     for name, packageNode in scraped.items():
+#         found[name] = packageNode
+#         to_search.remove(name)
+#     for name in could_not_scrape:
+#         not_found.add(name)
+#         to_search.remove(name)
+#
+#     assert len(to_search) == 0
+#     return (found, not_found)
+#
+
+
+def save_packages(packages: set[PackageNode]):
+    for p in packages:
+        p.save()
+
+
+def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
+    found: dict[str, PackageNode] = {}
+    not_found: set[str] = set()
+    for p in package_names:
+        pn = scrape_package(p)
+        if pn:
+            found[p] = pn
+        else:
+            not_found.add(p)
+    return (found, not_found)
+
+
+def scrape_package(package_name: str) -> PackageNode | None:
+    json_dict = scrape_package_json(package_name)
+    if not json_dict:
+        return None
+    packument = Packument.from_json(json_dict)
+    if not packument:
+        return None
+    return PackageNode.from_packument(packument)

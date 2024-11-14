@@ -11,15 +11,16 @@ from neomodel import (
 )
 from neomodel.sync_.relationship_manager import ZeroOrMore
 
+from npmvisual._models.ns_base_model import NSPrettyPrintable
 from npmvisual._models.packument import Packument
 
 
-class PackageNode(StructuredNode):
+class PackageNode(StructuredNode, NSPrettyPrintable):
     """
     This is the Neomodel equivalent of the Pydantic Packument class.
     """
 
-    package_id = StringProperty(unique_index=True, required=True)
+    package_id: str = StringProperty(unique_index=True, required=True)  # type: ignore
     rev = StringProperty(required=True)
     time = JSONProperty()
 
@@ -39,7 +40,7 @@ class PackageNode(StructuredNode):
     keywords = ArrayProperty(StringProperty(), required=False)
     license = StringProperty(required=False)
 
-    dependency_id_list = ArrayProperty(StringProperty(), required=False)
+    dependency_id_list: list[str] | None = ArrayProperty(StringProperty(), required=False)  # type: ignore
     dependencies = RelationshipTo("PackageNode", "DEPENDS_ON", cardinality=ZeroOrMore)
 
     @classmethod
@@ -48,6 +49,7 @@ class PackageNode(StructuredNode):
         if not version:
             raise Exception("no latest version")
         dependency_id_list = packument.get_dependencies(version)
+        print(f"dependency_id_list={dependency_id_list}")
         return cls(
             package_id=packument.id,
             rev=packument.rev,
@@ -63,7 +65,7 @@ class PackageNode(StructuredNode):
             homepage=packument.homepage,
             keywords=packument.keywords,
             license=packument.license,
-            dependency_list=dependency_id_list,
+            dependency_id_list=dependency_id_list,
         )  # def save(self, **kwargs):
 
     # def connect_dependencies(self):
