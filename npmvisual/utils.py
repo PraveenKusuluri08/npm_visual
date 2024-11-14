@@ -1,7 +1,43 @@
 import hashlib
 import json
 import os
+import shutil
 from typing import Any
+
+
+def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
+    terminal_width = shutil.get_terminal_size().columns
+    indent = tab * num_tabs
+    max_line_length = terminal_width - len(indent)
+    # Split the input text into separate lines based on existing newlines
+    lines = text.splitlines()
+
+    # For each line in the split lines, we will process it and wrap as necessary
+    result_lines = []
+    first_line = True
+    for line in lines:
+        while len(line) > max_line_length:
+            # Find the last space within the max length to break the line without cutting words
+            break_point = line.rfind(" ", 0, max_line_length)
+            if break_point == -1:  # No spaces found, just break at the max length
+                break_point = max_line_length
+
+            # Add the line with the appropriate indentation
+            result_lines.append(indent + line[:break_point])
+
+            # Remove the portion of the text we've already printed
+            line = line[break_point:].lstrip()
+            if first_line:
+                indent += tab
+                max_line_length = terminal_width - len(indent)
+                first_line = False
+
+        # Add the last line (if any remaining text)
+        if line:
+            result_lines.append(indent + line)
+
+    for line in result_lines:
+        print(line)
 
 
 def ns_hash(name: str, length=40) -> str:

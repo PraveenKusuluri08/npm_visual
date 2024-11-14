@@ -21,7 +21,7 @@ from npmvisual.data.db_dependency import (
 )
 from npmvisual.data.scraper import scrape_package_json
 from npmvisual.models import Dependency, NeomodelConnectionTest, Package
-from npmvisual.utils import Infinity, infinity
+from npmvisual.utils import Infinity, infinity, nsprint
 
 
 def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
@@ -332,42 +332,68 @@ def search_and_scrape_recursive(
 ) -> tuple[dict[str, PackageNode], set[str]]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
-    print(f"start of search_and_scrape_recursive: package_names:{package_names}")
+    print(f"\nstart of search_and_scrape_recursive: package_names:{package_names}")
     to_search: set[str] = package_names.copy()
     found: dict[str, PackageNode] = {}
     not_found: set[str] = set()
 
+    print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
     count = 0
-    while count < max_count:
-        print(f"  db searching for: {to_search}")
+    while len(to_search) != 0 and count < max_count:
+        print(f"search_and_scrape_recursive round {count} -------------------")
+        nsprint(f"  db searching for: {to_search}")
+        (in_db, not_in_db) = search_packages_recursive(to_search)
+        found.update(in_db)
+        to_search.difference(set(in_db.keys()))
+
+        if len(not_in_db) == 0:
+            break
+
+        print(f"  Some packages not in db. Searching online: {not_in_db}")
+        (scraped, not_scraped) = scrape_packages(not_in_db)
+        print(
+            f"  Scraping round {count} complete."
+            f"  Scrapped the following packages: {scraped.keys()}"
+        )
+        # do not use info scraped directly from internet. get it from db next iteration
+        to_search.update(scraped.keys())
+        not_found.update(not_scraped)
+
+        if len(scraped) == 0:
+            break
+
+    return (found, not_found)
+
+
+def search_packages_recursive(
+    to_search: set[str],
+    count_limit=utils.infinity,
+    count=0,
+) -> tuple[dict[str, PackageNode], set[str]]:
+    to_search = to_search.copy()
+    found: dict[str, PackageNode] = {}
+    not_found: set[str] = set()
+
+    while len(to_search) > 0:
+        print("---====================----")
+        nsprint(f"searching db for: {to_search}", 1)
+        print("-------------------")
         (newly_found, newly_not_found) = search_packages(to_search)
-
-        print(f"  found in db: {found.keys()}")
-
+        not_found.update(newly_not_found)
+        nsprint(f"found in db: {[newly_found.keys()]}", 1)
         for name, packageNode in newly_found.items():
             found[name] = packageNode
-
-            print(f"   removing {name}")
-            to_search.remove(name)
+            # print(f"  package {name} was already found. Will not search for it again")
             count += 1
-            if count >= max_count:
-                break
+            if count >= count_limit:
+                return (found, not_found)
 
-        for p in found.values():
-            if p.dependency_id_list:
-                for dependency in p.dependency_id_list:
-                    if dependency not in found:
-                        to_search.add(dependency)
-
-        # do not use info scraped directly from internet. get it from db next iteration
-        (newly_scraped, newly_not_scraped) = scrape_packages(to_search)
-        for name in newly_not_scraped:
-            if name not in found:
-                not_found.add(name)
-                to_search.remove(name)
-
-        if len(to_search) == 0:
-            break
+        to_search = set()
+        print("    Adding dependencies...")
+        for p in newly_found.values():
+            for dependency in p.dependency_id_list:
+                if dependency not in not_found and dependency not in found:
+                    to_search.add(dependency)
     return (found, not_found)
 
 
@@ -381,10 +407,11 @@ def search_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
         ids.append(packageNode.package_id)
 
     duplicates = utils.find_duplicates(ids)
-    print("33" * 88)
-    print(duplicates)
+    # print("33" * 88)
+    # print(duplicates)
+    assert len(duplicates) == 0
     for packageNode in newly_found:
-        print(f"   -search_packages(): {packageNode.package_id}")
+        # print(f"   -search_packages(): {packageNode.package_id}")
         # print(f"   xsearch_packages(): {packageNode.__str__()}")
         # print(f"   +search_packages(): {packageNode.pretty_print(3,3,10)}")
         assert packageNode and packageNode.package_id
@@ -437,17 +464,17 @@ def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
             found[p] = pn
         else:
             not_found.add(p)
-    print(f"    scrape_packages: found: {found.keys()}")
+    # print(f"    scrape_packages: found: {found.keys()}")
     return (found, not_found)
 
 
 def scrape_package(package_name: str) -> PackageNode | None:
     json_dict = scrape_package_json(package_name)
-    versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
-    if versions and len(versions) > 0:
-        last_item: Any = sorted(versions.items())[-1][1]
-        funding = last_item.get("funding")
-        print(f"funding:{funding}")
+    # versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
+    # if versions and len(versions) > 0:
+    #     last_item: Any = sorted(versions.items())[-1][1]
+    #     funding = last_item.get("funding")
+    #     print(f"funding:{funding}")
 
     if not json_dict:
         return None

@@ -274,14 +274,13 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")
     dev_engines: DevEngines | None = Field(None, alias="devEngines")
     directories: dict[str, str] | None = None
-    engines: dict[str, str] | str | None = (
-        None  # Nick added string to allign with NPM api
-    )
+    engines: dict[str, str] | str | None = None  # Nick added string to align with NPM api
     files: list[str] | None = None
-    funding: dict[str, str] | Funding | str | None = None
+    # Nick changed this a lot to align with the npm api
+    funding: dict[str, str] | list[Funding] | Funding | str | None = None
     homepage: str | None = None
     keywords: list[str] | None = None
-    license: str | None = None
+    license: str | dict[str, str] | None = None
     licenses: DeprecatedLicense | list[DeprecatedLicense] | None = None
     main: str | None = None
     man: str | list[str] | None = None

@@ -21,10 +21,10 @@ class PackageNode(StructuredNode, NSPrettyPrintable):
     """
 
     package_id: str = StringProperty(unique_index=True, required=True)  # type: ignore
-    rev = StringProperty(required=True)
     time = JSONProperty()
 
     # Optional fields
+    rev = StringProperty(required=False)
     cached = BooleanProperty(required=False)
     dist_tags = JSONProperty()
     users = JSONProperty(required=False)
