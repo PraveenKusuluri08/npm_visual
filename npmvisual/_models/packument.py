@@ -70,6 +70,7 @@ class PeerDependencyMeta(BaseModel, NSPrettyPrintable):
 
 class DeprecatedLicense(BaseModel, NSPrettyPrintable):
     license_type: str = Field(..., alias="type")
+    license: str | None = None  # Nick added this entire field to align with npm api
     url: str | None = None  # Nick added None to align with NPM api
 
     def __str__(self):
@@ -114,7 +115,8 @@ class Dist(BaseModel, NSPrettyPrintable):
     # Out-of-date blog post about this, below. (Says this is "npm-signature", but
     # that's not what the registry provides).
     # https://blog.npmjs.org/post/172999548390/new-pgp-machinery
-    signatures: list[Signature]
+    # Nick added Any. This should be fixed
+    signatures: Any  # dict[str, str | bool | Any] | list[Signature]
 
     # the url to the tarball for the package version
     tarball: str
@@ -240,7 +242,10 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
 
     # Optional Fields
     author: Contact | str | None = None
-    bin: dict[str, str] | None = None
+
+    bin: dict[str, str] | str | None = None
+    # Nick added str to the dict to align with the NPM api
+    bin: dict[str, str] | str | None = None
     # Nick added bool to the dict to align with the NPM api
     browser: dict[str, str | bool] | str | None = None
     bugs: Bugs | str | None = None
@@ -263,8 +268,10 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     funding: dict[str, str] | list[Funding] | Funding | str | None = None
     homepage: str | None = None
     keywords: list[str] | None = None
-    license: str | dict[str, str] | None = None
-    licenses: DeprecatedLicense | list[DeprecatedLicense] | None = None
+    # Nick added list[DeprecatedLicense] to align with the npm api
+    license: str | dict[str, str] | list[DeprecatedLicense] | None = None
+    # Nick added str to align with the npm api
+    licenses: DeprecatedLicense | list[DeprecatedLicense] | str | None = None
     main: str | None = None
     man: str | list[str] | None = None
     optional_dependencies: dict[str, str] | None = Field(
@@ -279,9 +286,11 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     private: bool | None = None
     publish_config: dict[str, Any] | None = None
     repository: Repository | str | None = None
-    scripts: dict[str, str] | None = None
+    # nick added nested dict to align with npm api
+    scripts: dict[str, str | dict[str, str | bool]] | None = None
     # https://www.typescriptlang.org/docs/handbook/declaration-files/dts-from-js.html#editing-the-packagejson
-    types: str | None = None
+    # Nick added list[str] to align with npm api
+    types: str | list[str] | None = None
     workspaces: list[str] | dict[str, str] | None = None
 
     # @model_validator(mode="before")
@@ -330,17 +339,6 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
         )
 
 
-def get_non_null_attributes(obj):
-    return {key: value for key, value in vars(obj).items() if value is not None}
-
-
-# def get_descriminator_value(v: Any) -> str:
-#     if isinstance(v, dict):
-#         return v.get("url", v.get("email"))
-#     return getattr(v, "url", getattr(v, "email", None))
-#
-
-
 class PackumentVersion(PackageJSON, NSPrettyPrintable):
     """
     Note: Contacts (bugs, author, contributors, repository, etc) can be simple
@@ -363,14 +361,8 @@ class PackumentVersion(PackageJSON, NSPrettyPrintable):
     # Nick added str to align with npm api
     bugs: Bugs | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
 
-    # bugs: Annotated[
-    #     Union[
-    #         Annotated[Bugs, Tag("bugs")],
-    #         Annotated[str, Tag("string")],
-    #     ],
-    #     Discriminator(get_descriminator_value),
-    # ]
-    contributors: list[Contact] | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    contributors: list[Contact] | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
@@ -418,9 +410,10 @@ class Packument(BaseModel, NSPrettyPrintable):
     # Hoisted fields from latest PackumentVersion
     name: str
     git_head: str | None = Field(None, alias="gitHead")
-    author: Contact | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    # Nick added str to align with npm api
+    author: Contact | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     bugs: Bugs | None = None  # type: ignore[reportIncompatibleVariableOverride]
-    contributors: list[Contact] | None = None  # type: ignore[reportIncompatibleVariableOverride]
+    contributors: list[Contact] | str | None = None  # type: ignore[reportIncompatibleVariableOverride]
     maintainers: list[Contact] | None = None
     readme: str | None = None
     readme_filename: str | None = Field(None, alias="readmeFilename")
