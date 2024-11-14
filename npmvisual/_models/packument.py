@@ -1,11 +1,8 @@
 from typing import Annotated, Any, Union
-from pydantic.types import Discriminator, Tag
-from typing_extensions import TypedDict
 
-from flask import current_app as app
-from pydantic import RootModel, BaseModel, Field, StringConstraints, ValidationError
+from pydantic import BaseModel, Field, RootModel, StringConstraints, ValidationError
 from pydantic.config import ConfigDict
-from pydantic.functional_validators import model_validator
+from typing_extensions import TypedDict
 
 from npmvisual._models.ns_base_model import NSPrettyPrintable
 
