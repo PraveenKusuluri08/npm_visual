@@ -9,6 +9,10 @@ from npmvisual.migrations import bp, migration_functions
 from npmvisual.migrations.migration_functions import *
 
 
+# todo: clean this up. make a single node, make a cypher rule to prevent more than
+# migration node
+
+
 @dataclass
 class Migration:
     migration_id: str
