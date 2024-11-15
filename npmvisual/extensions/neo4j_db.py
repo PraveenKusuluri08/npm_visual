@@ -20,23 +20,26 @@ R = TypeVar("R")
 
 class Neo4j:
     app: Flask | None
+    config: Config
+    driver: Driver
 
     def __init__(self, config_class=Config):
-        self.config: Config
         self.app = None
-        self.driver: Driver
-        self.driver2: Driver
         self._configure_neomodel()
 
-    def _configure_neomodel(self):
-        NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
-        NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
-        NEO4J_HOST = os.environ.get("NEO4J_HOST")
-        NEO4J_DB = os.environ.get("NEO4J_DB")
-        NEO4J_PORT = os.environ.get("NEO4J_PORT", "7687")  # default to 7687 if not set
+    def _configure_neomodel(self, config_class=Config):
+        self.NEO4J_USERNAME = config_class.NEO4J_USERNAME
+        self.NEO4J_PASSWORD = config_class.NEO4J_PASSWORD
+        self.NEO4J_HOST = config_class.NEO4J_HOST
+        self.NEO4J_DB = config_class.NEO4J_DB
+        self.NEO4J_PORT = os.environ.get(
+            "NEO4J_PORT", "7687"
+        )  # default to 7687 if not set
 
-        NEO4J_BOLT_URL = f"bolt://{NEO4J_USERNAME}:{NEO4J_PASSWORD}@localhost:7687"
-        neomodel_config.DATABASE_URL = NEO4J_BOLT_URL
+        self.NEO4J_BOLT_URL = (
+            f"bolt://{self.NEO4J_USERNAME}:{self.NEO4J_PASSWORD}@localhost:7687"
+        )
+        neomodel_config.DATABASE_URL = self.NEO4J_BOLT_URL
 
         # This exists so that neomodel will be on the same thread. This function must be
         # called before flask is created
