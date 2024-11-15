@@ -10,12 +10,20 @@ from .db_package import (
     search_packages,
 )
 
+import npmvisual.data.type_analyzer
+
 # @bp.route("/deletePackages")
 # def delete_packages():
 #     db_packages_delete_all()
 #     return "success"
 
 ########################################################
+
+
+@bp.route("/test")
+def test():
+    print("success")
+    return "success"
 
 
 @bp.route("/getDBPackages")
