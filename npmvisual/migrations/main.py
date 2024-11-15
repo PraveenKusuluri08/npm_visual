@@ -78,6 +78,19 @@ def set_current_migration_tx(
     )
 
 
+def get_migration_count(tx: ManagedTransaction) -> int:
+    result: Result = tx.run(
+        """
+        MATCH (m:Migration)
+        RETURN COUNT(m) as migration_count
+        """,
+    )
+    record = result.single()
+    if record is None:
+        return 0
+    return record["migration_count"]
+
+
 def get_current_migration_id_tx(tx: ManagedTransaction) -> str:
     records = []
     result: Result = tx.run(
@@ -110,6 +123,9 @@ def upgrade():
     """
     Run any migrations ahead of current. set current_timestamp in db after every migration
     """
+    count = db.execute_read(get_migration_count)
+    if count == 0:
+        reset()
     migrations = create_migration_list()
     current_id = db.execute_write(get_current_migration_id_tx)
     current_timestamp = get_timestamp(current_id)
