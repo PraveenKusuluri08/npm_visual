@@ -14,7 +14,7 @@ function App() {
     <>
       <Crudbar onSelect={onPackageChanged} />
       <div className="page">
-        {/* <GraphDiagram packageName={packageName} /> */}
+        <GraphDiagram packageName={packageName} />
       </div>
     </>
   );
