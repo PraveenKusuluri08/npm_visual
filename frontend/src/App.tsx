@@ -1,4 +1,5 @@
 import "./App.css";
+import { ForceGraph3D } from "react-force-graph";
 import GraphData from "./utils/models";
 import { useEffect } from "react";
 import GraphDiagram from "./components/GraphDiagram";
@@ -49,7 +50,10 @@ function App() {
   return (
     <>
       <Crudbar onSelect={onPackageChanged} />
-      <div className="page">{/* <GraphDiagram graphData={graphData} /> */}</div>
+      <div className="page">
+        <GraphDiagram graphData={graphData} />
+        <ForceGraph3D graphData={graphData} />
+      </div>
     </>
   );
 }
