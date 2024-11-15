@@ -8,11 +8,10 @@ tool decides where to retrieve data from.
 
 from flask import Blueprint
 
-from npmvisual._models.packageNode import PackageNode
-
 bp = Blueprint("data", __name__)
 
 from npmvisual.data import routes
+
 from .db_package import (
     scrape_packages,
     search_and_scrape_recursive,
