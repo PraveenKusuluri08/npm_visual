@@ -132,8 +132,6 @@ const GraphDiagram = ({ graphData }: { graphData?: GraphData }) => {
 
   return (
     <div ref={ref} className="graph-diagram">
-      <div>Width: {width}px</div>
-      <div>Height: {height}px</div>
       <h1>{graphData?.packageName}</h1>
       <svg width="100%" height="1000px" id="graph"></svg>
     </div>

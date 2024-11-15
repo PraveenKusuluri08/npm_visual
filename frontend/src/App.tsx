@@ -11,6 +11,21 @@ import axios from "axios";
 function App() {
   const [packageName, setPackageName] = useState("");
 
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  // we use the useEffect hook to listen to the window resize event
+  useEffect(() => {
+    window.onresize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+  }, []);
+
   const onPackageChanged = (packageName: string) => {
     setPackageName(packageName);
   };
@@ -51,8 +66,15 @@ function App() {
     <>
       <Crudbar onSelect={onPackageChanged} />
       <div className="page">
+        <h1>{packageName}</h1>
         <GraphDiagram graphData={graphData} />
-        <ForceGraph3D graphData={graphData} />
+        <div className="force-graph-3d">
+          <ForceGraph3D
+            width={windowSize.width * 0.9}
+            height={windowSize.height * 0.9}
+            graphData={graphData}
+          />
+        </div>
       </div>
     </>
   );

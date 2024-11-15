@@ -1,13 +1,15 @@
 html {
-
   height: 100%;
-
 }
 
 body {
   margin: 0;
   background: rgb(242, 242, 242);
-  background: radial-gradient(circle, rgba(242, 242, 242, 1) 0%, rgba(122, 182, 209, 1) 100%);
+  background: radial-gradient(
+    circle,
+    rgba(242, 242, 242, 1) 0%,
+    rgba(122, 182, 209, 1) 100%
+  );
   height: 100%;
 }
 
@@ -20,4 +22,8 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+.force-graph-3d {
+  align-self: center;
+  max-width: 90vw;
 }
