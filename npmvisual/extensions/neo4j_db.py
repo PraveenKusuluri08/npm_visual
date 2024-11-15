@@ -1,14 +1,13 @@
 import logging
 import os
 from collections.abc import Callable
-from typing import Any, Concatenate, ParamSpec, TypeVar
+from typing import Concatenate, ParamSpec, TypeVar
 
 from flask.app import Flask
 from neo4j import GraphDatabase
 from neo4j._sync.driver import Driver
 from neo4j._sync.work.transaction import ManagedTransaction
 from neomodel import config as neomodel_config
-from typing_extensions import ParamSpec
 
 import npmvisual.models
 from config import Config
@@ -23,13 +22,13 @@ class Neo4j:
     app: Flask | None
 
     def __init__(self, config_class=Config):
-        self.config: Config | Any
+        self.config: Config
         self.app = None
         self.driver: Driver
         self.driver2: Driver
-        self.configure_neomodel()
+        self._configure_neomodel()
 
-    def configure_neomodel(self):
+    def _configure_neomodel(self):
         NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
         NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
         NEO4J_HOST = os.environ.get("NEO4J_HOST")
@@ -39,8 +38,10 @@ class Neo4j:
         NEO4J_BOLT_URL = f"bolt://{NEO4J_USERNAME}:{NEO4J_PASSWORD}@localhost:7687"
         neomodel_config.DATABASE_URL = NEO4J_BOLT_URL
 
-        x = npmvisual.models.NeomodelConnectionTest()
-        x.save()
+        # This exists so that neomodel will be on the same thread. This function must be
+        # called before flask is created
+        important_do_not_delete = npmvisual.models.NeomodelConnectionTest()
+        important_do_not_delete.save()
 
     def init_app(self, app):
         self.app = app
@@ -70,24 +71,15 @@ class Neo4j:
         self.database = self.config["NEO4J_DB"]
         self.driver = GraphDatabase.driver(URI, auth=AUTH)
 
-        self.verify_connectivity()  # Configure Neomodel connection to use the same driver
-
-        # https://neomodel.readthedocs.io/en/stable/configuration.html
+        # Configure Neomodel connection to use the same driver
+        self._verify_connectivity()
 
         # gds = GraphDataScience(URI, AUTH)
         # print(gds.version())
         # assert gds.version()
-        # import neomodel
-        # from neomodel import config as neomodel_config
-
-        # neomodel_config.DRIVER = self.driver
-        # self.neomodel_db = neomodel_db
-        # self.neomodel_config = neomodel_config
-        # self.neomodel = neomodel
-        # neomodel_db.set_connection(driver=self.driver)
         return self.driver
 
-    def verify_connectivity(self):
+    def _verify_connectivity(self):
         # Ensure the connection is working
         try:
             self.driver.verify_connectivity()
@@ -101,27 +93,9 @@ class Neo4j:
             return self._connect()
         return self.driver
 
-    # def get_config(self):
-    #     return self.neomodel_config
-    #
-    # def get_db(self):
-    #     return self.neomodel_db
-
     def teardown(self, exception):
         print(f"closing db. exception: {exception}")
         if self.driver:
-            # assert neomodel_db == self.neomodel_db
-            #
-            # if neomodel_db:
-            #     print("neomodel_db exists")
-            # if self.neomodel_db:
-            #     print("self.neomodel_db exists")
-            #
-            # if neomodel_db:
-            #     neomodel_db.close_connection()
-            #     print("closed neomodel_db")
-            # if self.neomodel_db:
-            #     neomodel_db.close_connection()
             self.driver.close()
             print("db connection closed for driver")
 
@@ -129,18 +103,6 @@ class Neo4j:
         assert self.driver is not None, "Driver is not initialized!"
         with self.driver.session(database=self.database) as session:
             return session.run(command)
-
-    # @session_run
-    # def execute_write()
-
-    # def execute_write(
-    #     self,
-    #     transaction_function: t.Callable[
-    #         te.Concatenate[ManagedTransaction, _P], t.Union[_R]
-    #     ],
-    #     *args: _P.args,
-    #     **kwargs: _P.kwargs,
-    # ) -> _R:
 
     def execute_read(
         self,
