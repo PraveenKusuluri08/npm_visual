@@ -1,10 +1,11 @@
-import shutil
+from dataclasses import dataclass
 from typing import Any
 
 
 class NSType:
     all_types: dict[str, "NSType"] = {}
-
+    count: int = 0
+    alias: str | None
     id: str
     id_pretty: str
     children: dict["str", "NSType"] | None = None
@@ -50,58 +51,11 @@ class NSType:
             raise TypeError(f"Unknown type: {type(t).__name__} (value: {t})")
 
         self.id_pretty = id_pretty
+        self.count += 1
         NSType.all_types[self.id] = self
-
-    # def __str__(self) -> str:
-    #     return ""
-
-    def _split_id_str_by_level(self, id_str: str) -> str:
-        lines = []
-
-        return ""
-
-    def _pprint(self, text: str, num_tabs: int = -1, tab: str = "    "):
-        lines = []
-        terminal_width = shutil.get_terminal_size().columns
-        indent = tab * num_tabs
-        max_line_length = terminal_width - len(indent)
-        # Split the input text into separate lines based on existing newlines
-        lines = text.splitlines()
-
-        # For each line in the split lines, we will process it and wrap as necessary
-        result_lines = []
-        first_line = True
-        for line in lines:
-            while len(line) > max_line_length:
-                # Find the last space within the max length to break the line without cutting words
-                break_point = line.rfind(" ", 0, max_line_length)
-                if break_point == -1:  # No spaces found, just break at the max length
-                    break_point = max_line_length
-
-                # Add the line with the appropriate indentation
-                result_lines.append(indent + line[:break_point])
-
-                # Remove the portion of the text we've already printed
-                line = line[break_point:].lstrip()
-                if first_line:
-                    indent += tab
-                    max_line_length = terminal_width - len(indent)
-                    first_line = False
-
-            # Add the last line (if any remaining text)
-            if line:
-                result_lines.append(indent + line)
-
-        for line in result_lines:
-            print(line)
 
     def is_leaf(self):
         return self.children is None
-
-    @staticmethod
-    def parse(x: Any) -> "NSType":
-        pass
-        return NSType(x)
 
     @staticmethod
     def is_primitive(obj):
@@ -134,6 +88,7 @@ def test_nstype(input_data):
 
     # Print the shared first_instance_data
     print("\nAll Types:")
+
     for t in NSType.all_types.values():
         print("---" * 44)
         print(t.id_pretty)
