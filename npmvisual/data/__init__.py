@@ -12,7 +12,7 @@ bp = Blueprint("data", __name__)
 
 from npmvisual.data import routes
 
-from .db_package import (
+from .main import (
     scrape_packages,
     search_and_scrape_recursive,
     search_packages,

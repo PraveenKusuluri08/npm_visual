@@ -1,27 +1,20 @@
 import json
 import os
 import random
+from time import time
 from typing import Any
 
 from flask import current_app as app
 from neo4j.graph import Node
-import npmvisual.utils as utils
 
 from npmvisual import db
-
-# from npmvisual._models.package import package_from_json
-# from npmvisual._models.neomodel_connection_test import NeomodelConnectionTest
-from npmvisual._models import package
-from npmvisual._models.package_version import PackageVersion, package_version_from_json
-from npmvisual._models.packageNode import PackageNode
 from npmvisual._models.packument import Packument
 from npmvisual.data import cache
 from npmvisual.data.db_dependency import (
     db_merge_package_full,
 )
 from npmvisual.data.scraper import scrape_package_json
-from npmvisual.models import Dependency, NeomodelConnectionTest, Package
-from npmvisual.utils import Infinity, infinity, nsprint
+from npmvisual.models import Dependency, NeomodelConnectionTest, Package, PackageNode
 
 
 def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
@@ -37,7 +30,6 @@ def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
 def db_recursive_scrape_slow(
     packages_to_search: list[str],
 ) -> bool:
-    """
     to_search: list[str] = packages_to_search.copy()
     found: dict[str, float] = {}
 
@@ -65,7 +57,6 @@ def db_recursive_scrape_slow(
                     print("sleeping for 3 seconds")
                     time.sleep(3)
                 # print(f"saved package {y} to db")
-    """
     return True
 
 
@@ -89,9 +80,9 @@ def gb_recursive_network_search_and_scrape(
             if package.dependency_id_list:
                 print(333)
                 for d in package.dependency_id_list:
-                    print(f"adding d 22222")
+                    print("adding d 22222")
                     if d not in found:
-                        print(f"adding d 33333")
+                        print("adding d 33333")
                         # print(f"\tadding {d.package} to to_search")
                         to_search.append(d)
         print(f"len(newly_found)={len(newly_found)}")
@@ -232,21 +223,13 @@ def _get_num_of_packages_in_names_json() -> int:
         return sum(1 for line in file)
 
 
-# def db_scrape_everything2():
-#     jim = Person(name="Jim", age=3).save()
-#     jim.age = 4
-#     jim.save()  # Update, (with validation)
-
-
 def db_scrape_everything():
     x = NeomodelConnectionTest(name="testing4")
     x.save()
     print(x)
 
     # item = NeomodelConnectionTest()
-    #
     # from npmvisual import db
-    #
     # db.save(item)
     # item.save()
     print("scrape everything called")
@@ -258,7 +241,7 @@ def db_scrape_everything():
     offset = random.randint(0, n)
     sleep_time = 10  # seconds
 
-    all_packages_not_yet_scraped: set = _get_all_package_names(limit, offset)
+    all_packages_not_yet_scraped: set = __get_all_package_names(limit, offset)
     failed_to_scrape = set()
     total_count = len(all_packages_not_yet_scraped)
     finished: dict[str, Packument] = {}
@@ -322,244 +305,3 @@ def db_scrape_everything():
             #         # print(f"\tadded package to db: {next_package}")
 
     print(f"\nScraped Everything{count}/{total_count} : {len(failed_to_scrape)} failed.")
-
-
-def search_and_scrape_recursive(
-    package_names: set[str],
-    max_count: int | Infinity = infinity,
-) -> tuple[dict[str, PackageNode], set[str]]:
-    # todo, consider adding depth limit by tracking the depth each package is away from
-    # seeds
-    print(f"\nstart of search_and_scrape_recursive: package_names:{package_names}")
-    to_search: set[str] = package_names.copy()
-    found: dict[str, PackageNode] = {}
-    not_found: set[str] = set()
-
-    print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
-    count = 0
-    while len(to_search) != 0 and count < max_count:
-        nsprint(f"  db searching for: {to_search}")
-        (in_db, not_in_db) = search_packages_recursive(to_search)
-        found.update(in_db)
-        to_search.difference(set(in_db.keys()))
-
-        if len(not_in_db) == 0:
-            break
-
-        nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
-        (scraped, not_scraped) = scrape_packages(not_in_db)
-        nsprint(
-            f"  Scraping round {count} complete."
-            f"  Scrapped the following packages: {scraped.keys()}"
-        )
-        # do not use info scraped directly from internet. get it from db next iteration
-        to_search.update(scraped.keys())
-        not_found.update(not_scraped)
-
-        if len(scraped) == 0:
-            break
-
-    return (found, not_found)
-
-
-def search_packages_recursive(
-    to_search: set[str],
-    count_limit=utils.infinity,
-    count=0,
-) -> tuple[dict[str, PackageNode], set[str]]:
-    to_search = to_search.copy()
-    found: dict[str, PackageNode] = {}
-    not_found: set[str] = set()
-
-    while len(to_search) > 0:
-        print()
-        nsprint(f"searching db for: {to_search}", 1)
-        (newly_found, newly_not_found) = search_packages(to_search)
-        not_found.update(newly_not_found)
-        nsprint(f"found in db: {[newly_found.keys()]}", 1)
-        for name, packageNode in newly_found.items():
-            found[name] = packageNode
-            # print(f"  package {name} was already found. Will not search for it again")
-            count += 1
-            if count >= count_limit:
-                return (found, not_found)
-
-        to_search = set()
-        print("    Adding dependencies...")
-        for p in newly_found.values():
-            for dependency in p.dependency_id_list:
-                if dependency not in not_found and dependency not in found:
-                    to_search.add(dependency)
-    return (found, not_found)
-
-
-def search_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
-    to_search: set[str] = package_names.copy()
-    found: dict[str, PackageNode] = {}
-
-    newly_found = PackageNode.nodes.filter(package_id__in=list(package_names))
-    ids = []
-    for packageNode in newly_found:
-        ids.append(packageNode.package_id)
-
-    duplicates = utils.find_duplicates(ids)
-    # print("33" * 88)
-    # print(duplicates)
-    assert len(duplicates) == 0
-    for packageNode in newly_found:
-        # print(f"   -search_packages(): {packageNode.package_id}")
-        # print(f"   xsearch_packages(): {packageNode.__str__()}")
-        # print(f"   +search_packages(): {packageNode.pretty_print(3,3,10)}")
-        assert packageNode and packageNode.package_id
-        found[packageNode.package_id] = packageNode
-        to_search.remove(packageNode.package_id)
-
-    return (found, to_search)
-
-
-# def search_and_scrape(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
-#     to_search: set[str] = package_names.copy()
-#     found: dict[str, PackageNode] = {}
-#     not_found: set[str] = set()
-#
-#     newly_found = PackageNode.nodes.filter(package_id__in=package_names)
-#     for name, packageNode in newly_found.items():
-#         found[name] = packageNode
-#         to_search.remove(name)
-#
-#     # Ensure 'scraped' is properly typed
-#     scraped: dict[str, PackageNode]
-#     could_not_scrape: set[str]
-#     (scraped, could_not_scrape) = scrape_packages(to_search)
-#
-#     # Iterate over the dictionary correctly
-#     for name, packageNode in scraped.items():
-#         found[name] = packageNode
-#         to_search.remove(name)
-#     for name in could_not_scrape:
-#         not_found.add(name)
-#         to_search.remove(name)
-#
-#     assert len(to_search) == 0
-#     return (found, not_found)
-#
-
-
-def save_packages(packages: set[PackageNode]):
-    for p in packages:
-        p.save()
-
-
-def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], set[str]]:
-    print(f"    scrape_packages: scraping: {package_names}")
-    found: dict[str, PackageNode] = {}
-    not_found: set[str] = set()
-    for p in package_names:
-        pn = scrape_package(p)
-        if pn:
-            found[p] = pn
-        else:
-            not_found.add(p)
-    # print(f"    scrape_packages: found: {found.keys()}")
-    return (found, not_found)
-
-
-def scrape_package(package_name: str) -> PackageNode | None:
-    json_dict = scrape_package_json(package_name)
-    if json_dict:
-        some_key = json_dict.get("license")
-        print(some_key)
-        versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
-        vers_tag = None  # "3.0.0"
-        # print(versions[vers_tag])
-        if versions and vers_tag and versions[vers_tag]:
-            # if versions and len(versions) > 0:
-            last_item = versions[vers_tag]  # Any = sorted(versions.items())[-1][1]
-            some_key = last_item.get("contributors")
-            # structure = _get_type_structure(some_key)
-            # _pretty_print_type_structure(structure)
-            # nsprint(
-            #     f"some_key:{some_key}",
-            # )
-        else:
-            print("wtf??????????????????////")
-        print(f"\nsome_key: {some_key}\n")
-
-    if not json_dict:
-        return None
-    packument = Packument.from_json(json_dict)
-    if not packument:
-        return None
-    pn = PackageNode.from_packument(packument)
-    if pn:
-        pn.save()
-    return pn
-
-
-def _pretty_print_type_structure(data: Any, indent: int = 0):
-    # Helper function to format and print the data recursively
-    space = " " * indent
-    if isinstance(data, dict):
-        for key, value in data.items():
-            print(f"{space}{key}:")
-            _pretty_print_type_structure(value, indent + 2)
-
-    elif isinstance(data, list):
-        for index, item in enumerate(data):
-            print(f"{space}- Item {index + 1}:")
-            _pretty_print_type_structure(item, indent + 2)
-
-    else:
-        # Print the type for primitive values
-        print(f"{space}- Type: {data}")
-
-
-def _get_type_structure(data: dict[str, Any]) -> dict[str, Any]:
-    def recursive_type_structure(value: Any) -> Any:
-        if isinstance(value, dict):
-            # Recurse into a dictionary and apply recursively to each key-value pair
-            return {k: recursive_type_structure(v) for k, v in value.items()}
-
-        elif isinstance(value, list):
-            # Process each element in the list and return a list of types
-            return [recursive_type_structure(v) for v in value]
-
-        else:
-            # Return the type of the value if it's a primitive or object type
-            return [type(value).__name__]
-
-    if data and data.items():
-        return {k: recursive_type_structure(v) for k, v in data.items()}
-    else:
-        print(f"???????????????????????{data}")
-
-
-# write me a python function that understands the types provided in a dictionary object.
-#
-# input will always be dict[str, Any]
-# recursively look through dicts and lists.
-# return a new dict with a value for every key in the input object.
-# for this output, each key will be a flattened version of the key input. so it should be easy to read or map the input key to the output key.
-# for this output, the value corresponding to each key will be ha list of strings for the possible types of the value.
-#
-# that is what I would do, but if you have a cleaner method, make that instead. It is most important that I know the exact structure of any dictionary.
-#
-#
-# some_key:{
-#         'integrity': 'sha512-G/QVa6yq7ieUr5jh4KENvpwcUwHiHk2PZqGOxsX4qBdXdk+F+wUQuKfE1XCpK5y0D9kaUPRrCC1P4Dj6MBIU6g==',
-#         'shasum': '211208ef845d2be1ed1d9f2eb58d51e87f278eb6',
-#         'tarball': 'https://registry.npmjs.org/rollup-plugin-babel/-/rollup-plugin-babel-5.0.0-alpha.2.tgz',
-#         'fileCount': 14,
-#         'unpackedSize': 96111,
-#         'npm-signature': '-----BEGIN PGP SIGNATURE-----\r\nVersion: OpenPGP.js v3.0.4\r\nComment:
-#     https://openpgpjs.org\r\n\r\nwsFcBAEBCAAQBQJelCFRCRA9TVsSAnZWagAA7L8QAKJfAw4E50YzslHv8Xne\ncNZC9m4hHRRDeIcBr6Y8VEpFCicQQCLaCEHDWBXNMg/ApSV9QJCRUSTqPbmL\n6Pe2q86eQEhcVypvGDD6ETtRwUAU0sGc7htIapnvkrC3lpMZNyfhI5
-#     Uy/8Xn\nQn5v/YLHuCDHrhMb8ejTzcB9dDPVeBnOR2JXuPMo0Gm3S5PvYUQiGY2kbgsJ\n8ySa8noO9earPRRb6k9H+EgprkN0t/a6K+/dYFXCIO7UBfKN89i6h6pxblUe\n2Vaym5FS8WwMa4U3tSwfjcqbLmMF/N+++VfMQLjWkaEb8wTfIsKcUS8wHbC0\n9ZMJFAM58SttP
-#     HC0+RE9FrpNB765EjYu4UKPpQOKwIJ/SSU5T3C/x1SbTgMR\nFBwcaaTJolegiAfpaxwkr5Dkf5Fo96cjnCcKT1D7p4/8zoIJppCNm7Fs4UHU\nWEjB3xNxpef36A6tFcc6ku8qkJeT104vtu1KadkbhUBJggsj+VBJL3JHvLEt\nK5hM+qWqrgyl9simWY7/6k2/ee2B30Pwju
-#     APgDGKrHaz5/A9H6lXJTAoPq3k\nErAULov563GmP2FKD+tZjWbgeYPi8mukqwSBWhWIAfjFx3vn8sXbn3GXcx2n\nkzwa30jzy5t5zZVCntvD6FIwOqaZ2qRKt11KZEuaf3nYomVlzdcbZ2gKDeOZ\nFvGA\r\n=fNeC\r\n-----END PGP SIGNATURE-----\r\n',
-#
-#     'signatures': [
-#             {'keyid': 'SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA',
-#              'sig': 'MEYCIQDsgRY9e4iJK2BmqjSJo2PVNfCFDL8PoW/w6I4vbY0iYwIhALCAQaD+0Xsw+zWngMdjq98VfE17FQjIT3ltAoTgoA13'
-#              }
-#         ]
-#     }
