@@ -1,20 +1,12 @@
 // import useFetchGraphData from "../hooks/useFetch";
 import * as d3 from "d3";
-import {
-  ChangeEvent,
-  ChangeEventHandler,
-  FormEvent,
-  useEffect,
-  useState,
-} from "react";
+import { useEffect } from "react";
 import { ForceGraph3D } from "react-force-graph";
 import GraphData from "../utils/models";
-import axios from "axios";
-import { getCache } from "../utils/cache";
 import { useResizeDetector } from "react-resize-detector";
 import "./GraphDiagram.css";
 
-const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
+const GraphDiagram = ({ graphData }: { graphData?: GraphData }) => {
   const { width, height, ref } = useResizeDetector();
 
   let widthToUse = 1000;
@@ -23,37 +15,6 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     widthToUse = width ? width : 1000;
     heightToUse = height ? height : 1000;
   }, [width]);
-
-  const [graphData, setPackageData] = useState<GraphData>();
-  useEffect(() => {
-    if (packageName != "") {
-      console.log("setting axios call");
-      let url;
-      if (packageName == "getPopularNetwork") url = "/api/getPopularNetworks";
-      else url = `/api/getNetwork/${packageName}`;
-      // Prevent many calls to the same API.
-      const apiCache = getCache();
-      if (!apiCache.doesCallExist(url)) {
-        apiCache.addCall(url);
-        axios
-          .get(url)
-          .then((data) => {
-            console.log("setting package data");
-            setPackageData(data.data);
-          })
-          .catch((error) => {
-            console.log("Error fetching data", error);
-          })
-          .finally(() => {
-            apiCache.removeCall(url);
-          });
-      } else {
-        console.log(
-          `did not sent request to ${url}, request already in progress`,
-        );
-      }
-    }
-  }, [packageName]);
 
   interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
@@ -174,7 +135,7 @@ const GraphDiagram = ({ packageName = "" }: { packageName: string }) => {
     <div ref={ref} className="graph-diagram">
       <div>Width: {width}px</div>
       <div>Height: {height}px</div>
-      <h1>{packageName}</h1>
+      <h1>{graphData?.packageName}</h1>
       <svg width="100%" height="1000px" id="graph"></svg>
 
       <ForceGraph3D graphData={graphData} />
