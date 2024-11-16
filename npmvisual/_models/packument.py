@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, RootModel, StringConstraints, ValidationE
 from pydantic.config import ConfigDict
 from typing_extensions import TypedDict
 
-from npmvisual._models.ns_base_model import NSPrettyPrintable
+from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 
 
 class Repository(BaseModel, NSPrettyPrintable):

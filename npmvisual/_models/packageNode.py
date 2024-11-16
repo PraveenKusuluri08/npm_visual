@@ -11,7 +11,7 @@ from neomodel import (
 )
 from neomodel.sync_.relationship_manager import ZeroOrMore
 
-from npmvisual._models.ns_base_model import NSPrettyPrintable
+from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 from npmvisual._models.packument import Packument
 
 
@@ -24,7 +24,6 @@ class PackageNode(StructuredNode, NSPrettyPrintable):
     time = JSONProperty()
 
     # Optional fields
-    rev = StringProperty(required=False)
     cached = BooleanProperty(required=False)
     dist_tags = JSONProperty()
     users = JSONProperty(required=False)

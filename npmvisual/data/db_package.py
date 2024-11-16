@@ -16,6 +16,8 @@ from npmvisual.data.db_dependency import (
 from npmvisual.data.scraper import scrape_package_json
 from npmvisual.models import Dependency, NeomodelConnectionTest, Package, PackageNode
 
+raise Exception("dgfafka;skjf;")
+
 
 def _get_package_from_db_node(node: Node, d_list: list[Dependency]):
     return Package(
