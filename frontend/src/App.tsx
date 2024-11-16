@@ -1,35 +1,18 @@
 import "./App.css";
-import { ForceGraph3D } from "react-force-graph";
 import GraphData from "./utils/models";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import GraphDiagram from "./components/GraphDiagram";
 import Crudbar from "./components/Crudbar";
-import { useState } from "react";
 import { getCache } from "./utils/cache";
 import axios from "axios";
+import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
 
 function App() {
   const [packageName, setPackageName] = useState("");
 
-  const [windowSize, setWindowSize] = useState({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
-
-  // we use the useEffect hook to listen to the window resize event
-  useEffect(() => {
-    window.onresize = () => {
-      setWindowSize({
-        width: window.innerWidth,
-        height: window.innerHeight,
-      });
-    };
-  }, []);
-
   const onPackageChanged = (packageName: string) => {
     setPackageName(packageName);
   };
-
   const [graphData, setGraphData] = useState<GraphData>();
   useEffect(() => {
     if (packageName != "") {
@@ -64,16 +47,14 @@ function App() {
 
   return (
     <>
-      <Crudbar onSelect={onPackageChanged} />
       <div className="page">
+        <Crudbar onSelect={onPackageChanged} />
         <h1>{packageName}</h1>
-        <GraphDiagram graphData={graphData} />
-        <div className="force-graph-3d">
-          <ForceGraph3D
-            width={windowSize.width * 0.9}
-            height={windowSize.height * 0.9}
-            graphData={graphData}
-          />
+        <div className="force-graph-3d-container">
+          <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
+        </div>
+        <div className="force-graph-2d-container">
+          <GraphDiagram graphData={graphData} />
         </div>
       </div>
     </>

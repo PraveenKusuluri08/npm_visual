@@ -14,16 +14,42 @@ body {
 }
 
 #root {
-  height: 100%;
+  /* background-color: blue; */
+  /* position: fixed; */
+  /* top: 0; */
+  /* bottom: 0; */
+  /* left: 0; */
+  /* right: 0; */
 }
 
 .page {
-  padding-top: 100px;
   display: flex;
   flex-direction: column;
-  height: 100%;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
-.force-graph-3d {
+.force-graph-3d-container {
+  height: 100%;
+  width: 100%;
   align-self: center;
-  max-width: 90vw;
+  /* flex-grow: 1; */
+  /* position: relative; */
+  /* background-color: darkgray; */
+  /* max-width: 90vw; */
+}
+.force-graph-2d-container {
+  height: 100%;
+  width: 100%;
+  align-self: center;
+  /* flex-grow: 1; */
+  /* position: relative; */
+  /* background-color: darkgreen; */
+  /* max-width: 90vw; */
+}
+.force-graph-inner-container {
+  height: 100%;
+  width: 100%;
 }
