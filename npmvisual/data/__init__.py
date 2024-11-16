@@ -6,7 +6,14 @@ We have several data sources. db, cached package.json pages, and online scraping
 tool decides where to retrieve data from.
 """
 
-from .cache import clear_cache
-from .main import get_package
+from flask import Blueprint
 
-__all__ = ["get_package", "clear_cache"]
+bp = Blueprint("data", __name__)
+
+from npmvisual.data import routes
+
+from .main import (
+    scrape_packages,
+    search_and_scrape_recursive,
+    search_packages,
+)

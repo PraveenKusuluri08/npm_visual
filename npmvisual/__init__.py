@@ -1,43 +1,47 @@
 import logging
 import os
+import signal
+import sys
 from logging.handlers import RotatingFileHandler
 
-from flask import Flask, jsonify
+import flask
+from neomodel import db as neomodel_db
 
-from npmvisual.data import clear_cache
+from config import Config
+from npmvisual.extensions.neo4j_db import Neo4j
 
-from .utils import (
-    build_graph_ego_network,
-    build_popular_network,
-    scrape_all_data,
-)
+# make outside of flask to be ouside of flask context
+db = Neo4j(config_class=Config)
 
 
-def create_app():
-    app = Flask(__name__)
+def create_app(config_class=Config):
+    app = flask.Flask(__name__)
+    app.config.from_object(config_class)
     load_logs(app)
+    # activate extensions after flask exists to tell db manager how to connect to it.
+    db.init_app(app)
 
-    @app.route("/scrapeAll", methods=["GET"])
-    def scrape_all():
-        scrape_all_data(1000)
-        return "success"
+    def handle_sigint(signal, frame):
+        print("Shutting down gracefully...")
+        if neomodel_db.driver:  # Ensure the driver exists and is connected
+            neomodel_db.driver.close()
+            print("db connection closed")
+        sys.exit(0)
 
-    @app.route("/dependencies/<package_name>", methods=["GET"])
-    def get_package_dependencies(package_name):
-        g = build_graph_ego_network(package_name)
-        return jsonify(g)
+    signal.signal(signal.SIGINT, handle_sigint)
 
-    @app.route("/clearCache")
-    def clear_cache_route():
-        clear_cache()
-        return "success"
+    from npmvisual.data import bp as data_bp
 
-    @app.route("/getPopularNetwork")
-    def get_popular_network():
-        g = build_popular_network()
-        return jsonify(g)
+    app.register_blueprint(data_bp, url_prefix="/data")
 
-    app.logger.info("app created")
+    from npmvisual.graph import bp as graph_bp
+
+    app.register_blueprint(graph_bp)
+
+    from npmvisual.migrations import bp as migrations_bp
+
+    app.register_blueprint(migrations_bp, url_prefix="/migrations")
+
     return app
 
 

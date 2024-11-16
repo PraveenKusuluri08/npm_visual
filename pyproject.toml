@@ -8,13 +8,20 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "3.12.5"
-numpy = "^2.1.1"
+numpy = "^1.26.1"
 networkx = "^3.3"
 pandas = "^2.2.2"
 Flask = "^3.0.3"
 python-dotenv = "^1.0.1"
 requests = "^2.32.3"
 matplotlib = "^3.9.2"
+neo4j = "^5.25.0"
+typing-extensions = "^4.12.2"
+graphdatascience = { extras = ["ogb"], version = "^1.12" }
+pydantic = "^2.9.2"
+neomodel = "^5.4.0"
+psutil = "^6.1.0"
+packaging = "^24.2"
 
 
 [build-system]
@@ -23,22 +30,23 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 90
+target-version = "py312"
 
 [tool.ruff.lint]
 # select = ["ALL"] # Only uncomment if we want to get pedantic
 select = [
-    # pycodestyle
-    "E",
-    # Pyflakes
-    "F",
-    # pyupgrade
-    "UP",
-    # flake8-bugbear
-    "B",
-    # flake8-simplify
-    "SIM",
-    # isort
-    "I",
+  # pycodestyle
+  "E",
+  # Pyflakes
+  "F",
+  # pyupgrade
+  "UP",
+  # flake8-bugbear
+  "B",
+  # flake8-simplify
+  "SIM",
+  # isort
+  "I",
 ]
 
 [tool.ruff.format]

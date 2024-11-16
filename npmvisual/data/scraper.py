@@ -3,6 +3,8 @@ from typing import Any
 import requests
 from flask import current_app as app
 
+from npmvisual.commonpackages import get_popular_package_names
+
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.
 # # Setup retry strategy in case they dislike the spam of requests
@@ -20,7 +22,13 @@ from flask import current_app as app
 # http.mount("http://", adapter)
 
 
-def scrape_package_json(package_name) -> Any:
+def scrape_package_json(package_name: str) -> dict[str, Any] | None:
+    """
+    Scrapes the package.json of a given npm package and returns the JSON content as a dictionary.
+
+    :param package_name: The name of the package to scrape.
+    :return: A dictionary representing the package.json or None in case of an error.
+    """
     # print(f"scraping package named {name}")
     url = f"https://registry.npmjs.org/{package_name}"
     app.logger.info(f"scraping package.json from {url}")
@@ -51,3 +59,5 @@ def scrape_package_json(package_name) -> Any:
         print("Request timed out.")
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
+
+    return None

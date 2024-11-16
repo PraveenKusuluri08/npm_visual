@@ -1,74 +1,113 @@
-from typing import Dict, List
-
-import networkx as nx
-
-from npmvisual.commonpackages import get_popular_packages
-from npmvisual.data import get_package
-
-from .package import Package
+import hashlib
+import json
+import os
+import shutil
+from typing import Any
 
 
-def build_graph(packages: Dict[str, Package]):
-    G = nx.DiGraph()
-    for p in packages.values():
-        # print(p)
-        G.add_node(p.id)
+def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
+    terminal_width = shutil.get_terminal_size().columns
+    indent = tab * num_tabs
+    max_line_length = terminal_width - len(indent)
+    # Split the input text into separate lines based on existing newlines
+    lines = text.splitlines()
 
-    for p in packages.values():
-        for e in p.dependencies:
-            G.add_edge(e, p.id)
-    return G
+    # For each line in the split lines, we will process it and wrap as necessary
+    result_lines = []
+    first_line = True
+    for line in lines:
+        while len(line) > max_line_length:
+            # Find the last space within the max length to break the line without cutting words
+            break_point = line.rfind(" ", 0, max_line_length)
+            if break_point == -1:  # No spaces found, just break at the max length
+                break_point = max_line_length
 
+            # Add the line with the appropriate indentation
+            result_lines.append(indent + line[:break_point])
 
-def build_popular_network():
-    to_search = get_popular_packages()
-    return build_graph_network(to_search, 3000)
+            # Remove the portion of the text we've already printed
+            line = line[break_point:].lstrip()
+            if first_line:
+                indent += tab
+                max_line_length = terminal_width - len(indent)
+                first_line = False
 
+        # Add the last line (if any remaining text)
+        if line:
+            result_lines.append(indent + line)
 
-def build_graph_network(packages: List[str], max=1000):
-    data: Dict[str, Package] = get_package_ego_network(packages, max)
-    graph = build_graph(data)
-    graph_data = nx.node_link_data(graph)
-    return graph_data
-
-
-def build_graph_ego_network(package_name: str):
-    packages = [package_name]
-    data: Dict[str, Package] = get_package_ego_network(packages, 1000)
-    graph = build_graph(data)
-    graph_data = nx.node_link_data(graph)
-    return graph_data
-
-
-# build_graph_from_seeds
-def get_package_ego_network(to_search: List[str], max=100) -> Dict[str, Package]:
-    # idea. maybe use a priority queue of some kind
-    data: Dict[str, Package] = {}
-    # print(to_search)
-
-    count = 1
-    while count < max:
-        count += 1
-        if len(to_search) == 0:
-            break  # No remaining dependencies remaining. Success
-        # print("\n\n-------------------------------------------------")
-        # print("to_search = " + to_search.__str__())
-        # print("\ndata = " + data.keys().__str__())
-        next_id = to_search.pop()
-        # print("count = " + count.__str__() + "next = " + next_id)
-        if next_id not in data:
-            next_package = get_package(next_id)
-            # print("next_package = " + next_package.__str__())
-            if next_package is None:
-                return {}
-            data[next_id] = next_package
-            for d in next_package.dependencies:
-                if d not in data:
-                    to_search.append(d)
-    print(f"graph created with {count} packages")
-    return data
+    for line in result_lines:
+        print(line)
 
 
-def scrape_all_data(max=1000) -> Dict[str, Package]:
-    to_search = get_popular_packages()
-    return get_package_ego_network(to_search, max)
+def ns_hash(name: str, length=40) -> str:
+    hash: str = hashlib.sha1(name.encode("UTF-8")).hexdigest()
+    return hash[:length]
+
+
+class Infinity:
+    _instance = None  # This will hold the singleton instance
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(Infinity, cls).__new__(cls)
+        return cls._instance
+
+    # Make it behave like an integer for comparisons
+    def __lt__(self, other):
+        return False  # Anything is less than Infinity
+
+    def __gt__(self, other):
+        return True  # Infinity is always greater than anything else
+
+    def __eq__(self, other):
+        return False  # Infinity is never equal to anything else
+
+    def __le__(self, other):
+        return False  # Infinity is never less than or equal to anything else
+
+    def __ge__(self, other):
+        return True  # Infinity is always greater than or equal to anything else
+
+    def __repr__(self):
+        return "Infinity"
+
+
+# Singleton instance of Infinity
+infinity = Infinity()
+
+
+def get_all_package_names(max: int = 300, offset: int = 0) -> set[str]:
+    names = set()
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    file_path = os.path.join(dir_path + "/data/package_cache/names.json")
+    min = max
+    max = offset + max
+    with open(file_path) as file:
+        data = json.load(file)
+        i: int = 0
+        for package_name in data:
+            i += 1
+            if i < min:
+                continue
+            names.add(package_name)
+            if i >= max:
+                break
+    print(
+        f"created a set of all package names with {len(names)} elements."
+        f"This is {i-len(names)} less than the original file"
+    )
+    return names
+
+
+def find_duplicates(lst: list[Any]):
+    seen = set()
+    duplicates = set()
+
+    for item in lst:
+        if item in seen:
+            duplicates.add(item)
+        else:
+            seen.add(item)
+
+    return duplicates
