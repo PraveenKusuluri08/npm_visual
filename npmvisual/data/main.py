@@ -22,13 +22,13 @@ def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
         else:
             not_found.add(p)
     # print(f"    scrape_packages: found: {found.keys()}")
+    NSTypeDB.print()
     return (found, not_found)
 
 
 def scrape_package(package_name: str) -> PackageNode | None:
     json_dict = scrape_package_json(package_name)
     NSType(json_dict)
-    NSTypeDB.print()
     # raise Exception("stopping program for testing purposes")
     # if not json_dict:
     #     return None
