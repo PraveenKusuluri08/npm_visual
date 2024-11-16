@@ -7,7 +7,6 @@ const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
   const graphRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("resizing content from useEffect");
     setWindowSize(getCurrentSize);
   }, []);
   const getCurrentSize = () => {

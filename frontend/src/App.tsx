@@ -53,9 +53,9 @@ function App() {
         <div className="force-graph-3d-container">
           <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
         </div>
-        <div className="force-graph-2d-container">
-          <GraphDiagram graphData={graphData} />
-        </div>
+        {/* <div className="force-graph-2d-container"> */}
+        {/*   <GraphDiagram graphData={graphData} /> */}
+        {/* </div> */}
       </div>
     </>
   );
