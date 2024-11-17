@@ -10,12 +10,16 @@ class NSAliasGenerator:
         "float": "_float",
         "bool": "_bool",
         "list[]": "_[]",
-        "list[str]": "list[str]",
-        "list[dict]": "_list[dict]",
+        "list[str]": "[str]",
+        "list[dict]": "_[dict]",
         "dict[str,dict]{}": "_{}",
-        "list[dict[str,dict]{(name,str),(email,str)}]": "[_Contact]",
-        "dict[str,dict]{(keyid,str),(sig,str)}": "_Signature",
-        "dict[str,dict]{(integrity,str),(shasum,str),(tarball,str),(fileCount,int),(unpackedSize,int),(signatures,list[dict[str,dict]{(keyid,_str),(sig,_str)}])}": "",
+        "dict[str,dict]{(name,_str),(email,_str)}": "_Contact",
+        "list[_Contact]": "[_Contact]",
+        "dict[str,dict]{(keyid,_str),(sig,_str)}": "_Signature",
+        "list[_Signature]": "[_Signature]",
+        "dict[str,dict]{(integrity,_str),(shasum,_str),(tarball,_str),(fileCount,_int),(unpackedSize,_int),(signatures,[_Signature])}": "_Dist",
+        "dict[str,dict]{(integrity,_str),(shasum,_str),(tarball,_str),(fileCount,_int),(unpackedSize,_int),(npm-signature,_str),(signatures,[_Signature])}": "_Dist",
+        "dict[str,dict]{(type,_str),(url,_str)}": "_Funding",
         "": "",
         "": "",
         "": "",
@@ -30,10 +34,10 @@ class NSAliasGenerator:
         self.counter = 0
         self.alphabet = string.ascii_lowercase  # 'a' to 'z'
 
-    def generate_alias(self, structure_full: str) -> str:
+    def generate_alias(self, structure: str) -> str:
         """Generate the next unique alias in the sequence (a, b, c, ..., aa, ab, ac, ...)."""
-        if structure_full in self.predefined:
-            return self.predefined[structure_full]
+        if structure in self.predefined:
+            return self.predefined[structure]
         alias = "_" + self._int_to_base26(self.counter)
         self.counter += 1
         return alias

@@ -7,8 +7,12 @@ from typing_extensions import TypedDict
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 
 """
-todo: find where latest is used. it appears in nstypedata.txt
-todo: find where test is used. it appears in nstypedata.txt
+Types that from api I don't have here
+	"dict[str,dict]{(host,str),(tmp,str)}"
+	"dict[str,dict]{(latest,str)}"
+	"dict[str,dict]{(test,str)}"
+	"dict[str,dict]{(created,str),(1.0.0,str),(modified,str)}"
+	"dict[str,dict]{(base-64,str),(node-fetch,str),(ws,str)}"
 """
 
 

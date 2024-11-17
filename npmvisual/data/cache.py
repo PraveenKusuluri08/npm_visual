@@ -141,6 +141,25 @@ def load(package_name: str) -> Dict[str, Any]:
         raise e
 
 
+def get_all_cache_filenames():
+    filenames = []
+    for filename in os.listdir(cache_path):
+        filenames.append(filename)
+    return filenames
+
+
+def load_cache_file(filename: str):
+    path_to_file = os.path.join(cache_path, filename)
+    try:
+        with open(path_to_file) as open_file:
+            json_object = json.load(open_file)
+            return json_object
+    except Exception as e:
+        # file is inaccesable or does not exist
+        # call scraper and wait until file is saved.
+        raise e
+
+
 def clear_cache():
     for filename in os.listdir(cache_path):
         file_path = os.path.join(cache_path, filename)

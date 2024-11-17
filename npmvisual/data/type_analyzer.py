@@ -66,7 +66,7 @@ class NSType:
         else:
             raise TypeError(f"Unknown type: {type(t).__name__} (value: {t})")
 
-        self.alias = self.generator.generate_alias(self.structure_full)
+        self.alias = self.generator.generate_alias(self.structure)
         NSTypeDB.add(self)
 
     def is_leaf(self):
@@ -96,10 +96,6 @@ class NSTypeDB:
 
     @classmethod
     def add(cls, unknown_type: NSType):
-        if len(cls.all_types) > 1000:
-            cls.print()
-            raise Exception("terminating for testing purposes")
-
         if unknown_type.structure_full in cls.all_types:
             cls.all_types[unknown_type.structure_full].count += 1
         else:
@@ -112,7 +108,7 @@ class NSTypeDB:
         print("===" * 44)
         sorted_types = sorted(cls.all_types.values(), key=lambda t: t.count, reverse=True)
         for t in sorted_types:
-            if t.count > 1:
+            if t.count > 4:
                 print(
                     f'count={t.count} {t.nstype.alias} \n\t"{t.nstype.structure}"\n\t"{t.nstype.structure_full}"'
                 )
