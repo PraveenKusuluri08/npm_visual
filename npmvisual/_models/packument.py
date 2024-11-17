@@ -6,6 +6,11 @@ from typing_extensions import TypedDict
 
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 
+"""
+todo: find where latest is used. it appears in nstypedata.txt
+todo: find where test is used. it appears in nstypedata.txt
+"""
+
 
 class Repository(BaseModel, NSPrettyPrintable):
     directory: str | None = None

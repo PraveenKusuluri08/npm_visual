@@ -77,7 +77,7 @@ class Infinity:
 infinity = Infinity()
 
 
-def get_all_package_names(max: int = 100, offset: int = 0) -> set[str]:
+def get_all_package_names(max: int = 30, offset: int = 0) -> set[str]:
     def _helper():
         names = set()
         dir_path = os.path.dirname(os.path.realpath(__file__))

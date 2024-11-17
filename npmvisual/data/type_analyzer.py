@@ -1,10 +1,8 @@
-import itertools
-import string
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any
-
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
+from npmvisual.data.alias_generator import NSAliasGenerator
 
 COUNT = 1
 
@@ -12,10 +10,11 @@ COUNT = 1
 class NSType:
     alias: str | None
     structure: str
-    id_pretty: str
+    structure_full: str
     children: dict["str", "NSType"] | None = None
     self_type: str
     attrs: list[str] = []
+    generator = NSAliasGenerator()
 
     def __init__(self, t: Any):
         self.self_type = type(t).__name__
@@ -24,22 +23,22 @@ class NSType:
         # global COUNT
         # print(f"\n\n\ninit of NSType. {self.self_type} count ={COUNT}")
         # COUNT += 1
-        id_pretty = ""
 
         if NSType.is_primitive(t):
             self.structure = self.self_type
-
-            id_pretty = self.self_type
+            self.structure_full = self.self_type
 
         elif isinstance(t, list):
             # for k in t:
             # print(f"nsType dict children: {k}")
             self.children = {str(k): NSType(v) for k, v in enumerate(t)}
             child_structures = ""
+            child_alias = ""
             if self.children:
-                child_structures = list(self.children.values())[0].self_type
-            self.structure = f"list[{child_structures}]"
-            self.structure_pretty = f"\nlist[{child_structures}]\n"
+                child_structures = list(self.children.values())[0].structure
+                child_alias = list(self.children.values())[0].alias
+            self.structure = f"list[{child_alias}]"
+            self.structure_full = f"list[{child_structures}]"
 
         elif isinstance(t, dict):
             # for k, v in t.items():
@@ -51,26 +50,23 @@ class NSType:
             #         print(f"nsType dict children: {k} {v}")
             self.children = {k: NSType(v) for k, v in t.items()}
             structure = f"dict[str,{self.self_type}]{{"
-            id_pretty = f"\ndict[str,{"????????????"}]\n{{"
+            structure_full = f"dict[str,{self.self_type}]{{"
             for key, val in self.children.items():
                 self.attrs.append(key)
-                structure += f'("{key}",{val.structure}),'
-                child_str = f'\n("{key}",{val.id_pretty}),\n'
-                if isinstance(val, dict):
-                    child_str = "dddddddddddd" + child_str + "ddd9999999"
-                    pass
-                id_pretty = child_str
+                structure += f"({key},{val.alias}),"
+                structure_full += f"({key},{val.structure_full}),"
             if len(self.children):
                 structure = structure[:-1]  # remove trailing comma
-                id_pretty = structure[:-3]  # remove trailing comma and \n
-                structure += "}"
-                id_pretty += "\n}"
+                structure_full = structure_full[:-1]  # remove trailing comma and \n
+            structure += "}"
+            structure_full += "}"
             self.structure = structure
+            self.structure_full = structure_full
 
         else:
             raise TypeError(f"Unknown type: {type(t).__name__} (value: {t})")
-        self.structure_pretty = id_pretty
 
+        self.alias = self.generator.generate_alias(self.structure_full)
         NSTypeDB.add(self)
 
     def is_leaf(self):
@@ -104,10 +100,10 @@ class NSTypeDB:
             cls.print()
             raise Exception("terminating for testing purposes")
 
-        if unknown_type.structure in cls.all_types:
-            cls.all_types[unknown_type.structure].count += 1
+        if unknown_type.structure_full in cls.all_types:
+            cls.all_types[unknown_type.structure_full].count += 1
         else:
-            cls.all_types[unknown_type.structure] = NSTypeCount(unknown_type)
+            cls.all_types[unknown_type.structure_full] = NSTypeCount(unknown_type)
 
     @classmethod
     def print(cls):
@@ -117,7 +113,9 @@ class NSTypeDB:
         sorted_types = sorted(cls.all_types.values(), key=lambda t: t.count, reverse=True)
         for t in sorted_types:
             if t.count > 1:
-                print(f"count={t.count} {t.nstype.structure}")
+                print(
+                    f'count={t.count} {t.nstype.alias} \n\t"{t.nstype.structure}"\n\t"{t.nstype.structure_full}"'
+                )
         print("===" * 44)
         print("===" * 44)
         print("===" * 44)
@@ -211,110 +209,5 @@ def test_nstype(input_data):
     NSTypeDB.print()
 
 
-class AliasGenerator:
-    _instance = None  # This will hold the single instance of the class
-    _counter = 0  # Counter to track the number of generated aliases
-    _alias_dict = {}  # Dictionary to store alias and count mappings
-
-    def __new__(cls):
-        """
-        Singleton pattern: Ensure only one instance of AliasGenerator is created.
-        """
-        if cls._instance is None:
-            cls._instance = super(AliasGenerator, cls).__new__(cls)
-        return cls._instance
-
-    def __init__(self):
-        """
-        Initialize the alias generator. This will run only once due to the Singleton pattern.
-        """
-        # Initialize variables if this is the first instance
-        if not hasattr(self, "_initialized"):
-            self._initialized = True
-            self._length = 1  # Start generating strings from length 1
-            self._alphabet = string.ascii_lowercase  # a-z
-
-    def generate_unique_string(self):
-        """
-        Generates a unique alias string based on the current counter.
-
-        Returns:
-            str: A unique alias.
-        """
-        # Increment the counter
-        self._counter += 1
-
-        # Generate alias string corresponding to the current counter
-        alias = self._get_alias_from_counter(self._counter)
-
-        # Add the alias and count to the dictionary
-        self._alias_dict[alias] = self._counter
-
-        return alias
-
-    def _get_alias_from_counter(self, counter):
-        """
-        Generates a unique alias string from a counter value.
-
-        Args:
-            counter (int): The current counter value to convert into an alias.
-
-        Returns:
-            str: The alias corresponding to the counter.
-        """
-        # Start with single-letter strings, then generate multi-letter strings
-        length = 1
-        while True:
-            total_combinations = len(self._alphabet) ** length
-            if counter <= total_combinations:
-                return self._generate_alias_of_length(length, counter - 1)
-            counter -= total_combinations
-            length += 1
-
-    def _generate_alias_of_length(self, length, counter):
-        """
-        Generates an alias of the given length from the alphabet using the counter value.
-
-        Args:
-            length (int): The length of the alias.
-            counter (int): The current counter value used to generate the alias.
-
-        Returns:
-            str: The alias of the specified length.
-        """
-        # Generate the alias using the counter in a base-26 system (a=0, b=1, ..., z=25)
-        alias = []
-        for i in range(length):
-            alias.append(self._alphabet[counter % len(self._alphabet)])
-            counter //= len(self._alphabet)
-
-        return "".join(reversed(alias))
-
-    def get_all_aliases(self):
-        """
-        Returns the dictionary of generated aliases with their counts.
-
-        Returns:
-            dict: A dictionary mapping alias strings to their respective counts.
-        """
-        return self._alias_dict
-
-
-# Example usage
-def test_alias_generator():
-    generator = AliasGenerator()
-
-    # Generate a few aliases and print them
-    for _ in range(20):  # Generate 20 aliases
-        alias = generator.generate_unique_string()
-        print(f"Alias: {alias}, Count: {generator._counter}")
-
-    # Print the entire dictionary of aliases
-    print("\nAll Generated Aliases:")
-    print(generator.get_all_aliases())
-
-
-# Run the example usage
-test_alias_generator()
 if __name__ == "__main__":
     test_nstype(input_data)
