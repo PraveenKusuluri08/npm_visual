@@ -1,3 +1,4 @@
+raise Exception("Old Code. Don't import this. I am keeping this for reference.")
 from neo4j.graph import Node, Relationship
 import pprint
 from npmvisual import db
