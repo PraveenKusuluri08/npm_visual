@@ -24,7 +24,7 @@ def _get_networks(
     package_names: list[str], max_count: int | utils.Infinity = utils.infinity
 ):  # todo add type
     (found, not_found) = search_and_scrape_recursive(
-        set(package_names), max_count=utils.infinity
+        set(package_names), max_count
     )
     if not_found:
         print(
@@ -37,7 +37,7 @@ def _get_networks(
 @bp.route("/getPopularNetworks", methods=["GET"])
 def get_popular_networks():
     to_search = get_popular_package_names()
-    return _get_networks(list(to_search), max_count=100)
+    return _get_networks(list(to_search), max_count=1000)
 
 
 @bp.route("/getAllNetworks", methods=["GET"])

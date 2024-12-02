@@ -448,7 +448,10 @@ class Packument(BaseModel, NSPrettyPrintable):
 
     @classmethod
     def from_json(cls, json_data: dict[str, Any]) -> "Packument | None":
-        return cls.model_validate(json_data)
+        try:
+            return cls.model_validate(json_data)
+        except Exception as e:
+            return None
 
         # add this back once we are ready for production. Currently, we want to fix all
         # errors.

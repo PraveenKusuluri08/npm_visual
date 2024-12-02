@@ -109,11 +109,12 @@ def search_and_scrape_recursive(
     found: dict[str, PackageNode] = {}
     not_found: set[str] = set()
 
-    print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
     count = 0
-    while len(to_search) != 0 and count < max_count:
+    print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
+    while len(to_search) != 0 and len(found)< max_count:
+
         utils.nsprint(f"  db searching for: {to_search}")
-        (in_db, not_in_db) = search_packages_recursive(to_search)
+        (in_db, not_in_db) = search_packages_recursive(to_search, max_count)
         found.update(in_db)
         to_search.difference(set(in_db.keys()))
 
@@ -132,6 +133,7 @@ def search_and_scrape_recursive(
 
         if len(scraped) == 0:
             break
+        count += 1
 
     return (found, not_found)
 
@@ -155,7 +157,7 @@ def search_packages_recursive(
             found[name] = packageNode
             # print(f"  package {name} was already found. Will not search for it again")
             count += 1
-            if count >= count_limit:
+            if count >= count_limit: #todo this is temporary
                 return (found, not_found)
 
         to_search = set()
