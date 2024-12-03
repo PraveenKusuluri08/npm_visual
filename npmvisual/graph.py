@@ -42,7 +42,7 @@ def _get_networks(package_names: list[str], max_count: int | utils.Infinity = ut
 @bp.route("/getPopularNetworks", methods=["GET"])
 def get_popular_networks():
     to_search = get_popular_package_names()
-    return _get_networks(list(to_search), max_count=1000)
+    return _get_networks(list(to_search), max_count=10000)
 
 
 @bp.route("/getAllNetworks", methods=["GET"])
