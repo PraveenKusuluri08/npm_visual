@@ -5,6 +5,13 @@ from npmvisual.models import PackageNode, Packument
 import npmvisual.utils as utils
 
 
+def get_db_all() -> dict[str, PackageNode]:
+    found: dict[str, PackageNode] = {}
+    newly_found = PackageNode.nodes.all()
+    for packageNode in newly_found:
+        found[packageNode.package_id] = packageNode
+    return found
+
 def save_packages(packages: set[PackageNode]):
     for p in packages:
         p.save()

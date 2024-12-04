@@ -6,6 +6,7 @@ from npmvisual._models.packageNode import PackageNode
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
     search_and_scrape_recursive,
+    get_db_all,
 )
 
 bp = Blueprint("network", __name__)
@@ -42,13 +43,25 @@ def _get_networks(package_names: list[str], max_count: int | utils.Infinity = ut
 @bp.route("/getPopularNetworks", methods=["GET"])
 def get_popular_networks():
     to_search = get_popular_package_names()
-    return _get_networks(list(to_search), max_count=1000)
+    return _get_networks(list(to_search), max_count=10000)
 
 
 @bp.route("/getAllNetworks", methods=["GET"])
 def get_all_networks():
     to_search = utils.get_all_package_names()
     return _get_networks(list(to_search))
+
+@bp.route("/getAllDBNetworks", methods=["GET"])
+def get_all_db_networks():
+
+    print("Getting all nodes in the db")
+    found = get_db_all()
+    print(f"Got all nodes in the db: {len(found)} packages")
+
+    formatted_data = format_for_frontend(found)
+    print(f"Formatted graph data: {formatted_data}") 
+    return formatted_data
+
 
 
 @bp.route("/getNetwork/<package_name>", methods=["GET"])

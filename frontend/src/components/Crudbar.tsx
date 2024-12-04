@@ -16,6 +16,9 @@ function Crudbar({ onSelect }: { onSelect: any }) {
   function getPopularNetwork() {
     onSelect("getPopularNetwork");
   }
+  function getAllDBNetworks() {
+    onSelect("getAllDBNetworks");
+  }
 
   function apiTest(path: string) {
     axios
@@ -58,6 +61,9 @@ function Crudbar({ onSelect }: { onSelect: any }) {
       </div>
       <button className="button-48" onClick={() => clearCache()}>
         <span className="text">Clear Cache (for development)</span>
+      </button>
+      <button className="button-48" onClick={() => getAllDBNetworks()}>
+        <span className="text">getAllDBNetworks</span>
       </button>
       <button className="button-48" onClick={() => getPopularNetwork()}>
         <span className="text">getPopularNetwork</span>
