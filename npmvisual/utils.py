@@ -88,8 +88,6 @@ def get_all_package_names(max: int = 300, offset: int = 0) -> set[str]:
         i: int = 0
         for package_name in data:
             i += 1
-            if i < min:
-                continue
             names.add(package_name)
             if i >= max:
                 break

@@ -5,12 +5,30 @@ from npmvisual.models import PackageNode, Packument
 import npmvisual.utils as utils
 
 
+def get_db_all_names() -> list[str]:
+    # todo: fix this once I learn how to use neomodel.
+    from neomodel import db
+
+    found = {}
+    query = "MATCH (p:PackageNode) RETURN p.package_id"
+
+    # Execute the query using db.cypher_query
+    results, _ = db.cypher_query(query)
+    return results
+    # query = "MATCH (p:PackageNode) RETURN p.package_name"
+    # results, summary, keys = driver.execute_query(query, database_="neo4j")
+    # newly_found = PackageNode.nodes.values("package_name")
+    # print(results)
+    # return newly_found
+
+
 def get_db_all() -> dict[str, PackageNode]:
     found: dict[str, PackageNode] = {}
     newly_found = PackageNode.nodes.all()
     for packageNode in newly_found:
         found[packageNode.package_id] = packageNode
     return found
+
 
 def save_packages(packages: set[PackageNode]):
     for p in packages:

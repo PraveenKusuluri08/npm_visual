@@ -3,7 +3,11 @@ from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.utils import get_all_package_names
 
-from .main import scrape_packages as db_scrape_packages, search_packages
+from .main import (
+    scrape_packages as db_scrape_packages,
+    search_packages,
+    get_db_all_names,
+)
 
 
 # @bp.route("/deletePackages")
@@ -61,8 +65,11 @@ def scrape_popular_packages() -> str:
 
 @bp.route("/scrapeAllPackages")
 def scrape_all_packages() -> str:
-    to_search = get_all_package_names()
-    return scrape_packages(list(to_search))
+    to_search = get_all_package_names(999)
+    names_in_db = get_db_all_names()
+    print("yes")
+    filtered = list(filter(lambda item: item not in names_in_db, to_search))
+    return scrape_packages(list(filtered))
 
 
 @bp.route("/scrapePackage/<package_name>")
