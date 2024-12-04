@@ -50,6 +50,11 @@ def get_all_networks():
     to_search = utils.get_all_package_names()
     return _get_networks(list(to_search))
 
+# @bp.route("/getAllDBNetworks", methods=["GET"])
+# def get_all_networks():
+#     return _get_networks(list(to_search))
+
+
 
 @bp.route("/getNetwork/<package_name>", methods=["GET"])
 def get_network(package_name: str):
