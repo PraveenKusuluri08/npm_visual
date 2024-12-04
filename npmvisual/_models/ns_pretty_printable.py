@@ -100,7 +100,9 @@ class NSPrettyPrintable:
         output = ""
         for count, item in enumerate(value):
             if count > list_limit:
-                output += f"{indent*level}... ({len(value) - count} hidden for brevity)\n"
+                output += (
+                    f"{indent*level}... ({len(value) - count} hidden for brevity)\n"
+                )
                 break
             if isinstance(item, NSPrettyPrintable):
                 output += item.to_readable_str(

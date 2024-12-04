@@ -1,4 +1,5 @@
 import networkx as nx
+from npmvisual import analyzer
 from flask import Blueprint, jsonify, request
 
 import npmvisual.utils as utils
@@ -21,12 +22,12 @@ def get_networks(package_names: list[str]):  # todo add type
     return _get_networks(package_names)
 
 
-def _get_networks(package_names: list[str], max_count: int | utils.Infinity = utils.infinity):
+def _get_networks(
+    package_names: list[str], max_count: int | utils.Infinity = utils.infinity
+):
     print(f"Fetching network for packages: {package_names}")
-    
-    (found, not_found) = search_and_scrape_recursive(
-        set(package_names), max_count
-    )
+
+    (found, not_found) = search_and_scrape_recursive(set(package_names), max_count)
     print(f"Found: {len(found)} packages, Not Found: {len(not_found)}")
 
     if not_found:
@@ -36,7 +37,7 @@ def _get_networks(package_names: list[str], max_count: int | utils.Infinity = ut
         )
 
     formatted_data = format_for_frontend(found)
-    print(f"Formatted graph data: {formatted_data}") 
+    print(f"Formatted graph data: {formatted_data}")
     return formatted_data
 
 
@@ -51,6 +52,7 @@ def get_all_networks():
     to_search = utils.get_all_package_names()
     return _get_networks(list(to_search))
 
+
 @bp.route("/getAllDBNetworks", methods=["GET"])
 def get_all_db_networks():
 
@@ -59,9 +61,8 @@ def get_all_db_networks():
     print(f"Got all nodes in the db: {len(found)} packages")
 
     formatted_data = format_for_frontend(found)
-    print(f"Formatted graph data: {formatted_data}") 
+    print(f"Formatted graph data: {formatted_data}")
     return formatted_data
-
 
 
 @bp.route("/getNetwork/<package_name>", methods=["GET"])
@@ -84,41 +85,53 @@ def analyze_network(package_name: str):
         G = nx.DiGraph() if graph_data.get("directed", True) else nx.Graph()
         for node in graph_data["nodes"]:
             G.add_node(node["id"])
-        
+
         for link in graph_data["links"]:
             G.add_edge(link["source"], link["target"])
-        
+
         degree_centrality = nx.degree_centrality(G)
-        betweenness_centrality = nx.betweenness_centrality(G, normalized=True, endpoints=True)
+        betweenness_centrality = nx.betweenness_centrality(
+            G, normalized=True, endpoints=True
+        )
 
         analysis_results = {
             "degree_centrality": degree_centrality,
-            "betweenness_centrality": betweenness_centrality
+            "betweenness_centrality": betweenness_centrality,
         }
-        
+
         print("Analysis Results:", analysis_results)
-        
+
         return jsonify(analysis_results), 200
 
     except Exception as e:
         print(f"Error processing the request for {package_name}: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+
 def format_as_nx(data: dict[str, PackageNode]):
+    print("33333333333333333333333333333333333333333333333333333")
     G = nx.DiGraph()
-    for p in data.values():
-        G.add_node(p.package_id)
+    # for name, p in data.items():
+    # print(
+    #     "PackageNode Data______________________________________________________________________"
+    # )
+    # p.pretty_print(0, 99, 99, 99)
+    # G.add_node(p.package_id)
+    # print(
+    #     "End of PackageNode Data______________________________________________________________________"
+    # )
 
     for p in data.values():
         if p.dependency_id_list:
             for d in p.dependency_id_list:
                 G.add_edge(d, p.package_id)
-                
-    print(f"Nodes in the graph: {list(G.nodes)}")
-    print(f"Edges in the graph: {list(G.edges)}")
-    
+
+    # print(f"Nodes in the graph: {list(G.nodes)}")
+    # print(f"Edges in the graph: {list(G.edges)}")
+
+    analyzer.analyze(G)
     graph_data = nx.node_link_data(G)
-    print(f"Graph data for frontend: {graph_data}")
+    # print(f"Graph data for frontend: {graph_data}")
     return graph_data
 
 
