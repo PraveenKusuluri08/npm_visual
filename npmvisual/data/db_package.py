@@ -219,7 +219,7 @@ def _find_package_and_save_to_cache(package_name: str) -> bool:
 
 def _get_num_of_packages_in_names_json() -> int:
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.join(dir_path + "/package_cache/names.json")
+    file_path = os.path.join(dir_path + "/names.json")
     with open(file_path) as file:
         return sum(1 for line in file)
 
@@ -254,7 +254,9 @@ def db_scrape_everything():
         print(f"\nAdding {count}/{total_count} : {len(failed_to_scrape)} failed.")
         print(f"\tNext Package: {next_package_name}. ")
         count += 1
-        json_dict: dict[str, Any] | None = None  # scrape_package_json(next_package_name)
+        json_dict: dict[str, Any] | None = (
+            None  # scrape_package_json(next_package_name)
+        )
         with open(f"output{count}.json") as file:
             json_dict = json.load(file)
 
@@ -305,4 +307,6 @@ def db_scrape_everything():
             #
             #         # print(f"\tadded package to db: {next_package}")
 
-    print(f"\nScraped Everything{count}/{total_count} : {len(failed_to_scrape)} failed.")
+    print(
+        f"\nScraped Everything{count}/{total_count} : {len(failed_to_scrape)} failed."
+    )
