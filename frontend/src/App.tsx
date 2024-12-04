@@ -1,7 +1,7 @@
 import "./App.css";
 import GraphData from "./utils/models";
 import { useEffect, useState } from "react";
-import GraphDiagram from "./components/GraphDiagram";
+// import GraphDiagram from "./components/GraphDiagram";
 import Crudbar from "./components/Crudbar";
 import { getCache } from "./utils/cache";
 import axios from "axios";
@@ -14,6 +14,19 @@ function App() {
     setPackageName(packageName);
   };
   const [graphData, setGraphData] = useState<GraphData>();
+  
+  useEffect(() => {
+    if (packageName !== "") {
+      const url = `/analyzeNetwork/react`;
+      axios
+        .get(url)
+        .then((data) => console.log("analysis result", data))
+        .catch((err) => {
+          console.log("error fetching data", err);
+        });
+    }
+  }, [packageName]);
+
   useEffect(() => {
     if (packageName != "") {
       console.log("setting axios call");
@@ -39,11 +52,15 @@ function App() {
           });
       } else {
         console.log(
-          `did not sent request to ${url}, request already in progress`,
+          `did not sent request to ${url}, request already in progress`
         );
       }
     }
   }, [packageName]);
+
+  
+
+  console.log("graphData", graphData);
 
   return (
     <>
