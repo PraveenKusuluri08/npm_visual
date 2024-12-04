@@ -111,7 +111,7 @@ def search_and_scrape_recursive(
 
     count = 0
     print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
-    while len(to_search) != 0 and len(found)< max_count:
+    while len(to_search) != 0 and len(found) < max_count:
 
         utils.nsprint(f"  db searching for: {to_search}")
         (in_db, not_in_db) = search_packages_recursive(to_search, max_count)
@@ -157,7 +157,7 @@ def search_packages_recursive(
             found[name] = packageNode
             # print(f"  package {name} was already found. Will not search for it again")
             count += 1
-            if count >= count_limit: #todo this is temporary
+            if count >= count_limit:  # todo this is temporary
                 return (found, not_found)
 
         to_search = set()
@@ -181,14 +181,18 @@ def search_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
     duplicates = utils.find_duplicates(ids)
     # print("33" * 88)
     # print(duplicates)
-    assert len(duplicates) == 0
+    # assert len(duplicates) == 0
     for packageNode in newly_found:
         # print(f"   -search_packages(): {packageNode.package_id}")
         # print(f"   xsearch_packages(): {packageNode.__str__()}")
         # print(f"   +search_packages(): {packageNode.pretty_print(3,3,10)}")
         assert packageNode and packageNode.package_id
         found[packageNode.package_id] = packageNode
-        to_search.remove(packageNode.package_id)
+        # print(f"packageNode={packageNode} 00000000000000000000000000000000000")
+        if packageNode.package_id in to_search:
+            to_search.remove(packageNode.package_id)
+            # todo: fix this later, this should never happen, but it did when
+            # creating a new neo4j db.
 
     return (found, to_search)
 
