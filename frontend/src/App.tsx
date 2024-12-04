@@ -14,7 +14,7 @@ function App() {
     setPackageName(packageName);
   };
   const [graphData, setGraphData] = useState<GraphData>();
-  
+
   useEffect(() => {
     if (packageName !== "") {
       const url = `/analyzeNetwork/react`;
@@ -32,6 +32,7 @@ function App() {
       console.log("setting axios call");
       let url;
       if (packageName == "getPopularNetwork") url = "/api/getPopularNetworks";
+      else if (packageName == "getAllDBNetworks") url = "/api/getAllDBNetworks";
       else url = `/api/getNetwork/${packageName}`;
       // Prevent many calls to the same API.
       const apiCache = getCache();
@@ -58,7 +59,7 @@ function App() {
     }
   }, [packageName]);
 
-  
+
 
   console.log("graphData", graphData);
 
