@@ -3,6 +3,7 @@ import json
 import os
 import shutil
 from typing import Any
+import random
 
 
 def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
@@ -77,25 +78,33 @@ class Infinity:
 infinity = Infinity()
 
 
-def get_all_package_names(max: int = 300, offset: int = 0) -> set[str]:
+
+def get_all_package_names(limit: int = 300, offset: int = 0) -> set[str]:
     names = set()
     dir_path = os.path.dirname(os.path.realpath(__file__))
-    file_path = os.path.join(dir_path + "/data/names.json")
-    min = max
-    max = offset + max
+    file_path = os.path.join(dir_path, "data/names.json")
+
+    # Open the file and load the JSON data into memory
     with open(file_path) as file:
         data = json.load(file)
-        i: int = 0
-        for package_name in data:
-            i += 1
-            names.add(package_name)
-            if i >= max:
-                break
-    print(
-        f"created a set of all package names with {len(names)} elements."
-        f"This is {i-len(names)} less than the original file"
-    )
+        
+    # Get the total number of elements in the data
+    num_lines = len(data)
+
+    # Calculate a random offset ensuring it doesn't exceed the file size
+    random_offset = random.randint(0, max(num_lines - limit, 0))
+
+    # Slice the data to get the subset of names starting at random_offset
+    selected_names = data[random_offset:random_offset + limit]
+
+    # Add selected names to the set
+    names.update(selected_names)
+
+    # Print information about the set
+    print(f"Created a set of all package names with {len(names)} elements.")
+    
     return names
+
 
 
 def find_duplicates(lst: list[Any]):
