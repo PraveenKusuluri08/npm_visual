@@ -109,7 +109,6 @@ def analyze_network(package_name: str):
 
 
 def format_as_nx(data: dict[str, PackageNode]):
-    print("33333333333333333333333333333333333333333333333333333")
     G = nx.DiGraph()
     # for name, p in data.items():
     # print(

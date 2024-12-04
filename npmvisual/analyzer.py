@@ -1,18 +1,30 @@
 import networkx as nx
+import os
 from colorama import Fore, Style, init
 from collections import OrderedDict
 import numpy as np
 
+# Initialize colorama
+init(autoreset=True)
+indent = "    "
+
 
 def analyze(graph):
-    # Existing analysis...
-    print("\n--- Graph Analysis ---")
 
-    # 1. Basic Graph Information
-    print("\nGraph Information:")
-    print(f"Number of nodes: {graph.number_of_nodes()}")
-    print(f"Number of edges: {graph.number_of_edges()}")
-    print(f"Is directed? {graph.is_directed()}")
+    # Title of the analysis in yellow
+    print(Fore.YELLOW + "--- Graph Analysis ---" + Style.RESET_ALL + "\n")
+
+    # 1. Basic Graph Information with colored sections
+    print(Fore.YELLOW + "Graph Information:" + Style.RESET_ALL)
+    print(
+        f"{indent}{Fore.GREEN}Number of nodes:{Style.RESET_ALL} {Fore.CYAN}{graph.number_of_nodes()}{Style.RESET_ALL}"
+    )
+    print(
+        f"{indent}{Fore.GREEN}Number of edges:{Style.RESET_ALL} {Fore.CYAN}{graph.number_of_edges()}{Style.RESET_ALL}"
+    )
+    print(
+        f"{indent}{Fore.GREEN}Is directed?:{Style.RESET_ALL} {Fore.CYAN}{graph.is_directed()}{Style.RESET_ALL}"
+    )
 
     # 2. Degree Centrality (already existing)
     analyze_degree_centrality(graph)
@@ -30,7 +42,7 @@ def analyze(graph):
     analyze_strongly_connected_components(graph)
 
     # 7. Community Detection (already existing)
-    analyze_community_detection(graph)
+    # analyze_community_detection(graph)
 
     # 8. Clique Detection (already existing)
     # analyze_cliques(graph)
@@ -49,61 +61,82 @@ def analyze(graph):
     analyze_edge_betweenness(graph)
     analyze_k_core(graph)
 
-    print("\n--- Analysis Complete ---")
+    print("\nAnalysis Complete")
 
 
+# Function to analyze Degree Centrality
 def analyze_degree_centrality(graph):
-    print("\nDegree Centrality (Top 5 nodes):")
+    print(Fore.YELLOW + "\nDegree Centrality (Top 5 nodes)")
     degree_centrality = nx.degree_centrality(graph)
     sorted_degree = sorted(
         degree_centrality.items(), key=lambda item: item[1], reverse=True
     )
+
     for node, centrality in sorted_degree[:5]:
-        print(f"{node:<20}: {centrality:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<25}{Style.RESET_ALL}: {Fore.CYAN}{centrality:.4f}{Style.RESET_ALL}"
+        )
 
 
+# Function to analyze Closeness Centrality
 def analyze_closeness_centrality(graph):
-    print("\nCloseness Centrality (Top 5 nodes):")
+    print(Fore.YELLOW + "\nCloseness Centrality (Top 5 nodes)")
     closeness_centrality = nx.closeness_centrality(graph)
     sorted_closeness = sorted(
         closeness_centrality.items(), key=lambda item: item[1], reverse=True
     )
+
     for node, centrality in sorted_closeness[:5]:
-        print(f"{node:<20}: {centrality:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<25}{Style.RESET_ALL}: {Fore.CYAN}{centrality:.4f}{Style.RESET_ALL}"
+        )
 
 
+# Function to analyze Betweenness Centrality
 def analyze_betweenness_centrality(graph):
-    print("\nBetweenness Centrality (Top 5 nodes):")
+    print(Fore.YELLOW + "\nBetweenness Centrality (Top 5 nodes)")
     betweenness_centrality = nx.betweenness_centrality(graph)
     sorted_betweenness = sorted(
         betweenness_centrality.items(), key=lambda item: item[1], reverse=True
     )
+
     for node, centrality in sorted_betweenness[:5]:
-        print(f"{node:<20}: {centrality:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<25}{Style.RESET_ALL}: {Fore.CYAN}{centrality:.4f}{Style.RESET_ALL}"
+        )
 
 
 def analyze_shortest_paths(graph):
-    print("\nShortest Paths (from 'react'):")
-    if "react" in graph:
-        shortest_paths = nx.single_source_shortest_path_length(graph, "react")
+    seed = "npm"
+    print(Fore.YELLOW + f"\nShortest Paths (from 'react'): " + Style.RESET_ALL)
+    if seed in graph:
+        shortest_paths = nx.single_source_shortest_path_length(graph, seed)
         for target, length in sorted(shortest_paths.items(), key=lambda item: item[1]):
-            print(f"react -> {target}: {length}")
+            print(
+                f"{indent}{Fore.GREEN}{seed}{Style.RESET_ALL} -> {Fore.CYAN}{target}{Style.RESET_ALL}: {Fore.MAGENTA}{length}{Style.RESET_ALL}"
+            )
     else:
-        print("Node 'react' not found in the graph")
+        print(f"{indent}{Fore.RED}Node {seed} not found in the graph{Style.RESET_ALL}")
 
 
 def analyze_strongly_connected_components(graph):
-    print("\nStrongly Connected Components (SCC):")
+    print(Fore.YELLOW + f"\nStrongly Connected Components (SCC):" + Style.RESET_ALL)
     scc = list(nx.strongly_connected_components(graph))
     for i, component in enumerate(scc[:5]):
-        print(f"Component {i+1}: {sorted(component)}")
+        print(
+            f"{indent}{Fore.GREEN}Component {i+1}:{Style.RESET_ALL} {Fore.CYAN}{sorted(component)}{Style.RESET_ALL}"
+        )
 
 
 def analyze_community_detection(graph):
     try:
         from community import community_louvain
 
-        print("\nCommunity Detection (Top 5 communities):")
+        print(
+            Fore.YELLOW
+            + f"\n{indent}Community Detection (Top 5 communities):"
+            + Style.RESET_ALL
+        )
         partition = community_louvain.best_partition(graph)
         communities = {}
         for node, community_id in partition.items():
@@ -111,10 +144,12 @@ def analyze_community_detection(graph):
                 communities[community_id] = []
             communities[community_id].append(node)
         for i, community_nodes in enumerate(list(communities.values())[:5]):
-            print(f"Community {i+1}: {sorted(community_nodes)}")
+            print(
+                f"{indent}{Fore.GREEN}Community {i+1}:{Style.RESET_ALL} {Fore.CYAN}{sorted(community_nodes)}{Style.RESET_ALL}"
+            )
     except ImportError:
         print(
-            "\nCommunity Detection (Louvain) requires 'python-louvain' package. Skipping."
+            f"{indent}{Fore.RED}\nCommunity Detection (Louvain) requires 'python-louvain' package. Skipping.{Style.RESET_ALL}"
         )
 
 
@@ -122,66 +157,89 @@ def analyze_cliques(graph):
     print("\nCliques in the graph:")
     cliques = list(nx.find_cliques(graph))
     for i, clique in enumerate(cliques[:5]):
-        print(f"Clique {i + 1}: {sorted(clique)}")
+        print(f"{indent}Clique {i + 1}: {sorted(clique)}")
 
 
 def analyze_graph_density(graph):
-    print(f"\nGraph Density: {nx.density(graph):.4f}")
+    print(Fore.YELLOW + f"\nGraph Density: {nx.density(graph):.4f}" + Style.RESET_ALL)
 
 
 def analyze_pagerank(graph):
-    print("\nPageRank (Top 5 nodes):")
+    print(Fore.YELLOW + "\nPageRank (Top 5 nodes):" + Style.RESET_ALL)
     pagerank = nx.pagerank(graph)
     sorted_pagerank = sorted(pagerank.items(), key=lambda item: item[1], reverse=True)
     for node, rank in sorted_pagerank[:5]:
-        print(f"{node:<20}: {rank:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<20}:{Style.RESET_ALL} {Fore.CYAN}{rank:.4f}{Style.RESET_ALL}"
+        )
 
 
 def analyze_hits(graph):
-    print("\nHITS Algorithm (Top 5 Hubs and Authorities):")
+    print(
+        Fore.YELLOW + "\nHITS Algorithm (Top 5 Hubs and Authorities):" + Style.RESET_ALL
+    )
     hubs, authorities = nx.hits(graph)
     sorted_hubs = sorted(hubs.items(), key=lambda item: item[1], reverse=True)
     sorted_authorities = sorted(
         authorities.items(), key=lambda item: item[1], reverse=True
     )
 
-    print("\nTop Hubs:")
+    print(Fore.CYAN + "\nTop Hubs:" + Style.RESET_ALL)
     for node, hub_score in sorted_hubs[:5]:
-        print(f"{node:<20}: {hub_score:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<20}:{Style.RESET_ALL} {Fore.CYAN}{hub_score:.4f}{Style.RESET_ALL}"
+        )
 
-    print("\nTop Authorities:")
+    print(Fore.CYAN + "\nTop Authorities:" + Style.RESET_ALL)
     for node, authority_score in sorted_authorities[:5]:
-        print(f"{node:<20}: {authority_score:.4f}")
+        print(
+            f"{indent}{Fore.GREEN}{node:<20}:{Style.RESET_ALL} {Fore.CYAN}{authority_score:.4f}{Style.RESET_ALL}"
+        )
 
 
-def analyze_weakly_connected_components(graph):
-    print("\nWeakly Connected Components (Top 5):")
+def analyze_weakly_connected_components(graph, indent="    "):
+    terminal_width = os.get_terminal_size().columns  # Get terminal width
+    print(Fore.YELLOW + "\nWeakly Connected Components (Top 5):" + Style.RESET_ALL)
+
     weakly_connected_components = list(nx.weakly_connected_components(graph))
+
+    # Limit to the top 5 components for brevity
     for i, component in enumerate(weakly_connected_components[:5]):
-        print(f"Component {i+1}: {sorted(component)}")
+        # Format the component header with a green label
+        print(f"{indent}{Fore.GREEN}Component {i+1}:{Style.RESET_ALL}")
+
+        # Sort the nodes in the component for consistency and easy reading
+        sorted_component = sorted(component)
+
+        # Print the nodes in chunks
+        chunk_size = 10
+        for j in range(0, len(sorted_component), chunk_size):
+            chunk = sorted_component[j : j + chunk_size]
+            chunk_str = str(chunk)  # Convert list to string
+            # If the line is too long, truncate and add ellipsis
+            if len(chunk_str) > terminal_width:
+                chunk_str = chunk_str[: terminal_width - 13] + "..."
+            print(f"{indent}{Fore.CYAN}{chunk_str}{Style.RESET_ALL}")
 
 
 def analyze_diameter_and_radius(graph):
-    print("\nGraph Diameter and Radius:")
+    print(Fore.YELLOW + "\nGraph Diameter and Radius:" + Style.RESET_ALL)
     if nx.is_strongly_connected(graph):
         eccentricities = nx.eccentricity(graph)
         diameter = max(eccentricities.values())
         radius = min(eccentricities.values())
-        print(f"Graph Diameter: {diameter}")
-        print(f"Graph Radius: {radius}")
+        print(f"{Fore.CYAN}Graph Diameter: {diameter}{Style.RESET_ALL}")
+        print(f"{Fore.CYAN}Graph Radius: {radius}{Style.RESET_ALL}")
     else:
-        print("Graph is not strongly connected. Skipping diameter and radius.")
-
-
-def analyze_strongly_connected_components(graph):
-    print("\nStrongly Connected Components (SCC):")
-    scc = list(nx.strongly_connected_components(graph))
-    for i, component in enumerate(scc[:5]):
-        print(f"Component {i+1}: {sorted(component)}")
+        print(
+            Fore.RED
+            + "Graph is not strongly connected. Skipping diameter and radius."
+            + Style.RESET_ALL
+        )
 
 
 def analyze_degree_distribution(graph):
-    print("\nIn-Degree and Out-Degree Distribution:")
+    print(Fore.YELLOW + "\nIn-Degree and Out-Degree Distribution:" + Style.RESET_ALL)
     in_degrees = dict(graph.in_degree())
     out_degrees = dict(graph.out_degree())
 
@@ -192,19 +250,19 @@ def analyze_degree_distribution(graph):
         out_degrees.items(), key=lambda item: item[1], reverse=True
     )
 
-    print("\nTop 5 Nodes by In-Degree:")
+    print(Fore.CYAN + "\nTop 5 Nodes by In-Degree:" + Style.RESET_ALL)
     for node, degree in sorted_in_degrees[:5]:
-        print(f"{node:<20}: {degree}")
+        print(f"{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
 
-    print("\nTop 5 Nodes by Out-Degree:")
+    print(Fore.CYAN + "\nTop 5 Nodes by Out-Degree:" + Style.RESET_ALL)
     for node, degree in sorted_out_degrees[:5]:
-        print(f"{node:<20}: {degree}")
+        print(f"{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
 
 
 def analyze_transitivity(graph):
-    print("\nGraph Transitivity:")
+    print(Fore.YELLOW + "\nGraph Transitivity:" + Style.RESET_ALL)
     transitivity = nx.transitivity(graph)
-    print(f"Transitivity: {transitivity:.4f}")
+    print(f"{Fore.CYAN}Transitivity: {transitivity:.4f}{Style.RESET_ALL}")
 
 
 def analyze_rich_club(graph):
@@ -215,16 +273,33 @@ def analyze_rich_club(graph):
 
 
 def analyze_edge_betweenness(graph):
-    print("\nEdge Betweenness Centrality (Top 5 edges):")
+    print(
+        Fore.YELLOW + "\nEdge Betweenness Centrality (Top 5 edges):" + Style.RESET_ALL
+    )
     edge_betweenness = nx.edge_betweenness_centrality(graph)
     sorted_edge_betweenness = sorted(
         edge_betweenness.items(), key=lambda item: item[1], reverse=True
     )
     for edge, centrality in sorted_edge_betweenness[:5]:
-        print(f"Edge {edge}: {centrality:.4f}")
+        print(
+            f"    {Fore.GREEN}Edge {edge}:{Style.RESET_ALL} {Fore.CYAN}{centrality:.4f}{Style.RESET_ALL}"
+        )
 
 
-def analyze_k_core(graph, k=3):
-    print(f"\nK-Core Decomposition (k={k}):")
+def analyze_k_core(graph, k=3, indent="    "):
+    terminal_width = os.get_terminal_size().columns  # Get terminal width
+    print(Fore.YELLOW + f"\nK-Core Decomposition (k={k}):" + Style.RESET_ALL)
     k_core = nx.k_core(graph, k=k)
-    print(f"K-Core (k={k}) nodes: {sorted(k_core.nodes())}")
+    nodes = sorted(k_core.nodes())
+
+    # Print nodes in chunks
+    chunk_size = 10
+    for j in range(0, len(nodes), chunk_size):
+        chunk = nodes[j : j + chunk_size]
+        chunk_str = str(chunk)  # Convert list to string
+        # If the line is too long, truncate and add ellipsis
+        if len(chunk_str) > terminal_width:
+            chunk_str = chunk_str[: terminal_width - 23] + "..."
+        print(
+            f"{indent}{Fore.GREEN}K-Core (k={k}) nodes:{Style.RESET_ALL} {Fore.CYAN}{chunk_str}{Style.RESET_ALL}"
+        )
