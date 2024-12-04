@@ -292,19 +292,22 @@ def analyze_edge_betweenness(graph):
 
 
 def analyze_k_core(graph, k=3, indent="    "):
-    terminal_width = os.get_terminal_size().columns  # Get terminal width
-    print(Fore.YELLOW + f"\nK-Core Decomposition (k={k}):" + Style.RESET_ALL)
-    k_core = nx.k_core(graph, k=k)
-    nodes = sorted(k_core.nodes())
+    try:
+        terminal_width = os.get_terminal_size().columns  # Get terminal width
+        print(Fore.YELLOW + f"\nK-Core Decomposition (k={k}):" + Style.RESET_ALL)
+        k_core = nx.k_core(graph, k=k)
+        nodes = sorted(k_core.nodes())
 
-    # Print nodes in chunks
-    chunk_size = 10
-    for j in range(0, len(nodes), chunk_size):
-        chunk = nodes[j : j + chunk_size]
-        chunk_str = str(chunk)  # Convert list to string
-        # If the line is too long, truncate and add ellipsis
-        if len(chunk_str) > terminal_width:
-            chunk_str = chunk_str[: terminal_width - 23] + "..."
-        print(
-            f"{indent}{Fore.GREEN}K-Core (k={k}) nodes:{Style.RESET_ALL} {Fore.CYAN}{chunk_str}{Style.RESET_ALL}"
-        )
+        # Print nodes in chunks
+        chunk_size = 10
+        for j in range(0, len(nodes), chunk_size):
+            chunk = nodes[j : j + chunk_size]
+            chunk_str = str(chunk)  # Convert list to string
+            # If the line is too long, truncate and add ellipsis
+            if len(chunk_str) > terminal_width:
+                chunk_str = chunk_str[: terminal_width - 23] + "..."
+            print(
+                f"{indent}{Fore.GREEN}K-Core (k={k}) nodes:{Style.RESET_ALL} {Fore.CYAN}{chunk_str}{Style.RESET_ALL}"
+            )
+    except Exception as e:
+        pass
