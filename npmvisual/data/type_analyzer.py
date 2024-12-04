@@ -15,9 +15,11 @@ class NSType:
     self_type: str
     attrs: list[str] = []
     generator = NSAliasGenerator()
+    previous_key = None
 
-    def __init__(self, t: Any):
+    def __init__(self, t: Any, previous_key=None):
         self.self_type = type(t).__name__
+        self.previous_key = previous_key
 
         # _pretty_print_type_structure(t)
         # global COUNT
@@ -31,7 +33,7 @@ class NSType:
         elif isinstance(t, list):
             # for k in t:
             # print(f"nsType dict children: {k}")
-            self.children = {str(k): NSType(v) for k, v in enumerate(t)}
+            self.children = {str(k): NSType(v, k) for k, v in enumerate(t)}
             child_structures = ""
             child_alias = ""
             if self.children:
@@ -41,17 +43,22 @@ class NSType:
             self.structure_full = f"list[{child_structures}]"
 
         elif isinstance(t, dict):
-            # for k, v in t.items():
-            #     if isinstance(v, str):
-            #         print(
-            #             f"nsType dict children: {k} {NSPrettyPrintable.format_string(v, 100)}"
-            #         )
-            #     else:
-            #         print(f"nsType dict children: {k} {v}")
-            self.children = {k: NSType(v) for k, v in t.items()}
+            to_ignore = [
+                "dependencies",
+                "peerDependencies",
+                "devDependencies",
+                "devDependencies",
+                "keywords",
+                "scripts",
+            ]
+            self.children = {k: NSType(v, k) for k, v in t.items() if k not in to_ignore}
             structure = f"dict[str,{self.self_type}]{{"
             structure_full = f"dict[str,{self.self_type}]{{"
-            for key, val in self.children.items():
+
+            sorted_keys = list(self.children.keys())
+            sorted_keys.sort()
+            for key in sorted_keys:
+                val = self.children[key]
                 self.attrs.append(key)
                 structure += f"({key},{val.alias}),"
                 structure_full += f"({key},{val.structure_full}),"
@@ -60,8 +67,8 @@ class NSType:
                 structure_full = structure_full[:-1]  # remove trailing comma and \n
             structure += "}"
             structure_full += "}"
-            self.structure = structure
-            self.structure_full = structure_full
+            self.structure = f"%{self.previous_key}%{structure}"
+            self.structure_full = f"%{self.previous_key}%{structure_full}"
 
         else:
             raise TypeError(f"Unknown type: {type(t).__name__} (value: {t})")
@@ -108,9 +115,12 @@ class NSTypeDB:
         print("===" * 44)
         sorted_types = sorted(cls.all_types.values(), key=lambda t: t.count, reverse=True)
         for t in sorted_types:
-            if t.count > 4:
+            if (
+                t.count > 10
+                and t.nstype.alias not in NSAliasGenerator.predefined.values()
+            ):
                 print(
-                    f'count={t.count} {t.nstype.alias} \n\t"{t.nstype.structure}"\n\t"{t.nstype.structure_full}"'
+                    f'count={t.count} {t.nstype.alias} \n\t"{t.nstype.structure}"'  # \n\t"{t.nstype.structure_full}"'
                 )
         print("===" * 44)
         print("===" * 44)

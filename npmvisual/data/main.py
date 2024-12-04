@@ -22,25 +22,53 @@ def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageNode], se
         else:
             not_found.add(p)
     # print(f"    scrape_packages: found: {found.keys()}")
-    NSTypeDB.print()
+    # NSTypeDB.print()
     return (found, not_found)
 
 
 def scrape_package(package_name: str) -> PackageNode | None:
     json_dict = scrape_package_json(package_name)
-    NSType(json_dict)
+    # NSType(json_dict)
     # raise Exception("stopping program for testing purposes")
-    # if not json_dict:
-    #     return None
-    #
-    # # _print_json_variable(json_dict)
-    # packument = Packument.from_json(json_dict)
-    # if not packument:
-    #     return None
-    # pn = PackageNode.from_packument(packument)
-    # if pn:
-    #     pn.save()
-    # return pn
+    if not json_dict:
+        return None
+
+    # _print_json_variable(json_dict)
+    packument = Packument.from_json(json_dict)
+    if not packument:
+        return None
+    pn = PackageNode.from_packument(packument)
+    if pn:
+        pn.save()
+    return pn
+
+
+def create_dependency_relationship(
+    package_node: PackageNode, cache: dict[str, PackageNode]
+):
+    cache_keys = set(cache)
+    in_cache = [d for d in package_node.dependency_id_list if d in cache_keys]
+    not_in_cache = [d for d in package_node.dependency_id_list if d not in cache_keys]
+
+    (found, not_found) = search_packages(not_in_cache)
+
+
+"""
+help me write this python function. I am learning list comprehension and the best ways to use python lists and dicts. 
+
+
+def create_dependency_relationship(
+    package_node: PackageNode, cache: dict[str, PackageNode]
+):
+    all = package_node.dependency_id_list
+    not_in_cache = [d for d in package_node.dependency_id_list if d not in cache]   
+    in_cache = ???
+
+
+i need to turn the list of all dependencies into two smaller lists
+1)  a list of dependencies in the cache
+2)  a list of dependencies not in the cache
+              """
 
 
 def search_and_scrape_recursive(

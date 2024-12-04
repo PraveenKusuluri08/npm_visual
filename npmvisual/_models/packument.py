@@ -7,12 +7,19 @@ from typing_extensions import TypedDict
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 
 """
-Types that from api I don't have here
+Types that from the api I don't have here
 	"dict[str,dict]{(host,str),(tmp,str)}"
 	"dict[str,dict]{(latest,str)}"
 	"dict[str,dict]{(test,str)}"
 	"dict[str,dict]{(created,str),(1.0.0,str),(modified,str)}"
 	"dict[str,dict]{(base-64,str),(node-fetch,str),(ws,str)}"
+	"dict[str,dict]{(default,_str),(types,_str)}"
+	"dict[str,dict]{(import,_str),(require,_str)}"
+	"dict[str,dict]{(import,_byoo),(require,_byop)}"
+	"dict[str,dict]{(host,_str),(tmp,_str)}"
+	"dict[str,dict]{(packageGroup,[str])}"
+	"dict[str,dict]{(default,_str)}"
+	"dict[str,dict]{(githubUsername,_str),(name,_str),(url,_str)}"
 """
 
 

@@ -1,8 +1,12 @@
 from time import sleep
+import random
 from npmvisual._models.packageNode import PackageNode
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
-from npmvisual.data.cache import get_all_cache_filenames, load_cache_file
+from npmvisual.data.cache import (
+    get_random_filenames,
+    load_cache_file,
+)
 from npmvisual.data.type_analyzer import NSType, NSTypeDB
 from npmvisual.utils import get_all_package_names
 
@@ -24,11 +28,9 @@ def test():
 
 
 @bp.route("/searchCachePackages")
-def search_cached_files(max: int = 50, offset: int = 40):
-    filenames = get_all_cache_filenames()  # This function retrieves all file names
-
-    files_in_range = filenames[offset : offset + max]
-    for filename in files_in_range:
+def search_cached_files(max: int = 500):
+    filenames = get_random_filenames(max)  # This function retrieves all file names
+    for filename in filenames:
         json_data = load_cache_file(filename)
         NSType(json_data)
     NSTypeDB.print()

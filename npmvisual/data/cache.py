@@ -1,4 +1,5 @@
 import os
+import random
 import shutil
 import string
 from pathlib import Path
@@ -139,6 +140,17 @@ def load(package_name: str) -> Dict[str, Any]:
         # file is inaccesable or does not exist
         # call scraper and wait until file is saved.
         raise e
+
+
+def get_random_filenames(num_files=100):
+    all_files = [
+        f for f in os.listdir(cache_path) if os.path.isfile(os.path.join(cache_path, f))
+    ]
+    # Ensure we don't try to sample more files than are available
+    num_files = min(num_files, len(all_files))
+
+    # Randomly sample the files
+    return random.sample(all_files, num_files)
 
 
 def get_all_cache_filenames():
