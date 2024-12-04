@@ -1,7 +1,7 @@
 import logging
 import os
 from collections.abc import Callable
-from typing import Concatenate, ParamSpec, TypeVar
+from typing_extensions import Concatenate,ParamSpec,TypeVar
 
 from flask.app import Flask
 from neo4j import GraphDatabase
@@ -19,7 +19,7 @@ R = TypeVar("R")
 
 
 class Neo4j:
-    app: Flask | None
+    app: Flask 
     config: Config
     driver: Driver
 
@@ -28,10 +28,10 @@ class Neo4j:
         self._configure_neomodel()
 
     def _configure_neomodel(self, config_class=Config):
-        self.NEO4J_USERNAME = config_class.NEO4J_USERNAME
-        self.NEO4J_PASSWORD = config_class.NEO4J_PASSWORD
-        self.NEO4J_HOST = config_class.NEO4J_HOST
-        self.NEO4J_DB = config_class.NEO4J_DB
+        self.NEO4J_USERNAME = config_class.NEO4J_USERNAME or "neo4j"
+        self.NEO4J_PASSWORD = config_class.NEO4J_PASSWORD or "viIsBetterThanVSCode1"
+        self.NEO4J_HOST = config_class.NEO4J_HOST or "localhost"
+        self.NEO4J_DB = config_class.NEO4J_DB or "neo4j"
         self.NEO4J_PORT = os.environ.get(
             "NEO4J_PORT", "7687"
         )  # default to 7687 if not set
