@@ -161,7 +161,11 @@ def analyze_cliques(graph):
 
 
 def analyze_graph_density(graph):
-    print(Fore.YELLOW + f"\nGraph Density: {nx.density(graph):.4f}" + Style.RESET_ALL)
+    print(
+        Fore.YELLOW
+        + f"\nGraph Density: {Fore.CYAN}{nx.density(graph):.4f}"
+        + Style.RESET_ALL
+    )
 
 
 def analyze_pagerank(graph):
@@ -232,7 +236,8 @@ def analyze_diameter_and_radius(graph):
         print(f"{Fore.CYAN}Graph Radius: {radius}{Style.RESET_ALL}")
     else:
         print(
-            Fore.RED
+            f"{indent}"
+            + Fore.RED
             + "Graph is not strongly connected. Skipping diameter and radius."
             + Style.RESET_ALL
         )
@@ -252,17 +257,17 @@ def analyze_degree_distribution(graph):
 
     print(Fore.CYAN + "\nTop 5 Nodes by In-Degree:" + Style.RESET_ALL)
     for node, degree in sorted_in_degrees[:5]:
-        print(f"{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
+        print(f"{indent}{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
 
     print(Fore.CYAN + "\nTop 5 Nodes by Out-Degree:" + Style.RESET_ALL)
     for node, degree in sorted_out_degrees[:5]:
-        print(f"{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
+        print(f"{indent}{Fore.GREEN}{node:<20}: {degree}{Style.RESET_ALL}")
 
 
 def analyze_transitivity(graph):
     print(Fore.YELLOW + "\nGraph Transitivity:" + Style.RESET_ALL)
     transitivity = nx.transitivity(graph)
-    print(f"{Fore.CYAN}Transitivity: {transitivity:.4f}{Style.RESET_ALL}")
+    print(f"{indent}{Fore.CYAN}Transitivity: {transitivity:.4f}{Style.RESET_ALL}")
 
 
 def analyze_rich_club(graph):
