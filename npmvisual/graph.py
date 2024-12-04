@@ -128,7 +128,7 @@ def format_as_nx(data: dict[str, PackageNode]):
     # print(f"Nodes in the graph: {list(G.nodes)}")
     # print(f"Edges in the graph: {list(G.edges)}")
 
-    analyzer.analyze(G)
+    # analyzer.analyze(G)
     graph_data = nx.node_link_data(G)
     # print(f"Graph data for frontend: {graph_data}")
     return graph_data

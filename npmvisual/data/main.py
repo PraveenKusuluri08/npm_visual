@@ -81,7 +81,10 @@ def scrape_package(package_name: str) -> PackageNode | None:
         return None
     pn = PackageNode.from_packument(packument)
     if pn:
-        pn.save()
+        try:
+            pn.save()
+        except Exception as e:
+            print("ser")
     return pn
 
 

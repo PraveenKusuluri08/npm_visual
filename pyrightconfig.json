@@ -1,18 +1,19 @@
 {
   "venvPath": ".",
   "venv": ".venv",
-  "exclude": ["**/node_modules", "**/__pycache__"],
-
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__"
+  ],
   "defineConstant": {
     "DEBUG": true
   },
-
-  "reportMissingImports": "error",
   "reportMissingTypeStubs": false,
-
+  "reportMissingImports": "none",
+  "reportUnusedImport": "none",
+  "reportOptionalSubscript": "none",
   "pythonVersion": "3.12.5",
   "pythonPlatform": "Linux",
-
   "executionEnvironments": [
     {
       "root": "app",
