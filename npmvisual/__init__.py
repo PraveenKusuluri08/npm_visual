@@ -1,3 +1,4 @@
+# __init__.py
 import logging
 import os
 import signal
@@ -8,28 +9,24 @@ import flask
 from neomodel import db as neomodel_db
 
 from config import Config
-from npmvisual.extensions.neo4j_db import Neo4j
+from npmvisual.extensions.neo4j_db import Neo4j_Connection
 
-# make outside of flask to be ouside of flask context
-db = Neo4j(config_class=Config)
+# Make this outside of flask so it is available ouside of flask context
+db_connection = Neo4j_Connection(config_class=Config)
 
 
 def create_app(config_class=Config):
     app = flask.Flask(__name__)
     app.config.from_object(config_class)
     load_logs(app)
-    # activate extensions after flask exists to tell db manager how to connect to it.
-    db.init_app(app)
+    # Activate extensions after flask exists to tell db manager how to connect to it.
+    db_connection.init_app(app)
+    _init_graceful_shutdown()
+    _init_blueprints(app)
+    return app
 
-    def handle_sigint(signal, frame):
-        print("Shutting down gracefully...")
-        if neomodel_db.driver:  # Ensure the driver exists and is connected
-            neomodel_db.driver.close()
-            print("db connection closed")
-        sys.exit(0)
 
-    signal.signal(signal.SIGINT, handle_sigint)
-
+def _init_blueprints(app: flask.Flask):
     from npmvisual.data import bp as data_bp
 
     app.register_blueprint(data_bp, url_prefix="/data")
@@ -42,7 +39,16 @@ def create_app(config_class=Config):
 
     app.register_blueprint(migrations_bp, url_prefix="/migrations")
 
-    return app
+
+def _init_graceful_shutdown():
+    def handle_sigint(signal, frame):
+        print("Shutting down gracefully...")
+        if neomodel_db.driver:  # Ensure the driver exists and is connected
+            neomodel_db.driver.close()
+            print("db connection closed")
+        sys.exit(0)
+
+    _ = signal.signal(signal.SIGINT, handle_sigint)
 
 
 def load_logs(app):
