@@ -1,10 +1,13 @@
 import os
+from typing import final
+
 from dotenv import load_dotenv
 
 basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, ".env"))
+_ = load_dotenv(os.path.join(basedir, ".env"))
 
 
+@final
 class Config:
     NEO4J_USERNAME = os.environ.get("NEO4J_USERNAME")
     NEO4J_PASSWORD = os.environ.get("NEO4J_PASSWORD")
