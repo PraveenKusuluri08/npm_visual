@@ -9,10 +9,10 @@ import flask
 from neomodel import db as neomodel_db
 
 from config import Config
-from npmvisual.extensions.neo4j_db import Neo4j_Connection
+from npmvisual.extensions.neo4j_connection import Neo4j_Connection
 
 # Make this outside of flask so it is available ouside of flask context
-db_connection = Neo4j_Connection(config_class=Config)
+db = Neo4j_Connection(config_class=Config)
 
 
 def create_app(config_class=Config):
@@ -20,7 +20,7 @@ def create_app(config_class=Config):
     app.config.from_object(config_class)
     load_logs(app)
     # Activate extensions after flask exists to tell db manager how to connect to it.
-    db_connection.init_app(app)
+    db.init_app(app)
     _init_graceful_shutdown()
     _init_blueprints(app)
     return app
