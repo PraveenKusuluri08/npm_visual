@@ -18,7 +18,7 @@ db = Neo4j_Connection(config_class=Config)
 def create_app(config_class=Config):
     app = flask.Flask(__name__)
     app.config.from_object(config_class)
-    load_logs(app)
+    _load_logs(app)
     # Activate extensions after flask exists to tell db manager how to connect to it.
     db.init_app(app)
     _init_graceful_shutdown()
@@ -51,7 +51,7 @@ def _init_graceful_shutdown():
     _ = signal.signal(signal.SIGINT, handle_sigint)
 
 
-def load_logs(app):
+def _load_logs(app: flask.Flask):
     if not os.path.exists("logs"):
         os.mkdir("logs")
     file_handler = RotatingFileHandler("logs/app.log", maxBytes=10240, backupCount=10)
