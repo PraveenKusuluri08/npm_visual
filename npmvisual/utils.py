@@ -60,20 +60,20 @@ class Infinity:
         return cls._instance
 
     # Make it behave like an integer for comparisons
-    def __lt__(self, other: int | float | "Infinity") -> bool:
+    def __lt__(self, other: "int | float | Infinity") -> bool:
         return False  # Anything is less than Infinity
 
-    def __gt__(self, other: int | float | "Infinity") -> bool:
+    def __gt__(self, other: "int | float | Infinity") -> bool:
         return True  # Infinity is always greater than anything else
 
     @override
     def __eq__(self, other: object) -> bool:
         return isinstance(other, Infinity)
 
-    def __le__(self, other: int | float | "Infinity") -> bool:
+    def __le__(self, other: "int | float | Infinity") -> bool:
         return False  # Infinity is never less than or equal to anything else
 
-    def __ge__(self, other: int | float | "Infinity") -> bool:
+    def __ge__(self, other: "int | float | Infinity") -> bool:
         return True  # Infinity is always greater than or equal to anything else
 
     @override
