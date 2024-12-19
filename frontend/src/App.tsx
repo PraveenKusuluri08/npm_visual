@@ -9,8 +9,7 @@ import "./App.css";
 import BackendTools from "./components/BackendTools";
 
 const App = () => {
-	const onResponseChanged = (data: any) => {
-		console.log(data);
+	const onResponseChanged = (data: GraphData) => {
 		setGraphData(data);
 	};
 

@@ -1,12 +1,10 @@
-import axios from "axios";
-// import useFetchGraphData from "../hooks/useFetch";
-// import "./Crudbar.css";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { Query } from "@/query";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
+import { GraphData, isGraphData } from "@/utils/models";
 
-function Crudbar({ onResponse }: { onResponse: any }) {
+function Crudbar({ onResponse }: { onResponse: (data: GraphData) => void }) {
 	const [query, setQuery] = useState<Query>(new Query());
 	const [queryUrl, setQueryUrl] = useState<string>("");
 	const [addPackageValue, setAddPackageValue] = useState<string>("");
@@ -32,7 +30,9 @@ function Crudbar({ onResponse }: { onResponse: any }) {
 				throw new Error(message);
 			}
 			const data = await response.json();
-			onResponse(data);
+			if (isGraphData(data)) {
+				onResponse(data);
+			}
 			// setResponseMessage(data);
 		} catch (err) {
 			console.error(err);
@@ -55,7 +55,6 @@ function Crudbar({ onResponse }: { onResponse: any }) {
 		<nav className="flex  flex-col bg-gradient-to-b from-black to-gray-800  w-full">
 			<div className="flex flex-row justify-between items-center">
 				<h2 className="text-white text-3xl">NPM Visual</h2>
-
 				<Button className="button-48" onClick={() => getAllDBNetworks()}>
 					<span className="text">getAllDBNetworks</span>
 				</Button>
