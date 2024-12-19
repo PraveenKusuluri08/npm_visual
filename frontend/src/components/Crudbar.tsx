@@ -8,7 +8,7 @@ import { Input } from "./ui/input";
 
 function Crudbar({ onResponse }: { onResponse: any }) {
 	const [query, setQuery] = useState<Query>(new Query());
-	const [url, setUrl] = useState<string>("");
+	const [queryUrl, setQueryUrl] = useState<string>("");
 	const [addPackageValue, setAddPackageValue] = useState<string>("");
 
 	const onAddPackageChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -19,7 +19,7 @@ function Crudbar({ onResponse }: { onResponse: any }) {
 		// const oldQuery = query;
 		query.packages.add(addPackageValue);
 		setQuery(query);
-		setUrl(query.toUrl());
+		setQueryUrl(query.toUrl());
 		console.log(query);
 	};
 
@@ -78,7 +78,7 @@ function Crudbar({ onResponse }: { onResponse: any }) {
 				</div>
 				<Button onClick={callBackend}>Call Backend</Button>
 			</div>
-			<span className="text-white">URL: '{url}'</span>
+			<span className="text-white">URL: '{queryUrl}'</span>
 		</nav>
 	);
 }
