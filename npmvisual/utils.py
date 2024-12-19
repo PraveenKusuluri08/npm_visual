@@ -2,8 +2,10 @@ import hashlib
 import json
 import os
 import shutil
-from typing import Any
+from typing import TypeVar, Iterable, override
 import random
+
+T = TypeVar("T")
 
 
 def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
@@ -70,6 +72,7 @@ class Infinity:
     def __ge__(self, other):
         return True  # Infinity is always greater than or equal to anything else
 
+    @override
     def __repr__(self):
         return "Infinity"
 
@@ -78,39 +81,36 @@ class Infinity:
 infinity = Infinity()
 
 
-
-def get_all_package_names(limit: int = 300, offset: int = 0) -> set[str]:
-    names = set()
+def get_all_package_names(limit: int = 300, offset: int | None = None) -> set[str]:
+    names: set[str] = set()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "data/names.json")
 
     # Open the file and load the JSON data into memory
     with open(file_path) as file:
-        data = json.load(file)
-        
+        data: list[str] = json.load(file)
+
     # Get the total number of elements in the data
     num_lines = len(data)
 
-    # Calculate a random offset ensuring it doesn't exceed the file size
-    random_offset = random.randint(0, max(num_lines - limit, 0))
+    if offset is None:
+        offset = random.randint(0, max(num_lines - limit, 0))
 
     # Slice the data to get the subset of names starting at random_offset
-    selected_names = data[random_offset:random_offset + limit]
+    selected_names = data[offset : offset + limit]
 
     # Add selected names to the set
     names.update(selected_names)
 
     # Print information about the set
     print(f"Created a set of all package names with {len(names)} elements.")
-    
+
     return names
 
 
-
-def find_duplicates(lst: list[Any]):
-    seen = set()
-    duplicates = set()
-
+def find_duplicates(lst: Iterable[T]) -> set[T]:
+    seen: set[T] = set()
+    duplicates: set[T] = set()
     for item in lst:
         if item in seen:
             duplicates.add(item)
