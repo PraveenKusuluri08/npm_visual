@@ -1,9 +1,10 @@
 import hashlib
 import json
 import os
-import shutil
-from typing import TypeVar, Iterable, override
 import random
+import shutil
+from collections.abc import Iterable
+from typing import TypeVar, final, override
 
 T = TypeVar("T")
 
@@ -48,32 +49,34 @@ def ns_hash(name: str, length=40) -> str:
     return hash[:length]
 
 
+@final
 class Infinity:
-    _instance = None  # This will hold the singleton instance
+    _instance = None
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls) -> object:
         if cls._instance is None:
-            cls._instance = super(Infinity, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
         return cls._instance
 
     # Make it behave like an integer for comparisons
-    def __lt__(self, other):
+    def __lt__(self, other: int | float | "Infinity") -> bool:
         return False  # Anything is less than Infinity
 
-    def __gt__(self, other):
+    def __gt__(self, other: int | float | "Infinity") -> bool:
         return True  # Infinity is always greater than anything else
 
-    def __eq__(self, other):
-        return False  # Infinity is never equal to anything else
+    @override
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Infinity)
 
-    def __le__(self, other):
+    def __le__(self, other: int | float | "Infinity") -> bool:
         return False  # Infinity is never less than or equal to anything else
 
-    def __ge__(self, other):
+    def __ge__(self, other: int | float | "Infinity") -> bool:
         return True  # Infinity is always greater than or equal to anything else
 
     @override
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Infinity"
 
 
