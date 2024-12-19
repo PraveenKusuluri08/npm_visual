@@ -20,6 +20,7 @@ R = TypeVar("R")
 
 
 class Neo4j_Connection:
+    EXTENSION_ID: Final[str] = "NEO4J_DB_CONNECTION"
     _app: Flask | None = None
     _config: Config | None = None
     _driver: Driver | None = None
@@ -47,23 +48,23 @@ class Neo4j_Connection:
         self._init_connection()
 
     def _init_connection(self):
-        """This exists so that neomodel will be on the same thread. This function must be
-        called before flask is created."""
+        """This exists so that neomodel will be on the same thread as Flask. This function
+        must be called before flask is created."""
         important_do_not_delete = npmvisual.models.NeomodelConnectionTest()
         _ = important_do_not_delete.save()
 
     def init_app(self, app: Flask):
         self._app = app
         app.n4j = self  # type: ignore
-        if "neo4j" in app.extensions:
+        if self.EXTENSION_ID in app.extensions:
             raise RuntimeError(
                 "A 'neo4j' instance has already been registered on this Flask app."
                 + " Import and use that instance instead."
             )
-        app.extensions["neo4j"] = self
+        app.extensions[self.EXTENSION_ID] = self
         self._config = app.config
         _ = self._connect()
-        _ = app.teardown_appcontext(self.teardown)
+        _ = app.teardown_appcontext(self._teardown)
 
     def _connect(self):
         self._neo4j_uri = (
@@ -96,7 +97,7 @@ class Neo4j_Connection:
             return self._connect()
         return self._driver
 
-    def teardown(self, exception: BaseException | None):
+    def _teardown(self, exception: BaseException | None):
         print(f"closing db. exception: {exception}")
         if self._driver:
             self._driver.close()
