@@ -52,7 +52,7 @@ const BackendTools = () => {
 		}
 	};
 	return (
-		<div className="flex flex-row gap-4">
+		<nav className="flex  flex-row gap-4 bg-gradient-to-t from-black to-gray-800  w-full">
 			<CopyTimestamp></CopyTimestamp>
 			<Button disabled={true} onClick={clearCache}>
 				Clear Cache
@@ -72,7 +72,7 @@ const BackendTools = () => {
 				></Input>
 			</div>
 			<span>{responseMessage}</span>
-		</div>
+		</nav>
 	);
 };
 
