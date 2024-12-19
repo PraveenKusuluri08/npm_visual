@@ -17,11 +17,12 @@ def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
     lines = text.splitlines()
 
     # For each line in the split lines, we will process it and wrap as necessary
-    result_lines = []
+    result_lines: list[str] = []
     first_line = True
     for line in lines:
         while len(line) > max_line_length:
-            # Find the last space within the max length to break the line without cutting words
+            # Find the last space within the max length to break the line without cutting
+            # words
             break_point = line.rfind(" ", 0, max_line_length)
             if break_point == -1:  # No spaces found, just break at the max length
                 break_point = max_line_length
@@ -44,7 +45,7 @@ def nsprint(text: str, num_tabs: int = 0, tab: str = "    "):
         print(line)
 
 
-def ns_hash(name: str, length=40) -> str:
+def ns_hash(name: str, length: int = 40) -> str:
     hash: str = hashlib.sha1(name.encode("UTF-8")).hexdigest()
     return hash[:length]
 
