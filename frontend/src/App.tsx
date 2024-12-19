@@ -1,11 +1,12 @@
-import "./App.css";
-import GraphData from "./utils/models";
 import { useEffect, useState } from "react";
 // import GraphDiagram from "./components/GraphDiagram";
-import Crudbar from "./components/Crudbar";
 import { getCache } from "./utils/cache";
 import axios from "axios";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
+import GraphData from "./utils/models";
+import Crudbar from "./components/Crudbar";
+import { Button } from "@/components/ui/button";
+import "./App.css";
 
 function App() {
 	const [packageName, setPackageName] = useState("");
@@ -65,6 +66,7 @@ function App() {
 		<>
 			<div className="page">
 				<Crudbar onSelect={onPackageChanged} />
+				<Button>Click me</Button>
 				<h1>{packageName}</h1>
 				<div className="force-graph-3d-container">
 					<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
