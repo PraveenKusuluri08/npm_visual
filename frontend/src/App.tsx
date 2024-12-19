@@ -1,32 +1,35 @@
 import { useEffect, useState } from "react";
-// import GraphDiagram from "./components/GraphDiagram";
 import { getCache } from "./utils/cache";
 import axios from "axios";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
 import GraphData from "./utils/models";
 import Crudbar from "./components/Crudbar";
-import { Button } from "@/components/ui/button";
+// import GraphDiagram from "./components/GraphDiagram";
 import "./App.css";
+import BackendTools from "./components/BackendTools";
 
-function App() {
+const App = () => {
 	const [packageName, setPackageName] = useState("");
 
 	const onPackageChanged = (packageName: string) => {
 		setPackageName(packageName);
 	};
+
 	const [graphData, setGraphData] = useState<GraphData>();
 
+	/* 
 	useEffect(() => {
 		if (packageName !== "") {
 			const url = `/analyzeNetwork/react`;
 			axios
 				.get(url)
-				.then((data) => console.log("analysis result", data))
+				.then((data) => console.log("analysis results", data))
 				.catch((err) => {
 					console.log("error fetching data", err);
 				});
 		}
 	}, [packageName]);
+  */
 
 	useEffect(() => {
 		if (packageName != "") {
@@ -66,7 +69,6 @@ function App() {
 		<>
 			<div className="page">
 				<Crudbar onSelect={onPackageChanged} />
-				<Button>Click me</Button>
 				<h1>{packageName}</h1>
 				<div className="force-graph-3d-container">
 					<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
@@ -74,9 +76,10 @@ function App() {
 				{/* <div className="force-graph-2d-container"> */}
 				{/*   <GraphDiagram graphData={graphData} /> */}
 				{/* </div> */}
+				<BackendTools></BackendTools>
 			</div>
 		</>
 	);
-}
+};
 
 export default App;
