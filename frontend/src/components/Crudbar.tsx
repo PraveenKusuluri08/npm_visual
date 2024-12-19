@@ -1,9 +1,13 @@
 import axios from "axios";
 // import useFetchGraphData from "../hooks/useFetch";
 import "./Crudbar.css";
-import { CopyTimestamp } from "./CopyTimestamp";
+import { useState } from "react";
+import { Query } from "@/query";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
 
 function Crudbar({ onSelect }: { onSelect: any }) {
+	const [query, setQuery] = useState<Query>(new Query());
 	function getPopularNetwork() {
 		onSelect("getPopularNetwork");
 	}
@@ -26,7 +30,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 	return (
 		<nav>
 			<h2>NPM Visual</h2>
-			<CopyTimestamp></CopyTimestamp>
+
 			<button className="button-48" onClick={() => getAllDBNetworks()}>
 				<span className="text">getAllDBNetworks</span>
 			</button>

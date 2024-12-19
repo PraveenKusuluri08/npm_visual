@@ -1,4 +1,5 @@
 import { Button } from "./ui/button";
+import { CopyTimestamp } from "./CopyTimestamp";
 import React, { useState } from "react";
 import { Input } from "./ui/input";
 
@@ -52,6 +53,7 @@ const BackendTools = () => {
 	};
 	return (
 		<div className="flex flex-row gap-4">
+			<CopyTimestamp></CopyTimestamp>
 			<Button disabled={true} onClick={clearCache}>
 				Clear Cache
 			</Button>
