@@ -20,30 +20,30 @@ R = TypeVar("R")
 
 
 class Neo4j_Connection:
-    app: Flask | None = None
-    config: Config | None = None
-    driver: Driver | None = None
-    neo4j_username: Final[str]
-    neo4j_password: Final[str]
-    neo4j_host: Final[str]
-    neo4j_db: Final[str]
-    neo4j_port: Final[str]
-    neo4j_bolt_url: Final[str]
-    neo4j_uri: str = ""
-    neo4j_auth: tuple[str, str] = ("", "")
-    database2: str = ""
+    _app: Flask | None = None
+    _config: Config | None = None
+    _driver: Driver | None = None
+    _neo4j_username: Final[str]
+    _neo4j_password: Final[str]
+    _neo4j_host: Final[str]
+    _neo4j_db: Final[str]
+    _neo4j_port: Final[str]
+    _neo4j_bolt_url: Final[str]
+    _neo4j_uri: str = ""
+    _neo4j_auth: tuple[str, str] = ("", "")
+    _database2: str = ""
 
     def __init__(self, config_class=Config):
-        self.neo4j_username = config_class.NEO4J_USERNAME
-        self.neo4j_password = config_class.NEO4J_PASSWORD
-        self.neo4j_host = config_class.NEO4J_HOST
-        self.neo4j_db = config_class.NEO4J_DB
-        self.neo4j_port = os.environ.get("NEO4J_PORT", "7687")
+        self._neo4j_username = config_class.NEO4J_USERNAME
+        self._neo4j_password = config_class.NEO4J_PASSWORD
+        self._neo4j_host = config_class.NEO4J_HOST
+        self._neo4j_db = config_class.NEO4J_DB
+        self._neo4j_port = os.environ.get("NEO4J_PORT", "7687")
 
-        self.neo4j_bolt_url = (
-            f"bolt://{self.neo4j_username}:{self.neo4j_password}@localhost:7687"
+        self._neo4j_bolt_url = (
+            f"bolt://{self._neo4j_username}:{self._neo4j_password}@localhost:7687"
         )
-        neomodel_config.DATABASE_URL = self.neo4j_bolt_url
+        neomodel_config.DATABASE_URL = self._neo4j_bolt_url
         self._init_connection()
 
     def _init_connection(self):
@@ -53,7 +53,7 @@ class Neo4j_Connection:
         _ = important_do_not_delete.save()
 
     def init_app(self, app: Flask):
-        self.app = app
+        self._app = app
         app.n4j = self  # type: ignore
         if "neo4j" in app.extensions:
             raise RuntimeError(
@@ -61,17 +61,17 @@ class Neo4j_Connection:
                 + " Import and use that instance instead."
             )
         app.extensions["neo4j"] = self
-        self.config = app.config
+        self._config = app.config
         _ = self._connect()
         _ = app.teardown_appcontext(self.teardown)
 
     def _connect(self):
-        self.neo4j_uri = (
-            "neo4j://" + self.neo4j_host
+        self._neo4j_uri = (
+            "neo4j://" + self._neo4j_host
         )  # + ":" + current_app.config["NEO4J_PORT"]
-        self.neo4j_auth = (self.neo4j_username, self.neo4j_password)
-        self.database2 = self.neo4j_db
-        self.driver = GraphDatabase.driver(uri=self.neo4j_uri, auth=self.neo4j_auth)
+        self._neo4j_auth = (self._neo4j_username, self._neo4j_password)
+        self._database2 = self._neo4j_db
+        self._driver = GraphDatabase.driver(uri=self._neo4j_uri, auth=self._neo4j_auth)
 
         # Configure Neomodel connection to use the same driver
         self._verify_connectivity()
@@ -79,32 +79,32 @@ class Neo4j_Connection:
         # gds = GraphDataScience(URI, AUTH)
         # print(gds.version())
         # assert gds.version()
-        return self.driver
+        return self._driver
 
     def _verify_connectivity(self):
         # Ensure the connection is working
         try:
-            if self.driver:
-                self.driver.verify_connectivity()
+            if self._driver:
+                self._driver.verify_connectivity()
                 logging.info("Neo4j connection established.")
         except Exception as e:
             logging.error(f"Error connecting to Neo4j: {e}")
             raise
 
     def get_driver(self):
-        if not self.driver:
+        if not self._driver:
             return self._connect()
-        return self.driver
+        return self._driver
 
     def teardown(self, exception: BaseException | None):
         print(f"closing db. exception: {exception}")
-        if self.driver:
-            self.driver.close()
+        if self._driver:
+            self._driver.close()
             print("db connection closed for driver")
 
     def run(self, command):
-        assert self.driver is not None, "Driver is not initialized!"
-        with self.driver.session(database=self.database2) as session:
+        assert self._driver is not None, "Driver is not initialized!"
+        with self._driver.session(database=self._database2) as session:
             return session.run(command)
 
     def execute_read(
@@ -120,8 +120,8 @@ class Neo4j_Connection:
         This is needed because sessions are used short term, and there won't be a single
         session for the flask app to access.
         """
-        assert self.driver is not None, "Driver is not initialized!"
-        with self.driver.session(database=self.database2) as session:
+        assert self._driver is not None, "Driver is not initialized!"
+        with self._driver.session(database=self._database2) as session:
             return session.execute_read(transaction_function, *args, **kwargs)
 
     def execute_write(
@@ -137,6 +137,6 @@ class Neo4j_Connection:
         This is needed because sessions are used short term, and there won't be a single
         session for the flask app to access.
         """
-        assert self.driver is not None, "Driver is not initialized!"
-        with self.driver.session(database=self.database2) as session:
+        assert self._driver is not None, "Driver is not initialized!"
+        with self._driver.session(database=self._database2) as session:
             return session.execute_write(transaction_function, *args, **kwargs)
