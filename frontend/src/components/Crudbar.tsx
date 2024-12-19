@@ -6,7 +6,7 @@ import { Query } from "@/query";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
-function Crudbar({ onSelect }: { onSelect: any }) {
+function Crudbar({ onResponse }: { onResponse: any }) {
 	const [query, setQuery] = useState<Query>(new Query());
 	const [url, setUrl] = useState<string>("");
 	const [addPackageValue, setAddPackageValue] = useState<string>("");
@@ -20,25 +20,35 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 		query.packages.add(addPackageValue);
 		setQuery(query);
 		setUrl(query.toUrl());
+		console.log(query);
 	};
 
-	function getPopularNetwork() {
-		onSelect("getPopularNetwork");
-	}
-	function getAllDBNetworks() {
-		onSelect("getAllDBNetworks");
-	}
+	const fetchData = async (url: string) => {
+		try {
+			const response = await fetch(url);
+			if (!response.ok) {
+				const message = `Failed to call ${url}`;
+				// setResponseMessage(message);
+				throw new Error(message);
+			}
+			const data = await response.json();
+			onResponse(data);
+			// setResponseMessage(data);
+		} catch (err) {
+			console.error(err);
+		}
+	};
 
-	const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		const form = e.currentTarget;
-		const input = form.elements.namedItem("packageName") as HTMLInputElement;
-		const packageName = input.value;
-		onSelect(packageName);
-		// alert("you want to search " + packageName)
-		const url = `/api/getNetwork/${packageName}`;
-		// useFetchGraphData(url);
-		axios.get(url);
+	const getPopularNetwork = async () => {
+		fetchData("api/getPopularNetworks");
+	};
+
+	const getAllDBNetworks = async () => {
+		fetchData("api/getAllDBNetworks");
+	};
+
+	const callBackend = async () => {
+		fetchData(query.toUrl());
 	};
 
 	return (
@@ -66,16 +76,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 						onChange={onAddPackageChanged}
 					></Input>
 				</div>
-				<form onSubmit={handleSubmit}>
-					<label>
-						Package to Graph:
-						<input name="packageName" type="text" defaultValue="react" />
-					</label>
-
-					<Button className="button-48" type="submit">
-						Search
-					</Button>
-				</form>
+				<Button onClick={callBackend}>Call Backend</Button>
 			</div>
 			<span className="text-white">URL: '{url}'</span>
 		</nav>

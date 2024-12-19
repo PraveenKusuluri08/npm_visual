@@ -14,12 +14,12 @@ bp = Blueprint("network", __name__)
 
 
 @bp.route("/getNetworks/<package_names>", methods=["GET"])
-def get_networks(package_names: list[str]):  # todo add type
-    package_names = request.args.get("package_names", "").split(",")
+def get_networks(package_names: str):  # todo add type
+    as_list = package_names.split(",")
+    # print(f"as_list: {as_list}")
     if not package_names:
         return jsonify({"error": "No package names provided"}), 400
-
-    return _get_networks(package_names)
+    return _get_networks(as_list)
 
 
 def _get_networks(

@@ -9,10 +9,9 @@ import "./App.css";
 import BackendTools from "./components/BackendTools";
 
 const App = () => {
-	const [packageName, setPackageName] = useState("");
-
-	const onPackageChanged = (packageName: string) => {
-		setPackageName(packageName);
+	const onResponseChanged = (data: any) => {
+		console.log(data);
+		setGraphData(data);
 	};
 
 	const [graphData, setGraphData] = useState<GraphData>();
@@ -31,45 +30,10 @@ const App = () => {
 	}, [packageName]);
   */
 
-	useEffect(() => {
-		if (packageName != "") {
-			console.log("setting axios call");
-			let url;
-			if (packageName == "getPopularNetwork") url = "/api/getPopularNetworks";
-			else if (packageName == "getAllDBNetworks") url = "/api/getAllDBNetworks";
-			else url = `/api/getNetwork/${packageName}`;
-			// Prevent many calls to the same API.
-			const apiCache = getCache();
-			if (!apiCache.doesCallExist(url)) {
-				apiCache.addCall(url);
-				axios
-					.get(url)
-					.then((data) => {
-						console.log("setting package data");
-						setGraphData(data.data);
-						console.log("graph data set" + data.data);
-					})
-					.catch((error) => {
-						console.log("Error fetching data", error);
-					})
-					.finally(() => {
-						apiCache.removeCall(url);
-					});
-			} else {
-				console.log(
-					`did not sent request to ${url}, request already in progress`,
-				);
-			}
-		}
-	}, [packageName]);
-
-	console.log("graphData", graphData);
-
 	return (
 		<>
 			<div className="page">
-				<Crudbar onSelect={onPackageChanged} />
-				<h1>{packageName}</h1>
+				<Crudbar onResponse={onResponseChanged} />
 				<div className="force-graph-3d-container">
 					<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
 				</div>
