@@ -67,7 +67,7 @@ function App() {
 				<Crudbar onSelect={onPackageChanged} />
 				<h1>{packageName}</h1>
 				<div className="force-graph-3d-container">
-					{/* <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d> */}
+					<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
 				</div>
 				{/* <div className="force-graph-2d-container"> */}
 				{/*   <GraphDiagram graphData={graphData} /> */}
