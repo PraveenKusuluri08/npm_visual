@@ -1,16 +1,25 @@
 import axios from "axios";
 // import useFetchGraphData from "../hooks/useFetch";
 // import "./Crudbar.css";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Query } from "@/query";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 
 function Crudbar({ onSelect }: { onSelect: any }) {
 	const [query, setQuery] = useState<Query>(new Query());
+	const [url, setUrl] = useState<string>("");
+	const [addPackageValue, setAddPackageValue] = useState<string>("");
 
+	const onAddPackageChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+		setAddPackageValue(event.target.value);
+	};
 	const addPackage = () => {
 		console.log("add Package");
+		// const oldQuery = query;
+		query.packages.add(addPackageValue);
+		setQuery(query);
+		setUrl(query.toUrl());
 	};
 
 	function getPopularNetwork() {
@@ -44,13 +53,17 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 					<span className="text">getPopularNetwork</span>
 				</Button>
 				<div className="flex flex-row">
-					<Button className="rounded-r-none border-2 border-r-0 border-black">
+					<Button
+						className="rounded-r-none border-2 border-r-0 border-black"
+						onClick={addPackage}
+					>
 						Add Package:
 					</Button>
 					<Input
 						className="grow-0 w-64 rounded-l-none border-2 border-l-0 border-black"
-						defaultValue="react"
-						onChange={addPackage}
+						type="text"
+						value={addPackageValue}
+						onChange={onAddPackageChanged}
 					></Input>
 				</div>
 				<form onSubmit={handleSubmit}>
@@ -64,7 +77,7 @@ function Crudbar({ onSelect }: { onSelect: any }) {
 					</Button>
 				</form>
 			</div>
-			<span>URL Text Here</span>
+			<span className="text-white">URL: '{url}'</span>
 		</nav>
 	);
 }
