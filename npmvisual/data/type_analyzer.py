@@ -62,19 +62,8 @@ class NSType:
         return isinstance(obj, int | float | bool | str | bytes | type(None))
 
 
-input_data = {
-    "name": "Alice",
-    "age": 30,
-    "is_student": False,
-    "grades": [90, 85, 92],
-    "address": {"city": "Wonderland", "zip": "12345"},
-    "hobbies": None,
-    "scores": {"math": 95, "science": 88},
-}
-
-
 # Testing function
-def test_nstype(input_data):
+def _test_nstype(input_data):
     print("Testing NSType with the following input data:")
     print(input_data)
     print("\nCreating NSType instance...\n")
@@ -96,4 +85,13 @@ def test_nstype(input_data):
 
 
 if __name__ == "__main__":
-    test_nstype(input_data)
+    input_data = {
+        "name": "Alice",
+        "age": 30,
+        "is_student": False,
+        "grades": [90, 85, 92],
+        "address": {"city": "Wonderland", "zip": "12345"},
+        "hobbies": None,
+        "scores": {"math": 95, "science": 88},
+    }
+    _test_nstype(input_data)
