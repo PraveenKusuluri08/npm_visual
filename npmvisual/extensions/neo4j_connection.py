@@ -29,6 +29,9 @@ class Neo4j_Connection:
     neo4j_db: Final[str]
     neo4j_port: Final[str]
     neo4j_bolt_url: Final[str]
+    neo4j_uri: str = ""
+    neo4j_auth: tuple[str, str] = ("", "")
+    database2: str = ""
 
     def __init__(self, config_class=Config):
         self.neo4j_username = config_class.NEO4J_USERNAME
@@ -45,11 +48,11 @@ class Neo4j_Connection:
 
     def _init_connection(self):
         """This exists so that neomodel will be on the same thread. This function must be
-        called before flask is created"""
+        called before flask is created."""
         important_do_not_delete = npmvisual.models.NeomodelConnectionTest()
-        important_do_not_delete.save()
+        _ = important_do_not_delete.save()
 
-    def init_app(self, app):
+    def init_app(self, app: Flask):
         self.app = app
         app.n4j = self  # type: ignore
         if "neo4j" in app.extensions:
@@ -58,19 +61,17 @@ class Neo4j_Connection:
                 + " Import and use that instance instead."
             )
         app.extensions["neo4j"] = self
-
         self.config = app.config
-        self._connect()
-
-        app.teardown_appcontext(self.teardown)
+        _ = self._connect()
+        _ = app.teardown_appcontext(self.teardown)
 
     def _connect(self):
-        uri = "neo4j://" + self.neo4j_host  # + ":" + current_app.config["NEO4J_PORT"]
-        auth = (self.neo4j_username, self.neo4j_password)
-        self.uri = uri
-        self.auth = auth
-        self.database = self.neo4j_db
-        self.driver = GraphDatabase.driver(uri, auth=auth)
+        self.neo4j_uri = (
+            "neo4j://" + self.neo4j_host
+        )  # + ":" + current_app.config["NEO4J_PORT"]
+        self.neo4j_auth = (self.neo4j_username, self.neo4j_password)
+        self.database2 = self.neo4j_db
+        self.driver = GraphDatabase.driver(uri=self.neo4j_uri, auth=self.neo4j_auth)
 
         # Configure Neomodel connection to use the same driver
         self._verify_connectivity()
@@ -95,7 +96,7 @@ class Neo4j_Connection:
             return self._connect()
         return self.driver
 
-    def teardown(self, exception):
+    def teardown(self, exception: BaseException | None):
         print(f"closing db. exception: {exception}")
         if self.driver:
             self.driver.close()
@@ -103,7 +104,7 @@ class Neo4j_Connection:
 
     def run(self, command):
         assert self.driver is not None, "Driver is not initialized!"
-        with self.driver.session(database=self.database) as session:
+        with self.driver.session(database=self.database2) as session:
             return session.run(command)
 
     def execute_read(
@@ -119,7 +120,8 @@ class Neo4j_Connection:
         This is needed because sessions are used short term, and there won't be a single
         session for the flask app to access.
         """
-        with self.driver.session(database=self.database) as session:
+        assert self.driver is not None, "Driver is not initialized!"
+        with self.driver.session(database=self.database2) as session:
             return session.execute_read(transaction_function, *args, **kwargs)
 
     def execute_write(
@@ -135,5 +137,6 @@ class Neo4j_Connection:
         This is needed because sessions are used short term, and there won't be a single
         session for the flask app to access.
         """
-        with self.driver.session(database=self.database) as session:
+        assert self.driver is not None, "Driver is not initialized!"
+        with self.driver.session(database=self.database2) as session:
             return session.execute_write(transaction_function, *args, **kwargs)
