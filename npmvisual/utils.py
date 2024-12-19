@@ -85,26 +85,14 @@ def get_all_package_names(limit: int = 300, offset: int | None = None) -> set[st
     names: set[str] = set()
     dir_path = os.path.dirname(os.path.realpath(__file__))
     file_path = os.path.join(dir_path, "data/names.json")
-
-    # Open the file and load the JSON data into memory
     with open(file_path) as file:
         data: list[str] = json.load(file)
-
-    # Get the total number of elements in the data
     num_lines = len(data)
-
     if offset is None:
         offset = random.randint(0, max(num_lines - limit, 0))
-
-    # Slice the data to get the subset of names starting at random_offset
     selected_names = data[offset : offset + limit]
-
-    # Add selected names to the set
     names.update(selected_names)
-
-    # Print information about the set
     print(f"Created a set of all package names with {len(names)} elements.")
-
     return names
 
 
