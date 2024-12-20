@@ -1,6 +1,6 @@
 import { useState } from "react";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
-import GraphData from "./utils/models";
+import { GraphData } from "./utils/models";
 import Crudbar from "./components/Crudbar";
 // import GraphDiagram from "./components/GraphDiagram";
 // import "./App.css";
