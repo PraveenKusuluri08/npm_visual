@@ -109,27 +109,26 @@ def analyze_network(package_name: str):
 
 
 def format_as_nx(data: dict[str, PackageNode]):
+    largest_in_degree = 0
     G = nx.DiGraph()
-    # for name, p in data.items():
-    # print(
-    #     "PackageNode Data______________________________________________________________________"
-    # )
-    # p.pretty_print(0, 99, 99, 99)
-    # G.add_node(p.package_id)
-    # print(
-    #     "End of PackageNode Data______________________________________________________________________"
-    # )
 
     for p in data.values():
         if p.dependency_id_list:
+            largest_in_degree = max(largest_in_degree, len(p.dependency_id_list))
             for d in p.dependency_id_list:
                 G.add_edge(d, p.package_id)
 
-    # print(f"Nodes in the graph: {list(G.nodes)}")
-    # print(f"Edges in the graph: {list(G.edges)}")
-
     # analyzer.analyze(G)
     graph_data = nx.node_link_data(G)
+    in_degrees: nx.classes.reportviews.InDegreeView = G.in_degree()
+    print(type(in_degrees))
+    for node in graph_data["nodes"]:
+        id = node["id"]
+        in_degree: int = in_degrees[id]
+        node["inDegree"] = in_degree / largest_in_degree
+        node["val"] = in_degree / largest_in_degree
+        node["val"] = in_degree * 4
+
     # print(f"Graph data for frontend: {graph_data}")
     return graph_data
 

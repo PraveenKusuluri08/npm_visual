@@ -45,16 +45,19 @@ const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
 				<ForceGraph3D
 					width={dimensions.width}
 					height={dimensions.height}
+					// nodeVal={j}
 					nodeAutoColorBy="group"
 					linkDirectionalArrowLength={3.5}
 					linkDirectionalArrowRelPos={1}
 					linkCurvature={0.05}
-					nodeThreeObject={(node) => {
-						const sprite = new SpriteText(node.id);
-						sprite.color = node.color;
-						sprite.textHeight = 8;
-						return sprite;
-					}}
+					nodeLabel={"test"}
+					// nodeThreeObject={(node) => {
+					// 	const sprite = new SpriteText(node.id);
+					// 	sprite.color = node.color;
+					// 	// console.log(node);
+					// 	sprite.textHeight = (18 + node.val) / 12;
+					// 	return sprite;
+					// }}
 					graphData={graphData}
 				/>
 			</div>
