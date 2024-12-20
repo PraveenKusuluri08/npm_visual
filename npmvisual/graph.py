@@ -1,10 +1,8 @@
 # pyright: basic
+import math
 import random
-import leidenalg
-import igraph as ig
 
 import networkx as nx
-from community import community_louvain
 from flask import Blueprint, jsonify
 
 import npmvisual.utils as utils
@@ -151,12 +149,25 @@ def _add_val(graph_data, G, data):
                 largest_in_degree,
                 len(p.dependency_id_list),
             )
-        in_degrees: dict[str, int] = dict(G.in_degree())
+    in_degrees: dict[str, int] = dict(G.in_degree())
+
+    # Set the base size multiplier (you can adjust this to control overall size)
+    size_exponent = 1.15
+    size_multiplier = 5  # Adjust this to fine-tune node size scaling
+
+    # Loop over nodes and apply stronger exponential scaling
     for node in graph_data["nodes"]:  # pyright: ignore[reportUnknownVariableType]
         node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
         in_degree: int = in_degrees[node_id]
+
         node["inDegree"] = in_degree / largest_in_degree
-        node["val"] = in_degree * 4
+
+        # Apply stronger exponential scaling
+        # Using in_degree**2 (quadratic scaling) for more drastic size differences
+        node["val"] = (
+            in_degree**size_exponent
+        ) * size_multiplier  # Apply quadratic scaling
+
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 
@@ -169,11 +180,11 @@ def _color_nodes(graph_data, G, data):
     # }
     communities = nx.community.louvain_communities(undirected)
     node_colors = {}
-    default_color = f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
+    default_color = _get_random_color()
     for i, community in enumerate(communities):
         print(f"Community {i+1}: {community}")
         if len(community) > 1:
-            color = f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
+            color = _get_random_color()
             for community_id, node in enumerate(community):
                 node_colors[node] = (color, community_id)
         else:
@@ -187,49 +198,11 @@ def _color_nodes(graph_data, G, data):
         print(f"    node: {node}")
 
     return graph_data
-    # G_igraph = ig.Graph.from_networkx(G)
-    # # Apply Leiden algorithm for community detection
-    # partition = leidenalg.find_partition(G_igraph, leidenalg.ModularityVertexPartition)
-    # # Create a dictionary to store community assignments for each node
-    # node_to_community: dict[str, int] = {}
-    # print(graph.nodes)
-    # # Assign each node to a community (from the partition)
-    # for community_idx, community in enumerate(partition):
-    #     for node in community:
-    #         # Assuming `node` is an integer index, and you want to map it to `package_id`
-    #         print(node)
-    #         # node_id = G.nodes[node]["id"]  # Replace with your mapping logic if needed
-    #         # node_to_community[node_id] = community_idx
-    #
-    # print(node_to_community)
 
 
-"""
-def format_as_nx(data: dict[str, PackageNode]):
-    largest_in_degree = 0
-    G = nx.DiGraph()
-
-    for p in data.values():
-        if p.dependency_id_list:
-            largest_in_degree = max(largest_in_degree, len(p.dependency_id_list))
-            for d in p.dependency_id_list:
-                G.add_edge(d, p.package_id)
-
-
-    # analyzer.analyze(G)
-    graph_data = nx.node_link_data(G)
-    in_degrees: nx.classes.reportviews.InDegreeView = G.in_degree()
-    print(type(in_degrees))
-    for node in graph_data["nodes"]:
-        id = node["id"]
-        in_degree: int = in_degrees[id]
-        node["inDegree"] = in_degree / largest_in_degree
-        node["val"] = in_degree / largest_in_degree
-        node["val"] = in_degree * 4
-
-    # print(f"Graph data for frontend: {graph_data}")
-    return graph_data
-    """
+def _get_random_color():
+    """Generates a random color in hex format."""
+    return f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
 
 
 def format_for_frontend(data):
