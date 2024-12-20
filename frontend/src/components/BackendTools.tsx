@@ -66,7 +66,7 @@ const BackendTools = () => {
 					Test Api:
 				</Button>
 				<Input
-					className="grow-0 w-64 rounded-l-none border-2 border-l-0 border-black"
+					className="grow-0 w-64 rounded-l-none border-2 border-l-0"
 					defaultValue={apiText}
 					onChange={(e) => setApiText(e.target.value)}
 				></Input>

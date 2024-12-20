@@ -63,13 +63,13 @@ function Crudbar({ onResponse }: { onResponse: (data: GraphData) => void }) {
 				</Button>
 				<div className="flex flex-row">
 					<Button
-						className="rounded-r-none border-2 border-r-0 border-black"
+						className="rounded-r-none border-2 border-r-0"
 						onClick={addPackage}
 					>
 						Add Package:
 					</Button>
 					<Input
-						className="grow-0 w-64 rounded-l-none border-2 border-l-0 border-black"
+						className="grow-0 w-64 rounded-l-none border-2 border-l-0"
 						type="text"
 						value={addPackageValue}
 						onChange={onAddPackageChanged}
