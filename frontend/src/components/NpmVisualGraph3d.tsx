@@ -1,6 +1,8 @@
 import { ForceGraph3D } from "react-force-graph";
 import { useEffect, useState, useRef } from "react";
 import { GraphData } from "../utils/models";
+// import SpriteText from "https://esm.sh/three-spritetext";
+import SpriteText from "three-spritetext";
 
 const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
 	const graphRef = useRef<HTMLDivElement>(null);
@@ -43,6 +45,16 @@ const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
 				<ForceGraph3D
 					width={dimensions.width}
 					height={dimensions.height}
+					nodeAutoColorBy="group"
+					linkDirectionalArrowLength={3.5}
+					linkDirectionalArrowRelPos={1}
+					linkCurvature={0.05}
+					nodeThreeObject={(node) => {
+						const sprite = new SpriteText(node.id);
+						sprite.color = node.color;
+						sprite.textHeight = 8;
+						return sprite;
+					}}
 					graphData={graphData}
 				/>
 			</div>
