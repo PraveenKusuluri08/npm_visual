@@ -13,4 +13,8 @@ export const columns: ColumnDef<{ id: string }>[] = [
 		accessorKey: "id",
 		header: "ID",
 	},
+	{
+		accessorKey: "inDegree",
+		header: "In Degree",
+	},
 ];

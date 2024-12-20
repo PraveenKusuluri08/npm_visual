@@ -160,7 +160,7 @@ def _add_val(graph_data, G, data):
         node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
         in_degree: int = in_degrees[node_id]
 
-        node["inDegree"] = in_degree / largest_in_degree
+        node["inDegree"] = in_degree
 
         # Apply stronger exponential scaling
         # Using in_degree**2 (quadratic scaling) for more drastic size differences
