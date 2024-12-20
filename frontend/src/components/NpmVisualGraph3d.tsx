@@ -14,7 +14,6 @@ const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
 		if (graphRef.current) {
 			const newWidth = graphRef.current.clientWidth;
 			const newHeight = graphRef.current.clientHeight;
-			console.log(newWidth, newHeight);
 			setDimensions({ width: newWidth, height: newHeight });
 		}
 	};

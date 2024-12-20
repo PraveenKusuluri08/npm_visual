@@ -1,10 +1,8 @@
 import { useState } from "react";
-import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
 import { GraphData } from "./utils/models";
 import Crudbar from "./components/Crudbar";
-// import GraphDiagram from "./components/GraphDiagram";
-// import "./App.css";
 import BackendTools from "./components/BackendTools";
+import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
 
 const App = () => {
 	const onResponseChanged = (data: GraphData) => {
@@ -33,9 +31,6 @@ const App = () => {
 			<div className="grow shrink">
 				<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
 			</div>
-			{/* <div className="force-graph-2d-container"> */}
-			{/*   <GraphDiagram graphData={graphData} /> */}
-			{/* </div> */}
 			<BackendTools></BackendTools>
 		</div>
 	);
