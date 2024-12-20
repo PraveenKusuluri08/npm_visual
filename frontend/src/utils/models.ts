@@ -9,9 +9,9 @@ export class GraphData {
 	constructor(
 		directed: boolean,
 		graph: object,
-		links: Array<{ source: string; target: string }>,
+		links: [{ source: string; target: string }],
 		multigraph: boolean,
-		nodes: Array<{ id: string }>,
+		nodes: [{ id: string }],
 		analytics?: object,
 	) {
 		this.directed = directed;
