@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
-import { getCache } from "./utils/cache";
-import axios from "axios";
+import { useState } from "react";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
 import GraphData from "./utils/models";
 import Crudbar from "./components/Crudbar";
 // import GraphDiagram from "./components/GraphDiagram";
-import "./App.css";
+// import "./App.css";
 import BackendTools from "./components/BackendTools";
 
 const App = () => {
@@ -30,18 +28,16 @@ const App = () => {
   */
 
 	return (
-		<>
-			<div className="page">
-				<Crudbar onResponse={onResponseChanged} />
-				<div className="force-graph-3d-container">
-					<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
-				</div>
-				{/* <div className="force-graph-2d-container"> */}
-				{/*   <GraphDiagram graphData={graphData} /> */}
-				{/* </div> */}
-				<BackendTools></BackendTools>
+		<div className="flex flex-col w-full h-full justify-between">
+			<Crudbar onResponse={onResponseChanged} />
+			<div className="grow shrink">
+				<NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
 			</div>
-		</>
+			{/* <div className="force-graph-2d-container"> */}
+			{/*   <GraphDiagram graphData={graphData} /> */}
+			{/* </div> */}
+			<BackendTools></BackendTools>
+		</div>
 	);
 };
 

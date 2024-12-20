@@ -1,42 +1,54 @@
 import { ForceGraph3D } from "react-force-graph";
-
 import { useEffect, useState, useRef } from "react";
-import GraphData from "../utils/models";
+import { GraphData } from "../utils/models";
 
 const NpmVisualGraph3d = ({ graphData }: { graphData?: GraphData }) => {
-  const graphRef = useRef<HTMLDivElement>(null);
+	const graphRef = useRef<HTMLDivElement>(null);
+	const [dimensions, setDimensions] = useState({
+		width: 0,
+		height: 0,
+	});
 
-  useEffect(() => {
-    setWindowSize(getCurrentSize);
-  }, []);
-  const getCurrentSize = () => {
-    if (graphRef?.current) {
-      const current = {
-        width: graphRef.current?.clientWidth,
-        height: graphRef.current?.clientHeight,
-      };
-      console.log(current);
-      return current;
-    } else return { width: 100, height: 100 };
-  };
+	// The function to update size
+	const updateSize = () => {
+		if (graphRef.current) {
+			const newWidth = graphRef.current.clientWidth;
+			const newHeight = graphRef.current.clientHeight;
+			console.log(newWidth, newHeight);
+			setDimensions({ width: newWidth, height: newHeight });
+		}
+	};
 
-  const [windowSize, setWindowSize] = useState(getCurrentSize);
-  // we use the useEffect hook to listen to the window resize event
-  useEffect(() => {
-    window.onresize = () => {
-      console.log(graphRef.current?.clientWidth);
-      return setWindowSize(getCurrentSize);
-    };
-  }, []);
-  return (
-    <div ref={graphRef} className="force-graph-inner-container">
-      <ForceGraph3D
-        width={windowSize.width}
-        height={windowSize.height}
-        graphData={graphData}
-      />
-    </div>
-  );
+	useEffect(() => {
+		// Set the initial size when the component mounts
+		updateSize();
+
+		// Create a ResizeObserver to update size on resize
+		const resizeObserver = new ResizeObserver(() => {
+			updateSize();
+		});
+
+		if (graphRef.current) {
+			resizeObserver.observe(graphRef.current);
+		}
+
+		// Cleanup observer when the component is unmounted
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, []); // Empty dependency array: this runs once on mount
+
+	return (
+		<div ref={graphRef} className="relative w-full h-full">
+			<div className="absolute top-0 left-0">
+				<ForceGraph3D
+					width={dimensions.width}
+					height={dimensions.height}
+					graphData={graphData}
+				/>
+			</div>
+		</div>
+	);
 };
 
 export default NpmVisualGraph3d;
