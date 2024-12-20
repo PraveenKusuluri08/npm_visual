@@ -10,9 +10,7 @@ const App = () => {
 	const onResponseChanged = (data: GraphData) => {
 		console.log(data);
 		setGraphData(data);
-		const deepCopy = JSON.parse(JSON.stringify(data.nodes));
-		console.log(deepCopy);
-		setTableData(deepCopy);
+		setTableData(data.nodes);
 	};
 
 	const [graphData, setGraphData] = useState<GraphData>();
