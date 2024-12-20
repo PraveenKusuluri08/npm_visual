@@ -1,13 +1,18 @@
+# pyright: basic
+import random
+import leidenalg
+import igraph as ig
+
 import networkx as nx
-from npmvisual import analyzer
-from flask import Blueprint, jsonify, request
+from community import community_louvain
+from flask import Blueprint, jsonify
 
 import npmvisual.utils as utils
 from npmvisual._models.packageNode import PackageNode
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
-    search_and_scrape_recursive,
     get_db_all,
+    search_and_scrape_recursive,
 )
 
 bp = Blueprint("network", __name__)
@@ -74,7 +79,6 @@ def get_network(package_name: str):
 def analyze_network(package_name: str):
     try:
         response = _get_networks([package_name])
-
         graph_data = response.get_json()
 
         if not graph_data:
@@ -82,7 +86,7 @@ def analyze_network(package_name: str):
         if "nodes" not in graph_data or "links" not in graph_data:
             return jsonify({"error": "Invalid graph structure"}), 400
 
-        G = nx.DiGraph() if graph_data.get("directed", True) else nx.Graph()
+        G: DiGraph = nx.DiGraph()
         for node in graph_data["nodes"]:
             G.add_node(node["id"])
 
@@ -109,6 +113,99 @@ def analyze_network(package_name: str):
 
 
 def format_as_nx(data: dict[str, PackageNode]):
+    """
+    Converts the given package data into a NetworkX graph and formats it into a structure
+    with in-degrees and colors based on SCCs.
+
+    Args:
+        data: A dictionary of PackageNode objects where the key is the package ID and the
+        value is the PackageNode.
+
+    Returns:
+        A dictionary in the node-link format with additional 'inDegree', 'val', and
+        'color' properties for each node.
+    """
+    G: nx.DiGraph = nx.DiGraph()
+
+    # Add edges to the graph
+    for p in data.values():
+        if p.dependency_id_list:
+            for d in p.dependency_id_list:
+                G.add_edge(d, p.package_id)
+
+    # Prepare the graph data in node-link format
+    graph_data = nx.node_link_data(G, edges="links")  # pyright: ignore
+    graph_data = _add_val(graph_data, G, data)  # pyright: ignore
+    graph_data = _color_nodes(graph_data, G, data)  # pyright: ignore
+
+    # Return the graph data for frontend
+    return graph_data
+
+
+def _add_val(graph_data, G, data):
+    # Get in-degrees for normalization
+    largest_in_degree: int = 0  # Maximum in-degree encountered
+    for p in data.values():  # pyright: ignore[reportUnknownVariableType]
+        if p.dependency_id_list:  # pyright: ignore[reportUnknownMemberType]
+            largest_in_degree = max(
+                largest_in_degree,
+                len(p.dependency_id_list),
+            )
+        in_degrees: dict[str, int] = dict(G.in_degree())
+    for node in graph_data["nodes"]:  # pyright: ignore[reportUnknownVariableType]
+        node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
+        in_degree: int = in_degrees[node_id]
+        node["inDegree"] = in_degree / largest_in_degree
+        node["val"] = in_degree * 4
+    return graph_data  # pyright: ignore[reportUnknownVariableType]
+
+
+def _color_nodes(graph_data, G, data):
+    undirected = G.copy().to_undirected()
+    #
+    # # Create a dictionary to assign a color to each component
+    # component_colors: dict[int, str] = {
+    #     i: f"#{random.randint(0, 0xFFFFFF):06x}" for i in range(len(sccs))
+    # }
+    communities = nx.community.louvain_communities(undirected)
+    node_colors = {}
+    default_color = f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
+    for i, community in enumerate(communities):
+        print(f"Community {i+1}: {community}")
+        if len(community) > 1:
+            color = f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
+            for community_id, node in enumerate(community):
+                node_colors[node] = (color, community_id)
+        else:
+            for node in community:
+                node_colors[node] = (default_color, -1)
+
+    print(graph_data["nodes"])
+    for node in graph_data["nodes"]:
+        node["color"] = node_colors[node["id"]][0]
+        node["color_id"] = node_colors[node["id"]][1]
+        print(f"    node: {node}")
+
+    return graph_data
+    # G_igraph = ig.Graph.from_networkx(G)
+    # # Apply Leiden algorithm for community detection
+    # partition = leidenalg.find_partition(G_igraph, leidenalg.ModularityVertexPartition)
+    # # Create a dictionary to store community assignments for each node
+    # node_to_community: dict[str, int] = {}
+    # print(graph.nodes)
+    # # Assign each node to a community (from the partition)
+    # for community_idx, community in enumerate(partition):
+    #     for node in community:
+    #         # Assuming `node` is an integer index, and you want to map it to `package_id`
+    #         print(node)
+    #         # node_id = G.nodes[node]["id"]  # Replace with your mapping logic if needed
+    #         # node_to_community[node_id] = community_idx
+    #
+    # print(node_to_community)
+
+
+"""
+def format_as_nx(data: dict[str, PackageNode]):
     largest_in_degree = 0
     G = nx.DiGraph()
 
@@ -117,6 +214,7 @@ def format_as_nx(data: dict[str, PackageNode]):
             largest_in_degree = max(largest_in_degree, len(p.dependency_id_list))
             for d in p.dependency_id_list:
                 G.add_edge(d, p.package_id)
+
 
     # analyzer.analyze(G)
     graph_data = nx.node_link_data(G)
@@ -131,6 +229,7 @@ def format_as_nx(data: dict[str, PackageNode]):
 
     # print(f"Graph data for frontend: {graph_data}")
     return graph_data
+    """
 
 
 def format_for_frontend(data):
