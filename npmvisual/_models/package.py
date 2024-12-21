@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+raise Exception("old code, for reference only")
+
 import json
 from typing import Any
 
@@ -26,7 +28,9 @@ class Package:
     def __init__(self, **data):
         # Manually handle the 'dependencies' field, initialize it separately
         # dependencies = data.pop('dependencies', None)  # Pop dependencies out of data
-        super().__init__(**data)  # Call the parent constructor to initialize other fields
+        super().__init__(
+            **data
+        )  # Call the parent constructor to initialize other fields
         # some packages have no dependencies. represent this as an empty dict
         dependency_dict: dict[str, str] = (
             data.get("versions", {}).get("latest_version", {}).get("dependencies", {})
@@ -55,7 +59,9 @@ def package_from_json(json_data: dict[str, Any]) -> Package | None:
 def prettyPrint(package: Package):
     def _trim_string_with_ellipsis(input_string: str, max_length: int) -> str:
         if len(input_string) > max_length:
-            return input_string[: max_length - 3] + "..."  # Leave space for the ellipsis
+            return (
+                input_string[: max_length - 3] + "..."
+            )  # Leave space for the ellipsis
         return input_string
 
     strBuilder = f"  Package: \t{package.id}\n"
