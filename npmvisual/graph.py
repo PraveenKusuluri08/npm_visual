@@ -126,10 +126,10 @@ def format_as_nx(data: dict[str, Package]):
     G: nx.DiGraph = nx.DiGraph()
 
     # Add edges to the graph
-    for p in data.values():
-        if p.dependency_id_dict:
-            for d in p.dependency_id_dict:
-                G.add_edge(d, p.package_id)
+    # for p in data.values():
+    #     if p.dependency_id_dict:
+    #         for d in p.dependency_id_dict:
+    #             G.add_edge(d, p.package_id)
 
     # Prepare the graph data in node-link format
     graph_data = nx.node_link_data(G, edges="links")  # pyright: ignore
@@ -143,12 +143,12 @@ def format_as_nx(data: dict[str, Package]):
 def _add_val(graph_data, G, data):
     # Get in-degrees for normalization
     largest_in_degree: int = 0  # Maximum in-degree encountered
-    for p in data.values():  # pyright: ignore[reportUnknownVariableType]
-        if p.dependency_id_list:  # pyright: ignore[reportUnknownMemberType]
-            largest_in_degree = max(
-                largest_in_degree,
-                len(p.dependency_id_list),
-            )
+    # for p in data.values():  # pyright: ignore[reportUnknownVariableType]
+    #     if p.dependency_id_dict:  # pyright: ignore[reportUnknownMemberType]
+    #         largest_in_degree = max(
+    #             largest_in_degree,
+    #             len(p.dependency_id_dict),
+    #         )
     in_degrees: dict[str, int] = dict(G.in_degree())
 
     # Set the base size multiplier (you can adjust this to control overall size)

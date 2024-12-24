@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import datetime
 from logging import error
 from typing import Optional
@@ -18,6 +19,12 @@ from neomodel.sync_.relationship_manager import ZeroOrMore
 
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 from npmvisual._models.packument import Packument
+
+
+@dataclass
+class PackageData:
+    package: "Package"
+    dependencies: dict[str, str]
 
 
 class DependencyRel(StructuredRel):
@@ -62,7 +69,7 @@ class Package(StructuredNode, NSPrettyPrintable):
     keywords = ArrayProperty(StringProperty(), required=False)
     license = StringProperty(required=False)
 
-    dependency_id_dict: dict[str, str] = ArrayProperty(StringProperty(), required=True)  # type: ignore
+    # dependency_id_dict: dict[str, str] = ArrayProperty(StringProperty(), required=True)  # type: ignore
     dependencies = RelationshipTo(
         "Package", "DEPENDS_ON", cardinality=ZeroOrMore, model=DependencyRel
     )
@@ -74,37 +81,40 @@ class Package(StructuredNode, NSPrettyPrintable):
         return "package_id"
 
     @classmethod
-    def from_packument(cls, packument: Packument):
+    def from_packument(cls, packument: Packument) -> PackageData:
         version = packument.get_latest_version()
         if not version:
             raise Exception("no latest version")
         dependency_id_dict = packument.get_dependencies(version)
         assert dependency_id_dict is not None
 
-        return cls(
-            package_id=packument.id,
-            rev=packument.rev,
-            time=packument.time,
-            cached=packument.cached,
-            dist_tags=packument.dist_tags,
-            users=packument.users,
-            name=packument.name,
-            git_head=packument.git_head,
-            readme=packument.readme,
-            readme_filename=packument.readme_filename,
-            description=packument.description,
-            homepage=packument.homepage,
-            keywords=packument.keywords,
-            license=packument.license,
-            dependency_id_list=dependency_id_dict,
-        )  # def save(self, **kwargs):
+        return PackageData(
+            package=cls(
+                package_id=packument.id,
+                rev=packument.rev,
+                time=packument.time,
+                cached=packument.cached,
+                dist_tags=packument.dist_tags,
+                users=packument.users,
+                name=packument.name,
+                git_head=packument.git_head,
+                readme=packument.readme,
+                readme_filename=packument.readme_filename,
+                description=packument.description,
+                homepage=packument.homepage,
+                keywords=packument.keywords,
+                license=packument.license,
+            ),
+            dependencies=dependency_id_dict,
+        )
 
     def pre_save(self):
         """Save hooks are called regardless of wether the node is new or not. To
         determine if a node exists in pre_save, check for an id attribute on self."""
-        if self.id:
-            pass
-            # self.di_updated_at = datetime.datetime.now(pytz.utc)
+        pass
+        # if self.id:
+        #     pass
+        # self.di_updated_at = datetime.datetime.now(pytz.utc)
 
     # def connect_dependencies(self):
     #     # Loop over each package_id in the dependencies and connect it to the current package_node
