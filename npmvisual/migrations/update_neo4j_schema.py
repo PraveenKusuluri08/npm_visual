@@ -8,16 +8,22 @@ def update_db_from_neomodel():
     connection = Neo4j_Connection(Config)
     db_url = connection.neo4j_bolt_url
     script_path = (
-        "../.venv/lib/python3.12/site-packages/neomodel/scripts/neomodel_install_labels"
+        ".venv/lib/python3.12/site-packages/neomodel/scripts/neomodel_install_labels.py"
     )
-    command = [script_path]
-    command.extend(["npmvisual._models.packageNode"])
+    command = ["python", script_path]
+    command.extend(["npmvisual._models.package"])
     command.extend(["--db", db_url])
 
-    # Run the script as a subprocess
     try:
+        print(command)
         subprocess.run(command, check=True)
-        print(f"Successfully executed {script_path}")
+        result = subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        print(f"Successfully executed {script_path}, result: {result}")
     except subprocess.CalledProcessError as e:
         print(f"Error running {script_path}: {e}")
     except FileNotFoundError:
