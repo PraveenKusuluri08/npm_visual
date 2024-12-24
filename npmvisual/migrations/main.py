@@ -135,11 +135,16 @@ def upgrade():
     current_timestamp = get_timestamp(current_id)
     migrations_after_current: list[Migration] = []
     m: Migration
-    print("Listing all migrations")
-    for m in reversed(migrations):
+    print("Listing all migrations:")
+    # find current position
+    current_index = len(migrations_after_current) - 1
+    for i, m in enumerate(reversed(migrations)):
         if m.timestamp > current_timestamp:
-            print(f" -> {_int_readable(current_timestamp)} current")
+            current_index = i
+    for i, m in enumerate(reversed(migrations)):
         print(f"    {_int_readable(m.timestamp)}  - {m}")
+        if i == current_index:
+            print(f" -> {_int_readable(current_timestamp)} current")
 
     for m in migrations:
         # print(f"  {m}")
@@ -154,7 +159,7 @@ def upgrade():
     for m in migrations_after_current:
         time_difference = m.timestamp - current_timestamp
         print(
-            f"\t {m.migration_id }: Ahead by {_int_readable(time_difference)} milliseconds"
+            f"\t EXECUTING: {m.migration_id }: Ahead by {_int_readable(time_difference)} milliseconds"
         )
         m.func()
         current_timestamp = m.timestamp
