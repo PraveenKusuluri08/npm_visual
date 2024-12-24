@@ -10,7 +10,7 @@ def get_db_all_names() -> list[str]:
     from neomodel import db
 
     found = {}
-    query = "MATCH (p:PackageNode) RETURN p.package_id"
+    query = "MATCH (p:Package) RETURN p.package_id"
 
     # Execute the query using db.cypher_query
     results, _ = db.cypher_query(query)
