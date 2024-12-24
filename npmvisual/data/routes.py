@@ -1,4 +1,4 @@
-from npmvisual._models.packageNode import Package
+from npmvisual._models.package import Package
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.utils import get_all_package_names

@@ -6,7 +6,7 @@ import networkx as nx
 from flask import Blueprint, jsonify
 
 import npmvisual.utils as utils
-from npmvisual._models.packageNode import Package
+from npmvisual._models.package import Package
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
     get_db_all,
@@ -116,8 +116,8 @@ def format_as_nx(data: dict[str, Package]):
     with in-degrees and colors based on SCCs.
 
     Args:
-        data: A dictionary of PackageNode objects where the key is the package ID and the
-        value is the PackageNode.
+        data: A dictionary of Package objects where the key is the package ID and the
+        value is the Package.
 
     Returns:
         A dictionary in the node-link format with additional 'inDegree', 'val', and
