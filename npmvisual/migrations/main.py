@@ -70,13 +70,11 @@ def _set_current_migration_tx(
 ):
     tx.run(
         """
-        MERGE (m:Migration {
-            migration_id: $migration_id
-          })
-        ON CREATE SET m.created = timestamp()
+        MERGE (m:Migration)
+        ON CREATE SET m.migration_id = $migration_id, m.created = timestamp()
         ON MATCH SET
         m.counter = coalesce(m.counter, 0) + 1,
-        m.accessTime = timestamp()
+        m.updated = timestamp()
         """,
         migration_id=migration_id,
     )

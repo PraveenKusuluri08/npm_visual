@@ -20,6 +20,9 @@ from neomodel.sync_.relationship_manager import ZeroOrMore
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 from npmvisual._models.packument import Packument
 
+"""Increment this and run a migration whenever you change the schema"""
+SCHEMA_VERSION = 1
+
 
 @dataclass
 class PackageData:
@@ -40,15 +43,18 @@ class Package(StructuredNode, NSPrettyPrintable):
     This is the Neomodel equivalent of the Pydantic Packument class.
     """
 
-    # UPDATE_STATUS_CHOICES = {
-    #     "Full": "Fully_Updated",
-    #     "Part": "Partially_Updated",
-    # }
-    #
-    # di_version = IntegerProperty(required=True, default=1)
-    # di_created_at = DateTimeProperty(required=True, default_now=True)
-    # di_full_updated_at = DateTimeProperty(required=True, default_now=True)
-    # di_update_status = StringProperty(required=True, choices=UPDATE_STATUS_CHOICES)
+    SCRAPE_STATUS_CHOICES = {
+        "full": "fully_scraped",
+        "part": "partially_scraped",
+        "id_only": "not_yet_scraped",
+    }
+
+    di_schema_version = IntegerProperty(required=True, index=True)
+    di_created_at = DateTimeProperty(required=True)
+    di_fully_scraped_at = DateTimeProperty(index=True)
+    di_scrape_status = StringProperty(
+        required=True, choices=SCRAPE_STATUS_CHOICES, index=True
+    )
 
     package_id: str = StringProperty(unique_index=True, required=True)  # type: ignore
     time = JSONProperty()
@@ -59,7 +65,7 @@ class Package(StructuredNode, NSPrettyPrintable):
     users = JSONProperty(required=False)
 
     # Hoisted fields from latest PackumentVersion
-    name = StringProperty(required=True)
+    name = StringProperty(required=False)
     git_head = StringProperty(required=False)
 
     readme = StringProperty(required=False)
@@ -91,6 +97,10 @@ class Package(StructuredNode, NSPrettyPrintable):
         return PackageData(
             package=cls(
                 package_id=packument.id,
+                di_schema_version=SCHEMA_VERSION,
+                di_created_at=datetime.datetime.now(pytz.utc),
+                di_fully_scraped_at=datetime.datetime.now(pytz.utc),
+                di_scrape_status="full",
                 rev=packument.rev,
                 time=packument.time,
                 cached=packument.cached,
@@ -108,43 +118,24 @@ class Package(StructuredNode, NSPrettyPrintable):
             dependencies=dependency_id_dict,
         )
 
+    @classmethod
+    def create_placeholder(cls, package_id: str) -> PackageData:
+        """If for whatever reason, you can't scrape the data from online, or if something
+        went wrong, use this as a temporary value so that the relationships still work.
+        things that depend on this still will point to something."""
+
+        return PackageData(
+            package=cls(
+                package_id=package_id,
+                di_created_at=datetime.datetime.now(pytz.utc),
+                di_schema_version=SCHEMA_VERSION,
+                di_scrape_status="id_only",
+            ),
+            dependencies={},
+        )
+
     def pre_save(self):
         """Save hooks are called regardless of wether the node is new or not. To
         determine if a node exists in pre_save, check for an id attribute on self."""
-        pass
-        # if self.id:
-        #     pass
-        # self.di_updated_at = datetime.datetime.now(pytz.utc)
-
-    # def connect_dependencies(self):
-    #     # Loop over each package_id in the dependencies and connect it to the current package_node
-    #     for dep_id in self.dependency_id_list.all():
-    #         # Look up the PackageNode for the dependency by its package_id
-    #         dependency_node = PackageNode.nodes.get_or_none(package_id=dep_id)
-    #
-    #         if dependency_node:
-    #             # If the dependency node exists, connect it to the current package node
-    #             dependency_node.dependencies.connect(dependency_node)
-    #         else:
-    #             # If the dependency node doesn't exist, we can either create it or handle it
-    #             # Optionally, we could create a new node for the dependency if needed
-    #             print(f"Dependency {dep_id} does not exist in the database.")
-    #             # I might decide to create it, depending on your use case:
-    #             # dependency_node = PackageNode(package_id=dep_id)
-    #             # package_node.dependencies.connect(dependency_node)
-
-    # Save the PackageNode after connecting dependencies
-    # package_node.save()
-    # return package_node
-
-    #     """
-    #     Override save method to ensure relationships are saved properly.
-    #     """
-    #     # Save the PackageNode instance first
-    #     super().save(**kwargs)
-    #
-    #     # Then, connect the relationships (contributors, maintainers)
-    #     for contributor in self.contributors:
-    #         self.contributors.connect(contributor)
-    #     for maintainer in self.maintainers:
-    #         self.maintainers.connect(maintainer)
+        if self.package_id and self.di_scrape_status == "full":
+            self.di_fully_scraped_at = datetime.datetime.now(pytz.utc)

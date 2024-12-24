@@ -4,6 +4,7 @@ import requests
 from flask import current_app as app
 
 from npmvisual.commonpackages import get_popular_package_names
+import npmvisual.utils as utils
 
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.
@@ -31,7 +32,8 @@ def scrape_package_json(package_name: str) -> dict[str, Any] | None:
     """
     # print(f"scraping package named {name}")
     url = f"https://registry.npmjs.org/{package_name}"
-    app.logger.info(f"scraping package.json from {url}")
+    # app.logger.info(f"scraping package.json from {url}")
+    utils.nsprint(f"scraping package.json from {url}", 4)
 
     try:
         response = requests.get(url)

@@ -15,6 +15,13 @@ I made a handy CopyTimestamp.tsx component on the website. use that.
 """
 
 
+def migration_1735034798626():
+    """Updated Package to include scrape date information. Created placeholder Package"""
+    from . import update_neo4j_schema
+
+    update_neo4j_schema.update_db_from_neomodel()
+
+
 def migration_1735013015695():
     """Replace PackageNode with Package. Huge change to schema. Added relationships."""
     from . import update_neo4j_schema

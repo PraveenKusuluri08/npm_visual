@@ -30,14 +30,14 @@ def _get_networks(
 ):
     print(f"Fetching network for packages: {package_names}")
 
-    (found, not_found) = search_and_scrape_recursive(set(package_names), max_count)
-    print(f"Found: {len(found)} packages, Not Found: {len(not_found)}")
+    found = search_and_scrape_recursive(set(package_names), max_count)
+    print(f"Found: {len(found)} packages, Not Found: {-1}")
 
-    if not_found:
-        print(
-            f"Successfully created network of size {len(found)}.\n"
-            f"Failed to scrape or find: {not_found}"
-        )
+    # if not_found:
+    #     print(
+    #         f"Successfully created network of size {len(found)}.\n"
+    #         f"Failed to scrape or find: {not_found}"
+    #     )
 
     formatted_data = format_for_frontend(found)
     print(f"Formatted graph data: {formatted_data}")

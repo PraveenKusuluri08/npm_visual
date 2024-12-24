@@ -37,18 +37,21 @@ def save_packages(packages: set[Package]):
         p.save()
 
 
-def scrape_packages(package_names: set[str]) -> tuple[dict[str, PackageData], set[str]]:
+def scrape_packages(
+    package_names: set[str],
+) -> dict[str, PackageData]:
     print(f"    scrape_packages: scraping: {package_names}")
     found: dict[str, PackageData] = {}
-    not_found: set[str] = set()
     for id in package_names:
         scraped: PackageData | None = scrape_package(id)
-        if scraped:
-            found[id] = scraped
-        else:
-            not_found.add(id)
-    # print(f"    scrape_packages: found: {found.keys()}")
-    return (found, not_found)
+        if not scraped:
+            utils.nsprint(f"could not scrape: {id}", 3)
+            # todo: try to scrape again if it fails
+            scraped = Package.create_placeholder(id)
+            scraped.package.save()
+        found[id] = scraped
+    utils.nsprint(f"scrape_packages: found: {found.keys()}", 2)
+    return found
 
 
 def _print_json_var(json_dict):
@@ -94,11 +97,6 @@ def scrape_package(package_name: str) -> PackageData | None:
     return packageData
 
 
-# except Exception as e:
-#     logging.error(f"Unexpected error scraping package {package_name}: {str(e)}")
-# return None
-
-
 def _pretty_print_type_structure(data: Any, indent: int = 0):
     # Helper function to format and print the data recursively
     space = " " * indent
@@ -140,40 +138,42 @@ def _get_type_structure(data: dict[str, Any]):
 def search_and_scrape_recursive(
     package_names: set[str],
     max_count: int | utils.Infinity = utils.infinity,
-) -> tuple[dict[str, Package], set[str]]:
+) -> dict[str, Package]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
     print(f"\nstart of search_and_scrape_recursive: package_names:{package_names}")
     to_search: set[str] = package_names.copy()
     found: dict[str, Package] = {}
-    not_found: set[str] = set()
     all_scraped: dict[str, PackageData] = {}
 
     count = 0
     print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
     while len(to_search) != 0 and len(found) < max_count:
-        utils.nsprint(f"\n  Searching round {count}: db searching for: {to_search}")
+        bad_keys = [key for key in to_search if key in found]
+        print(f"\nBad Keys: {bad_keys}")
+        assert not any(bad_keys)
+        utils.nsprint(f"Searching round {count}: db searching for: {to_search}")
         (in_db, not_in_db) = search_packages_recursive(
             to_search, all_scraped, max_count, count
         )
         found.update(in_db)
-        to_search.difference(set(in_db.keys()))
+        to_search -= set(in_db.keys())
 
         if len(not_in_db) == 0:
+            utils.nsprint("nothing found, breaking from loop.")
             break
 
         utils.nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
         scraped: dict[str, PackageData]
-        (scraped, not_scraped) = scrape_packages(not_in_db)
+        scraped = scrape_packages(not_in_db)
         all_scraped.update(scraped)
 
         utils.nsprint(
-            f"  Scraping round {count} complete."
-            f"  Scrapped the following packages: {list(scraped.keys())}"
+            f"Scraping round {count} complete."
+            f"Scrapped the following packages: {list(scraped.keys())}"
         )
         # do not use info scraped directly from internet. get it from db next iteration
         to_search.update(scraped.keys())
-        not_found.update(not_scraped)
 
         if len(scraped) == 0:
             utils.nsprint("Could not scrape anything this round. Exiting loop")
@@ -181,7 +181,7 @@ def search_and_scrape_recursive(
         count += 1
     utils.nsprint(f"all_scraped: {all_scraped}")
     build_relationships(all_scraped)
-    return (found, not_found)
+    return found
 
 
 def build_relationships(all_package_data: dict[str, PackageData]) -> None:
@@ -223,9 +223,6 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
         for name, version in package_data.dependencies.items():
             print(f"   name: {name}, version: {version}")
             dependency = _get_dependency(name, all_package_data, cache)
-            # relationship = package_data.package.dependencies.connect(
-            #     dependency, version=version
-            # )
             relationship = package_data.package.dependencies.connect(
                 dependency, {"version": version}
             )
@@ -243,11 +240,14 @@ def search_packages_recursive(
     not_found: set[str] = set()
 
     while len(to_search) > 0:
-        utils.nsprint(f"searching db for: {to_search}", 1)
+        utils.nsprint(f"Searching db for: {to_search}", 1)
         (newly_found, newly_not_found) = search_packages(to_search)
         not_found.update(newly_not_found)
         # utils.nsprint(f"newly_found: {newly_found}", 1)
-        utils.nsprint(f"found in db: {list(newly_found.keys())}", 1)
+        utils.nsprint(
+            f"DB Search: Found: {len(newly_found)}, Not Found: {newly_not_found}, Found: {list(newly_found.keys())}",
+            1,
+        )
         for name, package in newly_found.items():
             found[name] = package
             # print(f"  package {name} was already found. Will not search for it again")
@@ -264,10 +264,13 @@ def search_packages_recursive(
             if id in all_scraped:
                 dependencies = all_scraped[id].dependencies
             else:
-                dependencies = package.dependencies.all()
-                raise Exception(dependencies)  # understand type of all later
+                dependencies: set[str] = {
+                    package.package_id for package in package.dependencies.all()
+                }
             for dependency in dependencies:
+                utils.nsprint(f"dependency:{dependency}", 2)
                 if dependency not in not_found and dependency not in found:
+                    utils.nsprint(f"added:{dependency}", 3)
                     to_search.add(dependency)
                     # todo: fix me
     # utils.nsprint(
