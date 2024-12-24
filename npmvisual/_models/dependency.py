@@ -3,7 +3,7 @@ from dataclasses import asdict, dataclass
 
 @dataclass
 class Dependency:
-    package: str
+    package_id: str
     version: str
 
     def to_dict(self):

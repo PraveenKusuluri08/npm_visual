@@ -481,7 +481,7 @@ class Packument(BaseModel, NSPrettyPrintable):
         version = self.versions[version_key]
         # print(f"get_dependencies() version: {version}")
         print(
-            f"    Packument.get_dependencies() version.dependencies: {version.dependencies}"
+            f"Packument.get_dependencies() version.dependencies: {version.dependencies}"
         )
         if version.dependencies is None:
             return {}

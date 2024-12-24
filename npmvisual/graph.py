@@ -6,7 +6,7 @@ import networkx as nx
 from flask import Blueprint, jsonify
 
 import npmvisual.utils as utils
-from npmvisual._models.package import Package
+from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
     get_db_all,
@@ -30,7 +30,9 @@ def _get_networks(
 ):
     print(f"Fetching network for packages: {package_names}")
 
-    found = search_and_scrape_recursive(set(package_names), max_count)
+    found: dict[str, PackageData] = search_and_scrape_recursive(
+        set(package_names), max_count
+    )
     print(f"Found: {len(found)} packages, Not Found: {-1}")
 
     # if not_found:
@@ -110,7 +112,7 @@ def analyze_network(package_name: str):
         return jsonify({"error": str(e)}), 500
 
 
-def format_as_nx(data: dict[str, Package]):
+def format_as_nx(data: dict[str, PackageData]):
     """
     Converts the given package data into a NetworkX graph and formats it into a structure
     with in-degrees and colors based on SCCs.
@@ -125,30 +127,28 @@ def format_as_nx(data: dict[str, Package]):
     """
     G: nx.DiGraph = nx.DiGraph()
 
-    # Add edges to the graph
-    # for p in data.values():
-    #     if p.dependency_id_dict:
-    #         for d in p.dependency_id_dict:
-    #             G.add_edge(d, p.package_id)
+    for p in data.values():
+        for d in p.dependencies:
+            # G.add_edge(p.package.package_id, d.package_id)
+            G.add_edge(d.package_id, p.package.package_id)
 
     # Prepare the graph data in node-link format
-    graph_data = nx.node_link_data(G, edges="links")  # pyright: ignore
-    graph_data = _add_val(graph_data, G, data)  # pyright: ignore
-    graph_data = _color_nodes(graph_data, G, data)  # pyright: ignore
+    graph_data = nx.node_link_data(G, edges="links")
+    graph_data = _add_val(graph_data, G, data)
+    graph_data = _color_nodes(graph_data, G, data)
 
     # Return the graph data for frontend
     return graph_data
 
 
-def _add_val(graph_data, G, data):
+def _add_val(graph_data, G, data: dict[str, PackageData]):
     # Get in-degrees for normalization
-    largest_in_degree: int = 0  # Maximum in-degree encountered
-    # for p in data.values():  # pyright: ignore[reportUnknownVariableType]
-    #     if p.dependency_id_dict:  # pyright: ignore[reportUnknownMemberType]
-    #         largest_in_degree = max(
-    #             largest_in_degree,
-    #             len(p.dependency_id_dict),
-    #         )
+    largest_in_degree: int = 0
+    for p in data.values():
+        largest_in_degree = max(
+            largest_in_degree,
+            len(p.dependencies),
+        )
     in_degrees: dict[str, int] = dict(G.in_degree())
 
     # Set the base size multiplier (you can adjust this to control overall size)
@@ -171,7 +171,7 @@ def _add_val(graph_data, G, data):
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 
-def _color_nodes(graph_data, G, data):
+def _color_nodes(graph_data, G, data: dict[str, PackageData]):
     undirected = G.copy().to_undirected()
     #
     # # Create a dictionary to assign a color to each component
@@ -205,6 +205,6 @@ def _get_random_color():
     return f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
 
 
-def format_for_frontend(data):
+def format_for_frontend(data: dict[str, PackageData]):
     nx_graph = format_as_nx(data)
     return jsonify(nx_graph)

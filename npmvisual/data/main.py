@@ -1,6 +1,8 @@
 from typing import Any
 import logging
 
+from neomodel.sync_.match import Collect
+
 from npmvisual._models.package import PackageData
 import npmvisual.utils as utils
 from npmvisual.data.scraper import scrape_package_json
@@ -138,12 +140,12 @@ def _get_type_structure(data: dict[str, Any]):
 def search_and_scrape_recursive(
     package_names: set[str],
     max_count: int | utils.Infinity = utils.infinity,
-) -> dict[str, Package]:
+) -> dict[str, PackageData]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
     print(f"\nstart of search_and_scrape_recursive: package_names:{package_names}")
     to_search: set[str] = package_names.copy()
-    found: dict[str, Package] = {}
+    found: dict[str, PackageData] = {}
     all_scraped: dict[str, PackageData] = {}
 
     count = 0
@@ -234,9 +236,9 @@ def search_packages_recursive(
     all_scraped: dict[str, PackageData],
     count_limit: int | utils.Infinity = utils.infinity,
     count=0,
-) -> tuple[dict[str, Package], set[str]]:
+) -> tuple[dict[str, PackageData], set[str]]:
     to_search = to_search.copy()
-    found: dict[str, Package] = {}
+    found: dict[str, PackageData] = {}
     not_found: set[str] = set()
 
     while len(to_search) > 0:
@@ -248,31 +250,17 @@ def search_packages_recursive(
             f"DB Search: Found: {len(newly_found)}, Not Found: {newly_not_found}, Found: {list(newly_found.keys())}",
             1,
         )
-        for name, package in newly_found.items():
-            found[name] = package
-            # print(f"  package {name} was already found. Will not search for it again")
-            count += 1
-            # if count >= count_limit:  # todo this is temporary
-            #     return (found, not_found)
-
         to_search = set()
-        utils.nsprint("Adding Dependencies to search:", 1)
-        for id, package in newly_found.items():
-            # utils.nsprint(
-            #     f"Adding Dependencies of {p.package_id}: {p.dependency_id_dict}", 2
-            # )
-            if id in all_scraped:
-                dependencies = all_scraped[id].dependencies
-            else:
-                dependencies: set[str] = {
-                    package.package_id for package in package.dependencies.all()
-                }
-            for dependency in dependencies:
-                utils.nsprint(f"dependency:{dependency}", 2)
-                if dependency not in not_found and dependency not in found:
-                    utils.nsprint(f"added:{dependency}", 3)
-                    to_search.add(dependency)
-                    # todo: fix me
+        for name, package in newly_found.items():
+            package_data: PackageData = PackageData(package, package.get_dependencies())
+            found[name] = package_data
+            print(package_data)
+            for dependency in package_data.dependencies:
+                print(f"____ {dependency}")
+                id = dependency.package_id
+                if id not in not_found and id not in found:
+                    utils.nsprint(f"added dependency:{id}", 3)
+                    to_search.add(id)
     # utils.nsprint(
     #     f"recursive search round finished. found:{found}, not_fount: {not_found}", 1
     # )
@@ -293,12 +281,7 @@ def search_packages(package_names: set[str]) -> tuple[dict[str, Package], set[st
     # print(duplicates)
     # assert len(duplicates) == 0
     for package in newly_found:
-        # print(f"   -search_packages(): {packageNode.package_id}")
-        # print(f"   xsearch_packages(): {packageNode.__str__()}")
-        # print(f"   +search_packages(): {packageNode.pretty_print(3,3,10)}")
-        assert package and package.package_id
         found[package.package_id] = package
-        # print(f"packageNode={packageNode} 00000000000000000000000000000000000")
         if package.package_id in to_search:
             to_search.remove(package.package_id)
             # todo: fix this later, this should never happen, but it did when

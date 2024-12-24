@@ -14,9 +14,11 @@ from neomodel import (
     StringProperty,
     StructuredNode,
     StructuredRel,
+    db,
 )
 from neomodel.sync_.relationship_manager import ZeroOrMore
 
+from npmvisual._models.dependency import Dependency
 from npmvisual._models.ns_pretty_printable import NSPrettyPrintable
 from npmvisual._models.packument import Packument
 
@@ -27,7 +29,7 @@ SCHEMA_VERSION = 1
 @dataclass
 class PackageData:
     package: "Package"
-    dependencies: dict[str, str]
+    dependencies: list[Dependency]
 
 
 class DependencyRel(StructuredRel):
@@ -94,6 +96,12 @@ class Package(StructuredNode, NSPrettyPrintable):
         dependency_id_dict = packument.get_dependencies(version)
         assert dependency_id_dict is not None
 
+        dependencies = []
+        print()
+        print(type(dependency_id_dict))
+        for id, version in dependency_id_dict.items():
+            dependencies.append(Dependency(id, version))
+
         return PackageData(
             package=cls(
                 package_id=packument.id,
@@ -115,7 +123,7 @@ class Package(StructuredNode, NSPrettyPrintable):
                 keywords=packument.keywords,
                 license=packument.license,
             ),
-            dependencies=dependency_id_dict,
+            dependencies=dependencies,
         )
 
     @classmethod
@@ -131,8 +139,34 @@ class Package(StructuredNode, NSPrettyPrintable):
                 di_schema_version=SCHEMA_VERSION,
                 di_scrape_status="id_only",
             ),
-            dependencies={},
+            dependencies=[],
         )
+
+    def get_dependencies(self) -> list[Dependency]:
+        """
+        Retrieves a list of dependencies (package_id) and their corresponding versions.
+
+        Example output:
+        [
+            {"package_id": "content-disposition", "version": "0.5.4"},
+            {"package_id": "merge-descriptors", "version": "1.0.3"},
+            {"package_id": "cookie-signature", "version": "1.0.6"},
+            ...
+        ]
+        """
+        # Cypher query to fetch dependencies and their version
+        query = """
+        MATCH (p:Package {package_id: $package_id})-[r:DEPENDS_ON]->(dep:Package)
+        RETURN dep.package_id AS dep_package_id, r.version AS dep_version
+        """
+
+        # Execute the query with the package_id of the current instance (self)
+        results, meta = db.cypher_query(query, {"package_id": self.package_id})
+
+        # Convert the result into a list of dependencies with their versions
+        dependencies = [Dependency(row[0], row[1]) for row in results]
+
+        return dependencies
 
     def pre_save(self):
         """Save hooks are called regardless of wether the node is new or not. To
