@@ -20,12 +20,12 @@ class Migration:
     func: Callable[[], object]
 
 
-def int_readable(n: int) -> str:
+def _int_readable(n: int) -> str:
     """Return a string representation of the integer with commas for readability."""
     return f"{n:,}"
 
 
-def create_migration_list() -> list[Migration]:
+def _create_migration_list() -> list[Migration]:
     """
     Creates a list of function names and functions from another file. Yes I know this is a
     hack, but I don't want to add more dependencies and learn another db migration
@@ -64,7 +64,7 @@ def delete_all_migrations():
     return "success"
 
 
-def set_current_migration_tx(
+def _set_current_migration_tx(
     tx: ManagedTransaction,
     migration_id: str,
 ):
@@ -82,7 +82,7 @@ def set_current_migration_tx(
     )
 
 
-def get_migration_count(tx: ManagedTransaction) -> int:
+def _get_migration_count(tx: ManagedTransaction) -> int:
     result: Result = tx.run(
         """
         MATCH (m:Migration)
@@ -95,7 +95,7 @@ def get_migration_count(tx: ManagedTransaction) -> int:
     return record["migration_count"]
 
 
-def get_current_migration_id_tx(tx: ManagedTransaction) -> str:
+def _get_current_migration_id_tx(tx: ManagedTransaction) -> str:
     records = []
     result: Result = tx.run(
         """
@@ -127,19 +127,19 @@ def upgrade():
     """
     Run any migrations ahead of current. set current_timestamp in db after every migration
     """
-    count = db.execute_read(get_migration_count)
+    count = db.execute_read(_get_migration_count)
     if count == 0:
         reset()
-    migrations = create_migration_list()
-    current_id = db.execute_write(get_current_migration_id_tx)
+    migrations = _create_migration_list()
+    current_id = db.execute_write(_get_current_migration_id_tx)
     current_timestamp = get_timestamp(current_id)
     migrations_after_current: list[Migration] = []
     m: Migration
     print("Listing all migrations")
     for m in reversed(migrations):
         if m.timestamp > current_timestamp:
-            print(f" -> {int_readable(current_timestamp)} current")
-        print(f"    {int_readable(m.timestamp)}  - {m}")
+            print(f" -> {_int_readable(current_timestamp)} current")
+        print(f"    {_int_readable(m.timestamp)}  - {m}")
 
     for m in migrations:
         # print(f"  {m}")
@@ -149,16 +149,16 @@ def upgrade():
 
     print(
         f"\nThere are {len(migrations_after_current)} migrations ahead of current "
-        f"timestamp {int_readable(current_timestamp)}:"
+        f"timestamp {_int_readable(current_timestamp)}:"
     )
     for m in migrations_after_current:
         time_difference = m.timestamp - current_timestamp
         print(
-            f"\t {m.migration_id }: Ahead by {int_readable(time_difference)} milliseconds"
+            f"\t {m.migration_id }: Ahead by {_int_readable(time_difference)} milliseconds"
         )
         m.func()
         current_timestamp = m.timestamp
-        db.execute_write(set_current_migration_tx, m.migration_id)
+        db.execute_write(_set_current_migration_tx, m.migration_id)
     return "success"
 
 
@@ -170,7 +170,7 @@ def reset():
     creates the migration db object to track current migration.
     """
     delete_all_migrations()
-    migrations = create_migration_list()
+    migrations = _create_migration_list()
     migration_init = migrations[0]
     migration_init.func()
     return "success"

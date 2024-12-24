@@ -256,7 +256,9 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
     bundled_dependencies: list[str] | bool | None = Field(
         None, alias="bundledDependencies"
     )
-    bundle_dependencies: list[str] | bool | None = Field(None, alias="bundleDependencies")
+    bundle_dependencies: list[str] | bool | None = Field(
+        None, alias="bundleDependencies"
+    )
     config: dict[str, Any] | None = None
     contributors: list[Contact | str] | None = None
     cpu: list[str] | None = None
@@ -475,11 +477,11 @@ class Packument(BaseModel, NSPrettyPrintable):
 
         return max(self.versions.keys(), key=version.parse)
 
-    def get_dependencies(self, version_key: str) -> list[str]:
+    def get_dependencies(self, version_key: str) -> dict[str, str]:
         version = self.versions[version_key]
         if version.dependencies is None:
-            return []
-        return list(version.dependencies.keys())
+            return {}
+        return version.dependencies
 
 
 # ManifestVersion (same structure as PackumentVersion, but trimmed)
@@ -489,7 +491,9 @@ class ManifestVersion(PackumentVersion, NSPrettyPrintable):
     bundled_dependencies: list[str] | bool | None = Field(
         None, alias="bundledDependencies"
     )
-    bundle_dependencies: list[str] | bool | None = Field(None, alias="bundleDependencies")
+    bundle_dependencies: list[str] | bool | None = Field(
+        None, alias="bundleDependencies"
+    )
     dependencies: dict[str, str] | None = None
     deprecated: str | bool | None = None
     dev_dependencies: dict[str, str] | None = Field(None, alias="devDependencies")

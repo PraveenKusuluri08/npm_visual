@@ -1,4 +1,4 @@
-from npmvisual._models.packageNode import PackageNode
+from npmvisual._models.packageNode import Package
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.utils import get_all_package_names
@@ -25,25 +25,25 @@ def test():
 
 
 @bp.route("/getDBPackages")
-def get_packages(package_names: list[str]) -> dict[str, PackageNode]:
+def get_packages(package_names: list[str]) -> dict[str, Package]:
     (found, not_found) = search_packages(set(package_names))
     return found
 
 
 @bp.route("/getDBPopularPackages")
-def get_popular_packages() -> dict[str, PackageNode]:
+def get_popular_packages() -> dict[str, Package]:
     to_search = get_popular_package_names()
     return get_packages(list(to_search))
 
 
 @bp.route("/getAllDBPackages")
-def get_all_packages() -> dict[str, PackageNode]:
+def get_all_packages() -> dict[str, Package]:
     to_search = get_all_package_names()
     return get_packages(list(to_search))
 
 
 @bp.route("/getDBPackage")
-def get_package(package_name: str) -> dict[str, PackageNode]:
+def get_package(package_name: str) -> dict[str, Package]:
     return get_packages(list(package_name))
 
 

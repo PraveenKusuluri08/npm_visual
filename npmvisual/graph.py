@@ -6,7 +6,7 @@ import networkx as nx
 from flask import Blueprint, jsonify
 
 import npmvisual.utils as utils
-from npmvisual._models.packageNode import PackageNode
+from npmvisual._models.packageNode import Package
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
     get_db_all,
@@ -110,7 +110,7 @@ def analyze_network(package_name: str):
         return jsonify({"error": str(e)}), 500
 
 
-def format_as_nx(data: dict[str, PackageNode]):
+def format_as_nx(data: dict[str, Package]):
     """
     Converts the given package data into a NetworkX graph and formats it into a structure
     with in-degrees and colors based on SCCs.
@@ -127,8 +127,8 @@ def format_as_nx(data: dict[str, PackageNode]):
 
     # Add edges to the graph
     for p in data.values():
-        if p.dependency_id_list:
-            for d in p.dependency_id_list:
+        if p.dependency_id_dict:
+            for d in p.dependency_id_dict:
                 G.add_edge(d, p.package_id)
 
     # Prepare the graph data in node-link format

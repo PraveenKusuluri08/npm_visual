@@ -29,23 +29,24 @@ class Neo4j_Connection:
     _neo4j_host: Final[str]
     _neo4j_db: Final[str]
     _neo4j_port: Final[str]
-    _neo4j_bolt_url: Final[str]
+    neo4j_bolt_url: Final[str]
     _neo4j_uri: str = ""
     _neo4j_auth: tuple[str, str] = ("", "")
     _database2: str = ""
 
-    def __init__(self, config_class=Config):
+    def __init__(self, config_class=Config, auto_connect=True):
         self._neo4j_username = config_class.NEO4J_USERNAME
         self._neo4j_password = config_class.NEO4J_PASSWORD
         self._neo4j_host = config_class.NEO4J_HOST
         self._neo4j_db = config_class.NEO4J_DB
         self._neo4j_port = os.environ.get("NEO4J_PORT", "7687")
 
-        self._neo4j_bolt_url = (
+        self.neo4j_bolt_url = (
             f"bolt://{self._neo4j_username}:{self._neo4j_password}@localhost:7687"
         )
-        neomodel_config.DATABASE_URL = self._neo4j_bolt_url
-        self._init_connection()
+        if auto_connect:
+            neomodel_config.DATABASE_URL = self.neo4j_bolt_url
+            self._init_connection()
 
     def _init_connection(self):
         """This exists so that neomodel will be on the same thread as Flask. This function
