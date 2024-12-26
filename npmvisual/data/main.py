@@ -12,27 +12,17 @@ from npmvisual.models import Package, Packument
 
 
 def get_db_all_names() -> list[str]:
-    # todo: fix this once I learn how to use neomodel.
-
-    found = {}
     query = "MATCH (p:Package) RETURN p.package_id"
-
-    # Execute the query using db.cypher_query
     results, _ = db.cypher_query(query)
-    return results
-    # query = "MATCH (p:PackageNode) RETURN p.package_name"
-    # results, summary, keys = driver.execute_query(query, database_="neo4j")
-    # newly_found = PackageNode.nodes.values("package_name")
-    # print(results)
-    # return newly_found
+    return results[0]
 
 
-def get_db_all() -> dict[str, Package]:
-    found: dict[str, Package] = {}
-    newly_found = Package.nodes.all()
-    for package in newly_found:
-        found[package.package_id] = package
-    return found
+def get_db_all() -> dict[str, PackageData]:
+    found: dict[str, PackageData] = {}
+    packages = Package.nodes.all()
+    for package in packages:
+        found[package.package_id] = PackageData(package, [])
+    return _packages_to_package_data(packages)
 
 
 def save_packages(packages: set[Package]):
@@ -265,11 +255,18 @@ def db_search_packages(package_names: set[str]) -> dict[str, PackageData]:
     """
     utils.nsprint(f"db_search_packages({package_names})", 3)
 
-    found: dict[str, PackageData] = {}
     packages = Package.nodes.filter(package_id__in=list(package_names))
+
+    return _packages_to_package_data(packages)
+
+
+def _packages_to_package_data(packages: list[Package]) -> dict[str, PackageData]:
+
+    found: dict[str, PackageData] = {}
+    package_names = set()
     for package in packages:
         found[package.package_id] = PackageData(package, [])
-
+        package_names.add(package.package_id)
     # Cypher query to fetch dependencies and their version
     query = """
     MATCH (p:Package)-[r:DEPENDS_ON]->(dep:Package)
@@ -282,6 +279,7 @@ def db_search_packages(package_names: set[str]) -> dict[str, PackageData]:
     """
     results: list[tuple[str, list[dict[str, str]]]]
     results, meta = db.cypher_query(query, {"package_names": list(package_names)})  # type: ignore
+    # print()
     # print(meta)
     for result in results:
         package_id: str = result[0]

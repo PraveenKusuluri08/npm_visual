@@ -18,7 +18,6 @@ bp = Blueprint("network", __name__)
 @bp.route("/getNetworks/<package_names>", methods=["GET"])
 def get_networks(package_names: str):  # todo add type
     as_list = package_names.split(",")
-    # print(f"as_list: {as_list}")
     if not package_names:
         return jsonify({"error": "No package names provided"}), 400
     return _get_networks(as_list)
@@ -28,21 +27,11 @@ def _get_networks(
     package_names: list[str], max_count: int | utils.Infinity = utils.infinity
 ):
     print(f"Fetching network for packages: {package_names}")
-
     found: dict[str, PackageData] = search_and_scrape_recursive(
         set(package_names), max_count
     )
-    print(f"Found: {len(found)} packages, Not Found: {-1}")
-    print(found)
-
-    # if not_found:
-    #     print(
-    #         f"Successfully created network of size {len(found)}.\n"
-    #         f"Failed to scrape or find: {not_found}"
-    #     )
-
+    print(f"Found: {len(found)} packages")
     formatted_data = format_for_frontend(found)
-    print(f"Formatted graph data: {formatted_data}")
     return formatted_data
 
 
@@ -60,7 +49,6 @@ def get_all_networks():
 
 @bp.route("/getAllDBNetworks", methods=["GET"])
 def get_all_db_networks():
-
     print("Getting all nodes in the db")
     found = get_db_all()
     print(f"Got all nodes in the db: {len(found)} packages")
@@ -86,7 +74,7 @@ def analyze_network(package_name: str):
         if "nodes" not in graph_data or "links" not in graph_data:
             return jsonify({"error": "Invalid graph structure"}), 400
 
-        G: DiGraph = nx.DiGraph()
+        G = nx.DiGraph()
         for node in graph_data["nodes"]:
             G.add_node(node["id"])
 
@@ -127,7 +115,9 @@ def format_as_nx(data: dict[str, PackageData]):
     """
     G: nx.DiGraph = nx.DiGraph()
 
+    # print(f"\n\nValues:{data.values()}")
     for p in data.values():
+        # print(p)
         G.add_node(p.package.package_id)
         for d in p.dependencies:
             # G.add_edge(p.package.package_id, d.package_id)
@@ -174,11 +164,6 @@ def _add_val(graph_data, G, data: dict[str, PackageData]):
 
 def _color_nodes(graph_data, G, data: dict[str, PackageData]):
     undirected = G.copy().to_undirected()
-    #
-    # # Create a dictionary to assign a color to each component
-    # component_colors: dict[int, str] = {
-    #     i: f"#{random.randint(0, 0xFFFFFF):06x}" for i in range(len(sccs))
-    # }
     communities = nx.community.louvain_communities(undirected)
     node_colors = {}
     default_color = _get_random_color()
@@ -196,8 +181,6 @@ def _color_nodes(graph_data, G, data: dict[str, PackageData]):
     for node in graph_data["nodes"]:
         node["color"] = node_colors[node["id"]][0]
         node["color_id"] = node_colors[node["id"]][1]
-        # print(f"    node: {node}")
-
     return graph_data
 
 
@@ -207,7 +190,7 @@ def _get_random_color():
 
 
 def format_for_frontend(data: dict[str, PackageData]):
-    print(f"format_for_frontend({data})")
+    # print(f"data: {data}")
     nx_graph = format_as_nx(data)
-    print(f"nx_graph: {nx_graph}")
+    # print(f"\n\nnx_graph: {nx_graph}")
     return jsonify(nx_graph)
