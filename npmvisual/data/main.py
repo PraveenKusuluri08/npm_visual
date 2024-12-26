@@ -1,28 +1,9 @@
 from typing import Any
-import logging
 
 from npmvisual._models.package import PackageData
 import npmvisual.utils as utils
 from . import database
-from npmvisual.data.scraper import scrape_package_json
-from npmvisual.models import Package, Packument
-
-
-def scrape_packages(
-    to_search: set[str],
-) -> dict[str, PackageData]:
-    utils.nsprint(f"scrape_packages: scraping: {to_search}", 2)
-    found: dict[str, PackageData] = {}
-    for id in to_search:
-        scraped: PackageData | None = scrape_package(id)
-        if not scraped:
-            utils.nsprint(f"could not scrape: {id}", 3)
-            # todo: try to scrape again if it fails
-            scraped = Package.create_placeholder(id)
-            scraped.package.save()
-        found[id] = scraped
-    utils.nsprint(f"scrape_packages: found: {found.keys()}", 2)
-    return found
+from npmvisual.models import Package
 
 
 def _print_json_var(json_dict):
@@ -43,30 +24,6 @@ def _print_json_var(json_dict):
     else:
         print("wtf??????????????????////")
     print(f"\nkey: {some_key}\n")
-
-
-def scrape_package(package_name: str) -> PackageData | None:
-    utils.nsprint("scrape_package()", 3)
-    # try:
-    json_dict = scrape_package_json(package_name)
-    if not json_dict:
-        logging.error(f"Failed to scrape package JSON for package: {package_name}")
-        return None
-    # _print_json_var(json_dict)
-    packument = Packument.from_json(json_dict)
-    if not packument:
-        logging.error(
-            f"Failed to convert scraped JSON to Packument for package: {package_name}"
-        )
-        return None
-    packageData: PackageData = Package.from_packument(packument)
-    if not packageData.package:
-        logging.error(
-            f"Failed to create Package object from Packument for package: {package_name}"
-        )
-        return None
-    packageData.package.save()
-    return packageData
 
 
 def _pretty_print_type_structure(data: Any, indent: int = 0):
