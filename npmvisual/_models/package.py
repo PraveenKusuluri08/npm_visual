@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import datetime
 from logging import error
 from typing import Optional
+import npmvisual.utils as utils
 
 from neomodel.properties import IntegerProperty
 import pytz
@@ -97,8 +98,6 @@ class Package(StructuredNode, NSPrettyPrintable):
         assert dependency_id_dict is not None
 
         dependencies = []
-        print()
-        print(type(dependency_id_dict))
         for id, version in dependency_id_dict.items():
             dependencies.append(Dependency(id, version))
 

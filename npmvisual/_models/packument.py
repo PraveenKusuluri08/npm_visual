@@ -479,10 +479,9 @@ class Packument(BaseModel, NSPrettyPrintable):
 
     def get_dependencies(self, version_key: str) -> dict[str, str]:
         version = self.versions[version_key]
-        # print(f"get_dependencies() version: {version}")
-        print(
-            f"Packument.get_dependencies() version.dependencies: {version.dependencies}"
-        )
+        # print(
+        #     f"Packument.get_dependencies() version.dependencies: {version.dependencies}"
+        # )
         if version.dependencies is None:
             return {}
         return version.dependencies

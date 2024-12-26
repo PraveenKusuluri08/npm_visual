@@ -15,7 +15,7 @@ from npmvisual.data import routes
 from .main import (
     scrape_packages,
     search_and_scrape_recursive,
-    search_packages,
+    db_search_packages,
     get_db_all,
     get_db_all_names,
 )

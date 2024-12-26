@@ -1,5 +1,4 @@
 # pyright: basic
-import math
 import random
 
 import networkx as nx
