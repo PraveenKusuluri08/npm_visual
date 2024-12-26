@@ -1,4 +1,7 @@
-from dataclasses import dataclass
+"""This is a really great tool to analyze the types recieved from the official npm api."""
+
+raise Exception("not needed outside of development")
+
 from typing import Any
 
 
