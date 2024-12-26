@@ -67,7 +67,7 @@ def _get_type_structure(data: dict[str, Any]):
 
 def search_and_scrape_recursive(
     package_names: set[str],
-    max_count: int | utils.Infinity = utils.infinity,
+    max_count: int | None,
 ) -> dict[str, PackageData]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
@@ -78,7 +78,9 @@ def search_and_scrape_recursive(
 
     count = 0
     print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
-    while len(to_search) != 0 and len(found) < max_count:
+    while len(to_search) != 0:
+        if max_count and len(found) < max_count:
+            break
         bad_keys = [key for key in to_search if key in found]
         assert not any(bad_keys)
         utils.nsprint(f"Searching round {count}: db searching for: {to_search}", 1)

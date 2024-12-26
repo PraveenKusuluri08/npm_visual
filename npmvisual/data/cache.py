@@ -1,8 +1,11 @@
+"""We are no longer using this. This will likely be deleted if I can not find a reason to 
+keep it around"""
+
 import os
 import shutil
 import string
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from flask import current_app as app
 from flask import json
@@ -126,7 +129,7 @@ def save(package_name: str, data):
         raise e
 
 
-def load(package_name: str) -> Dict[str, Any]:
+def load(package_name: str) -> dict[str, Any]:
     path_to_file: str = _get_package_path(package_name)
     # print(path_to_file)
     # Use a try catch because file may be accessed between time we search for file and

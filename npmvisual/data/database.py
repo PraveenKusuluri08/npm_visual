@@ -28,7 +28,7 @@ def save_packages(packages: set[Package]):
 def search_db_recursive(
     to_search: set[str],
     all_found: dict[str, PackageData],
-    count_limit: int | utils.Infinity = utils.infinity,
+    count_limit: int | None,
     count=0,
 ) -> tuple[dict[str, PackageData], set[str]]:
     utils.nsprint(f"search_db_recursive(to_search: {to_search})", 2)
