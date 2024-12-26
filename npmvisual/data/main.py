@@ -1,6 +1,6 @@
 from typing import Any
 
-import npmvisual.utils as utils
+from npmvisual import utils
 from npmvisual._models.package import PackageData
 from npmvisual.models import Package
 
