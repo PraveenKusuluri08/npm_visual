@@ -19,9 +19,8 @@ def search_and_scrape_recursive(
     all_scraped: dict[str, PackageData] = {}
 
     count = 0
-    print(f"\nstart of search_and_scrape_recursive: to_search:{to_search}")
-    while len(to_search) != 0:
-        if max_count and len(found) < max_count:
+    while len(to_search) > 0:
+        if max_count and len(found) > max_count:
             break
         bad_keys = [key for key in to_search if key in found]
         assert not any(bad_keys)
