@@ -7,9 +7,7 @@ from flask import Blueprint, jsonify
 import npmvisual.utils as utils
 from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
-from npmvisual.data import (
-    search_and_scrape_recursive,
-)
+from npmvisual.data import main
 from npmvisual.data import database
 
 bp = Blueprint("network", __name__)
@@ -27,7 +25,7 @@ def _get_networks(
     package_names: list[str], max_count: int | utils.Infinity = utils.infinity
 ):
     print(f"Fetching network for packages: {package_names}")
-    found: dict[str, PackageData] = search_and_scrape_recursive(
+    found: dict[str, PackageData] = main.search_and_scrape_recursive(
         set(package_names), max_count
     )
     print(f"Found: {len(found)} packages")
