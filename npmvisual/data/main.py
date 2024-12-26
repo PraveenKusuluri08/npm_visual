@@ -7,64 +7,6 @@ from npmvisual.models import Package
 from . import database, scraper
 
 
-def _print_json_var(json_dict):
-    some_key = json_dict.get("license")
-    print(some_key)
-    versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
-    vers_tag = None  # "3.0.0"
-    # print(versions[vers_tag])
-    if versions and vers_tag and versions[vers_tag]:
-        # if versions and len(versions) > 0:
-        last_item = versions[vers_tag]  # Any = sorted(versions.items())[-1][1]
-        some_key = last_item.get("contributors")
-        # structure = _get_type_structure(some_key)
-        # _pretty_print_type_structure(structure)
-        # nsprint(
-        #     f"some_key:{some_key}",
-        # )
-    else:
-        print("wtf??????????????????////")
-    print(f"\nkey: {some_key}\n")
-
-
-def _pretty_print_type_structure(data: Any, indent: int = 0):
-    # Helper function to format and print the data recursively
-    space = " " * indent
-    if isinstance(data, dict):
-        for key, value in data.items():
-            print(f"{space}{key}:")
-            _pretty_print_type_structure(value, indent + 2)
-
-    elif isinstance(data, list):
-        for index, item in enumerate(data):
-            print(f"{space}- Item {index + 1}:")
-            _pretty_print_type_structure(item, indent + 2)
-
-    else:
-        # Print the type for primitive values
-        print(f"{space}- Type: {data}")
-
-
-def _get_type_structure(data: dict[str, Any]):
-    def recursive_type_structure(value: Any) -> Any:
-        if isinstance(value, dict):
-            # Recurse into a dictionary and apply recursively to each key-value pair
-            return {k: recursive_type_structure(v) for k, v in value.items()}
-
-        elif isinstance(value, list):
-            # Process each element in the list and return a list of types
-            return [recursive_type_structure(v) for v in value]
-
-        else:
-            # Return the type of the value if it's a primitive or object type
-            return [type(value).__name__]
-
-    if data and data.items():
-        return {k: recursive_type_structure(v) for k, v in data.items()}
-    else:
-        print(f"???????????????????????{data}")
-
-
 def search_and_scrape_recursive(
     package_names: set[str],
     max_count: int | None,
@@ -143,3 +85,61 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
                 dependency, {"version": dep.version}
             )
             relationship.save()
+
+
+def _print_json_var(json_dict):
+    some_key = json_dict.get("license")
+    print(some_key)
+    versions: dict[str, Any] = json_dict.get("versions")  # type: ignore
+    vers_tag = None  # "3.0.0"
+    # print(versions[vers_tag])
+    if versions and vers_tag and versions[vers_tag]:
+        # if versions and len(versions) > 0:
+        last_item = versions[vers_tag]  # Any = sorted(versions.items())[-1][1]
+        some_key = last_item.get("contributors")
+        # structure = _get_type_structure(some_key)
+        # _pretty_print_type_structure(structure)
+        # nsprint(
+        #     f"some_key:{some_key}",
+        # )
+    else:
+        print("wtf??????????????????////")
+    print(f"\nkey: {some_key}\n")
+
+
+def _pretty_print_type_structure(data: Any, indent: int = 0):
+    # Helper function to format and print the data recursively
+    space = " " * indent
+    if isinstance(data, dict):
+        for key, value in data.items():
+            print(f"{space}{key}:")
+            _pretty_print_type_structure(value, indent + 2)
+
+    elif isinstance(data, list):
+        for index, item in enumerate(data):
+            print(f"{space}- Item {index + 1}:")
+            _pretty_print_type_structure(item, indent + 2)
+
+    else:
+        # Print the type for primitive values
+        print(f"{space}- Type: {data}")
+
+
+def _get_type_structure(data: dict[str, Any]):
+    def recursive_type_structure(value: Any) -> Any:
+        if isinstance(value, dict):
+            # Recurse into a dictionary and apply recursively to each key-value pair
+            return {k: recursive_type_structure(v) for k, v in value.items()}
+
+        elif isinstance(value, list):
+            # Process each element in the list and return a list of types
+            return [recursive_type_structure(v) for v in value]
+
+        else:
+            # Return the type of the value if it's a primitive or object type
+            return [type(value).__name__]
+
+    if data and data.items():
+        return {k: recursive_type_structure(v) for k, v in data.items()}
+    else:
+        print(f"???????????????????????{data}")
