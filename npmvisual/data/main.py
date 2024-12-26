@@ -1,8 +1,7 @@
 from typing import Any
 
 from npmvisual import utils
-from npmvisual._models.package import PackageData
-from npmvisual.models import Package
+from npmvisual.models import Package, PackageData
 
 from . import database, scraper
 

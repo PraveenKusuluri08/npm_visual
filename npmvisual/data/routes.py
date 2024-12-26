@@ -1,10 +1,9 @@
-from npmvisual._models.package import PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
+from npmvisual.models import PackageData
 from npmvisual.utils import get_all_package_names
-from . import database
-from . import scraper
 
+from . import database, scraper
 
 # @bp.route("/deletePackages")
 # def delete_packages():

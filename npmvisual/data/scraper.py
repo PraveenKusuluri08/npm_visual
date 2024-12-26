@@ -1,13 +1,11 @@
-from typing import Any
 import logging
-from npmvisual._models.package import PackageData
-from npmvisual.models import Package, Packument
+from typing import Any
 
 import requests
 from flask import current_app as app
 
-from npmvisual.commonpackages import get_popular_package_names
 import npmvisual.utils as utils
+from npmvisual.models import Package, PackageData, Packument
 
 # I will set this up soon. Need some way to test it. I can probably just call a fake
 # server and log the errors.
