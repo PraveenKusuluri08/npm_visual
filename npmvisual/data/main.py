@@ -305,8 +305,8 @@ def db_search_packages(package_names: set[str]) -> dict[str, PackageData]:
     WHERE p.package_id IN $package_names
     RETURN p.package_id as package_id, 
         COLLECT({
-            dep_package_id: dep.package_id , 
-                dep_version: r.version
+            dep_package_id: dep.package_id, 
+            dep_version: r.version
         }) as dependencies
     """
 
