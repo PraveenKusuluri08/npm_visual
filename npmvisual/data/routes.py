@@ -2,11 +2,9 @@ from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import bp
 from npmvisual.utils import get_all_package_names
-
-from .main import (
-    scrape_packages as db_scrape_packages,
-)
 from . import database
+from . import scraper
+
 
 # @bp.route("/deletePackages")
 # def delete_packages():
@@ -25,7 +23,7 @@ def test():
 @bp.route("/getDBPackages")
 def get_packages(package_names: list[str]) -> dict[str, PackageData]:
     found: dict[str, PackageData]
-    (found, not_found) = db.db_search_packages(set(package_names))
+    (found, not_found) = database.db_search_packages(set(package_names))
     return found
 
 
@@ -49,7 +47,7 @@ def get_package(package_name: str) -> dict[str, PackageData]:
 ########################################################
 @bp.route("/scrapePackages")
 def scrape_packages(package_names: list[str]) -> str:
-    (found, not_found) = db_scrape_packages(set(package_names))
+    (found, not_found) = scraper.db_scrape_packages(set(package_names))
     return (
         f"Successfully scraped {len(found)} packages.\n"
         f"Failed to scrape {len(not_found)} packages."
@@ -65,7 +63,7 @@ def scrape_popular_packages() -> str:
 @bp.route("/scrapeAllPackages")
 def scrape_all_packages() -> str:
     to_search = get_all_package_names(999)
-    names_in_db = db.get_db_all_names()
+    names_in_db = database.get_db_all_names()
     print("yes")
     filtered = list(filter(lambda item: item not in names_in_db, to_search))
     return scrape_packages(list(filtered))

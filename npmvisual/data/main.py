@@ -1,9 +1,10 @@
 from typing import Any
 
-from npmvisual._models.package import PackageData
 import npmvisual.utils as utils
-from . import database
+from npmvisual._models.package import PackageData
 from npmvisual.models import Package
+
+from . import database, scraper
 
 
 def _print_json_var(json_dict):
@@ -88,7 +89,7 @@ def search_and_scrape_recursive(
         to_search -= set(in_db.keys())
         if not_in_db:
             utils.nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
-            scraped: dict[str, PackageData] = scrape_packages(not_in_db)
+            scraped: dict[str, PackageData] = scraper.scrape_packages(not_in_db)
             all_scraped.update(scraped)
             found.update(scraped)
 
@@ -136,7 +137,7 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
         # build the relationships
         for dep in package_data.dependencies:
             dependency = _get_dependency(dep.package_id, all_package_data, cache)
-            relationship = package_data.package.dependencies.connect(
+            relationship = package_data.package.dependencies.connect(  # pyright: ignore
                 dependency, {"version": dep.version}
             )
             relationship.save()
