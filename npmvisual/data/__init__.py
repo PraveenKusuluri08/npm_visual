@@ -10,6 +10,4 @@ from flask import Blueprint
 
 bp = Blueprint("data", __name__)
 
-from npmvisual.data import routes
-from . import database
-from . import main
+from . import database, main, routes
