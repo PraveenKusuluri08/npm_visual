@@ -1,10 +1,6 @@
-from dataclasses import dataclass
 import datetime
-from logging import error
-from typing import Optional
-import npmvisual.utils as utils
+from dataclasses import dataclass
 
-from neomodel.properties import IntegerProperty
 import pytz
 from neomodel import (
     ArrayProperty,
@@ -17,6 +13,7 @@ from neomodel import (
     StructuredRel,
     db,
 )
+from neomodel.properties import IntegerProperty
 from neomodel.sync_.relationship_manager import ZeroOrMore
 
 from npmvisual._models.dependency import Dependency
@@ -78,7 +75,6 @@ class Package(StructuredNode, NSPrettyPrintable):
     keywords = ArrayProperty(StringProperty(), required=False)
     license = StringProperty(required=False)
 
-    # dependency_id_dict: dict[str, str] = ArrayProperty(StringProperty(), required=True)  # type: ignore
     dependencies = RelationshipTo(
         "Package", "DEPENDS_ON", cardinality=ZeroOrMore, model=DependencyRel
     )
