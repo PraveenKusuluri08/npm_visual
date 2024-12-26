@@ -5,10 +5,8 @@ from npmvisual.utils import get_all_package_names
 
 from .main import (
     scrape_packages as db_scrape_packages,
-    db_search_packages,
-    get_db_all_names,
 )
-
+from . import database
 
 # @bp.route("/deletePackages")
 # def delete_packages():
@@ -27,7 +25,7 @@ def test():
 @bp.route("/getDBPackages")
 def get_packages(package_names: list[str]) -> dict[str, PackageData]:
     found: dict[str, PackageData]
-    (found, not_found) = db_search_packages(set(package_names))
+    (found, not_found) = db.db_search_packages(set(package_names))
     return found
 
 
@@ -67,7 +65,7 @@ def scrape_popular_packages() -> str:
 @bp.route("/scrapeAllPackages")
 def scrape_all_packages() -> str:
     to_search = get_all_package_names(999)
-    names_in_db = get_db_all_names()
+    names_in_db = db.get_db_all_names()
     print("yes")
     filtered = list(filter(lambda item: item not in names_in_db, to_search))
     return scrape_packages(list(filtered))

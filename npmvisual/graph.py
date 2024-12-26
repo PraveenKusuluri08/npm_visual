@@ -8,9 +8,9 @@ import npmvisual.utils as utils
 from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import (
-    get_db_all,
     search_and_scrape_recursive,
 )
+from npmvisual.data import database
 
 bp = Blueprint("network", __name__)
 
@@ -50,7 +50,7 @@ def get_all_networks():
 @bp.route("/getAllDBNetworks", methods=["GET"])
 def get_all_db_networks():
     print("Getting all nodes in the db")
-    found = get_db_all()
+    found = database.get_db_all()
     print(f"Got all nodes in the db: {len(found)} packages")
 
     formatted_data = format_for_frontend(found)
