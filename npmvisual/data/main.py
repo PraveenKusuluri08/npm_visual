@@ -4,6 +4,7 @@ import logging
 from neomodel.sync_.match import Collect
 from neomodel import db
 
+from npmvisual._models.dependency import Dependency
 from npmvisual._models.package import PackageData
 import npmvisual.utils as utils
 from npmvisual.data.scraper import scrape_package_json
@@ -159,20 +160,21 @@ def search_and_scrape_recursive(
         found.update(in_db)
         to_search -= set(in_db.keys())
 
-        if len(not_in_db) == 0:
-            utils.nsprint("nothing found, breaking from loop.")
-            break
+        # if len(not_in_db) == 0:
+        #     utils.nsprint("nothing found, breaking from loop.")
+        #     break
 
-        utils.nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
-        scraped: dict[str, PackageData] = scrape_packages(not_in_db)
-        all_scraped.update(scraped)
-        found.update(scraped)
+        if not_in_db:
+            utils.nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
+            scraped: dict[str, PackageData] = scrape_packages(not_in_db)
+            all_scraped.update(scraped)
+            found.update(scraped)
 
-        to_search = set()
-        for package_data in scraped.values():
-            for dependency in package_data.dependencies:
-                if dependency.package_id not in found:
-                    to_search.add(dependency.package_id)
+            to_search = set()
+            for package_data in scraped.values():
+                for dependency in package_data.dependencies:
+                    if dependency.package_id not in found:
+                        to_search.add(dependency.package_id)
 
         # utils.nsprint(
         #     f"Scraping round {count} complete."
@@ -183,12 +185,12 @@ def search_and_scrape_recursive(
         #     utils.nsprint("Could not scrape anything this round. Exiting loop")
         #     break
         count += 1
-    utils.nsprint(f"all_scraped: {all_scraped}")
-    utils.nsprint(f"found: {found}")
-    found.update(all_scraped)
-    print()
-    utils.nsprint(f"found: {found}")
-    build_relationships(found)
+    # utils.nsprint(f"all_scraped: {all_scraped}")
+    # utils.nsprint(f"found: {found}")
+    # found.update(all_scraped)
+    # print()
+    # utils.nsprint(f"found: {found}")
+    build_relationships(all_scraped)
     return found
 
 
@@ -197,7 +199,7 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
     the db for every single package. Make sure they exist before calling this function.
     Additionally, all the packages in all_package_data should already be saved in the db.
     """
-    utils.nsprint("build_relationships()", 2)
+    utils.nsprint(f"build_relationships({all_package_data})", 2)
 
     def _get_dependency(
         name: str, all_package_data: dict[str, PackageData], cache: dict[str, Package]
@@ -211,8 +213,6 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
             return cache[name]
 
     cache: dict[str, Package] = {}
-    # new_packages = Package.nodes.filter(package_id__in=list(all_package_data.keys()))
-    # assert len(new_packages) == len(all_package_data)
     for package_data in all_package_data.values():
         if not package_data.dependencies:
             continue
@@ -226,30 +226,12 @@ def build_relationships(all_package_data: dict[str, PackageData]) -> None:
                 cache[p.package_id] = p
 
         # build the relationships
-        print()
-        print(type(package_data.dependencies))
-        print(package_data.dependencies)
         for dep in package_data.dependencies:
-            print(dep, 1)
-            print(f"   name: {dep.package_id}, version: {dep.version}")
             dependency = _get_dependency(dep.package_id, all_package_data, cache)
             relationship = package_data.package.dependencies.connect(
                 dependency, {"version": dep.version}
             )
             relationship.save()
-
-
-def get_unfound_dependency_names(
-    newly_found: dict[str, PackageData],
-    cache: dict[str, PackageData],
-):
-    to_search = set()
-    for package_data in newly_found.values():
-        for dependency in package_data.dependencies:
-            print(f"____ {dependency}")
-            id = dependency.package_id
-            if id not in not_found and id not in found:
-                utils.nsprint(f"added dependency:{id}", 3)
 
 
 def search_db_recursive(
@@ -262,30 +244,18 @@ def search_db_recursive(
     to_search = to_search.copy()
     found: dict[str, PackageData] = {}
     not_in_db: set[str] = set()
-
     while len(to_search) > 0:
-        utils.nsprint(f"Searching db for: {to_search}", 2)
         newly_found: dict[str, PackageData] = db_search_packages(to_search)
         not_found = to_search - set(newly_found.keys())
         not_in_db.update(not_found)
         found.update(newly_found)
-        # utils.nsprint(f"newly_found: {newly_found}", 1)
-        # utils.nsprint(
-        #     f"DB Search: Found: {len(newly_found)}, Not Found: {newly_not_found}, Found: {list(newly_found.keys())}",
-        #     2,
-        # )
-
         to_search = set()
         for package_data in newly_found.values():
             for dependency in package_data.dependencies:
-                print(f"____ {dependency}")
                 id = dependency.package_id
                 if id not in not_in_db and id not in found and id not in all_found:
-                    utils.nsprint(f"added dependency:{id}", 3)
+                    # utils.nsprint(f"added dependency:{id}", 3)
                     to_search.add(id)
-    # utils.nsprint(
-    #     f"recursive search round finished. found:{found}, not_fount: {not_found}", 1
-    # )
     return (found, not_in_db)
 
 
@@ -293,6 +263,7 @@ def db_search_packages(package_names: set[str]) -> dict[str, PackageData]:
     """
     Retrieves a list of packages and their dependencies.
     """
+    utils.nsprint(f"db_search_packages({package_names})", 3)
 
     found: dict[str, PackageData] = {}
     packages = Package.nodes.filter(package_id__in=list(package_names))
@@ -309,27 +280,16 @@ def db_search_packages(package_names: set[str]) -> dict[str, PackageData]:
             dep_version: r.version
         }) as dependencies
     """
-
-    # query = """
-    # MATCH (p:Package)-[r:DEPENDS_ON]->(dep:Package)
-    # WHERE p.package_id IN $package_names
-    # RETURN p
-    # """
-    results: list[list[tuple[str, list[dict[str, str]]]]]
-    results, meta = db.cypher_query(query, {"package_names": list(package_names)})
-    utils.nsprint(f"db_search_packages() type(results): {type(results)}", 4)
-    utils.nsprint(f"db_search_packages() results: {str(results)}", 4)
+    results: list[tuple[str, list[dict[str, str]]]]
+    results, meta = db.cypher_query(query, {"package_names": list(package_names)})  # type: ignore
+    # print(meta)
     for result in results:
-        utils.nsprint(f"db_search_packages() type(result): {type(result)}", 5)
-        utils.nsprint(f"db_search_packages() result: {str(result)}", 5)
-        for row in result:
-            utils.nsprint(f"db_search_packages() type(row): {type(row)}", 6)
-            utils.nsprint(f"db_search_packages() row: {str(row)}", 6)
-
-        # dependencies = result["dependencies"]
-        # package_id = result["package_id"]
-        # print()
-        # print(dependencies, package_id)
-        # raise Exception(found)
-    raise Exception()
+        package_id: str = result[0]
+        db_dependencies: dict[str, str] = result[1]  # type: ignore
+        # utils.nsprint(f"package_id: {str(package_id)}", 4)
+        dep_list: list[Dependency] = []
+        for row in db_dependencies:
+            # utils.nsprint(f"row: {str(row)}", 4)
+            dep_list.append(Dependency(row["dep_package_id"], row["dep_version"]))  # type: ignore
+        found[package_id].dependencies = dep_list
     return found

@@ -33,6 +33,7 @@ def _get_networks(
         set(package_names), max_count
     )
     print(f"Found: {len(found)} packages, Not Found: {-1}")
+    print(found)
 
     # if not_found:
     #     print(
@@ -127,6 +128,7 @@ def format_as_nx(data: dict[str, PackageData]):
     G: nx.DiGraph = nx.DiGraph()
 
     for p in data.values():
+        G.add_node(p.package.package_id)
         for d in p.dependencies:
             # G.add_edge(p.package.package_id, d.package_id)
             G.add_edge(d.package_id, p.package.package_id)
@@ -181,7 +183,7 @@ def _color_nodes(graph_data, G, data: dict[str, PackageData]):
     node_colors = {}
     default_color = _get_random_color()
     for i, community in enumerate(communities):
-        print(f"Community {i+1}: {community}")
+        # print(f"Community {i+1}: {community}")
         if len(community) > 1:
             color = _get_random_color()
             for community_id, node in enumerate(community):
@@ -190,11 +192,11 @@ def _color_nodes(graph_data, G, data: dict[str, PackageData]):
             for node in community:
                 node_colors[node] = (default_color, -1)
 
-    print(graph_data["nodes"])
+    # print(graph_data["nodes"])
     for node in graph_data["nodes"]:
         node["color"] = node_colors[node["id"]][0]
         node["color_id"] = node_colors[node["id"]][1]
-        print(f"    node: {node}")
+        # print(f"    node: {node}")
 
     return graph_data
 
@@ -205,5 +207,7 @@ def _get_random_color():
 
 
 def format_for_frontend(data: dict[str, PackageData]):
+    print(f"format_for_frontend({data})")
     nx_graph = format_as_nx(data)
+    print(f"nx_graph: {nx_graph}")
     return jsonify(nx_graph)
