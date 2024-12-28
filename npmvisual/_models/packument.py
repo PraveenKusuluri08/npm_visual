@@ -358,6 +358,17 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
             f"types={repr(self.types)}, workspaces={repr(self.workspaces)})"
         )
 
+    @classmethod
+    def from_json(cls, json_data: dict[str, Any]) -> "PackageJSON | None":
+        try:
+            # print(f"json_data: {json_data}")
+            return cls.model_validate(json_data)
+        except Exception as e:
+            print(f"Error during model validation: {e}")
+            return None
+
+
+
 
 class PackumentVersion(PackageJSON, NSPrettyPrintable):
     """
