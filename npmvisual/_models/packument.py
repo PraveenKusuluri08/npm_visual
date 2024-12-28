@@ -260,6 +260,7 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
         None, alias="bundleDependencies"
     )
     config: dict[str, Any] | None = None
+
     contributors: list[Contact | str] | None = None
     cpu: list[str] | None = None
     dependencies: dict[str, str] | None = None
@@ -451,8 +452,15 @@ class Packument(BaseModel, NSPrettyPrintable):
     @classmethod
     def from_json(cls, json_data: dict[str, Any]) -> "Packument | None":
         try:
+            # print(f"json_data: {json_data}")
+            print(type(json_data["contributors"]))
+            for contributor in json_data["contributors"]:
+                print(type(contributor))
+                print(contributor)
+            # print(f"contributors: {json_data['contributors']}")
             return cls.model_validate(json_data)
         except Exception as e:
+            print(f"Error during model validation: {e}")
             return None
 
         # add this back once we are ready for production. Currently, we want to fix all

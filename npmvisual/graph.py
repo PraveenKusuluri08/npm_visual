@@ -24,6 +24,7 @@ def get_networks(package_names: str):  # todo add type
 def _get_networks(
     package_names: list[str], max_count: int | utils.Infinity = utils.infinity
 ):
+    max_count = 100
     print(f"Fetching network for packages: {package_names}")
     found: dict[str, PackageData] = main.search_and_scrape_recursive(
         set(package_names), max_count

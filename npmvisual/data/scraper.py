@@ -51,6 +51,9 @@ def scrape_package(package_name: str) -> PackageData | None:
     # _print_json_var(json_dict)
     packument = Packument.from_json(json_dict)
     if not packument:
+        raise Exception(
+            "packument does not parse properly. fix this. This is unexpected."
+        )
         logging.error(
             f"Failed to convert scraped JSON to Packument for package: {package_name}"
         )
