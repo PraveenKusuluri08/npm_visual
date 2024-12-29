@@ -8,7 +8,7 @@ from . import database, scraper
 
 def search_and_scrape_recursive(
     package_names: set[str],
-    max_count: int | None,
+    max_package_count: int | None,
 ) -> dict[str, PackageData]:
     # todo, consider adding depth limit by tracking the depth each package is away from
     # seeds
@@ -23,7 +23,7 @@ def search_and_scrape_recursive(
         # assert not any(bad_keys)
         utils.nsprint(f"Searching round {depth}: db searching for: {to_search}", 1)
         (in_db, not_in_db) = database.search_db_recursive(
-            to_search, all_packages, max_count, depth
+            to_search, all_packages, max_package_count, depth
         )
         all_packages.update(in_db)
         to_search -= set(in_db.keys())
@@ -39,11 +39,11 @@ def search_and_scrape_recursive(
                     if dependency.package_id not in all_packages:
                         to_search.add(dependency.package_id)
         depth += 1
-    build_relationships(all_scraped, all_packages)
+    _build_relationships(all_scraped, all_packages)
     return all_packages
 
 
-def build_relationships(new_packages: dict[str, PackageData], cache: dict[str, PackageData]) -> None:
+def _build_relationships(new_packages: dict[str, PackageData], cache: dict[str, PackageData]) -> None:
     """It is assumed that when this function is called, all the dependencies exist in
     the db for every single package. Make sure they exist before calling this function.
     Additionally, all the packages in all_package_data should already be saved in the db.

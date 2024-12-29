@@ -1,5 +1,7 @@
 """We are no longer using this. This will likely be deleted if I can not find a reason to 
-keep it around"""
+keep it around. 
+
+IDEA: use this for testing. """
 
 import os
 import shutil
