@@ -14,73 +14,48 @@ def search_and_scrape_recursive(
     # seeds
     print(f"\nstart of search_and_scrape_recursive: package_names:{package_names}")
     to_search: set[str] = package_names.copy()
-    found: dict[str, PackageData] = {}
+    all_packages: dict[str, PackageData] = {}
     all_scraped: dict[str, PackageData] = {}
 
     count = 0
     while len(to_search) > 0:
-        if max_count and len(found) > max_count:
+        if max_count and len(all_packages) > max_count:
             break
-        bad_keys = [key for key in to_search if key in found]
+        bad_keys = [key for key in to_search if key in all_packages]
         assert not any(bad_keys)
         utils.nsprint(f"Searching round {count}: db searching for: {to_search}", 1)
         (in_db, not_in_db) = database.search_db_recursive(
-            to_search, found, max_count, count
+            to_search, all_packages, max_count, count
         )
-        found.update(in_db)
+        all_packages.update(in_db)
         to_search -= set(in_db.keys())
         if not_in_db:
             utils.nsprint(f"  Some packages not in db. Searching online: {not_in_db}")
             scraped: dict[str, PackageData] = scraper.scrape_packages(not_in_db)
             all_scraped.update(scraped)
-            found.update(scraped)
+            all_packages.update(scraped)
 
             to_search = set()
             for package_data in scraped.values():
                 for dependency in package_data.dependencies:
-                    if dependency.package_id not in found:
+                    if dependency.package_id not in all_packages:
                         to_search.add(dependency.package_id)
         count += 1
-    build_relationships(all_scraped)
-    return found
+    build_relationships(all_scraped, all_packages)
+    return all_packages
 
 
-def build_relationships(all_package_data: dict[str, PackageData]) -> None:
+def build_relationships(new_packages: dict[str, PackageData], cache: dict[str, PackageData]) -> None:
     """It is assumed that when this function is called, all the dependencies exist in
     the db for every single package. Make sure they exist before calling this function.
     Additionally, all the packages in all_package_data should already be saved in the db.
     """
-    utils.nsprint(f"build_relationships({all_package_data})", 2)
-
-    def _get_dependency(
-        name: str, all_package_data: dict[str, PackageData], cache: dict[str, Package]
-    ) -> Package:
-        print(
-            f" build_relationships(): name: {name}, all_package_data.keys(): {all_package_data.keys()}, cache: {cache}"
-        )
-        if name in all_package_data:
-            return all_package_data[name].package
-        else:
-            return cache[name]
-
-    cache: dict[str, Package] = {}
-    for package_data in all_package_data.values():
-        if not package_data.dependencies:
-            continue
-        not_loaded = set(
-            [dep.package_id for dep in package_data.dependencies]
-        ).difference(all_package_data.keys(), cache.keys())
-        # update cache
-        if len(not_loaded):
-            loaded = Package.nodes.filter(package_id__in=list(not_loaded))
-            for p in loaded:
-                cache[p.package_id] = p
-
-        # build the relationships
+    utils.nsprint(f"build_relationships({[new_packages.keys()]})", 2)
+    for package_data in new_packages.values():
         for dep in package_data.dependencies:
-            dependency = _get_dependency(dep.package_id, all_package_data, cache)
+            dependency = cache[dep.package_id]
             relationship = package_data.package.dependencies.connect(  # pyright: ignore
-                dependency, {"version": dep.version}
+                dependency.package, {"version": dep.version}
             )
             relationship.save()
 
