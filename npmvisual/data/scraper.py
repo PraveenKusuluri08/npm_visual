@@ -42,7 +42,7 @@ def scrape_packages(
 
 
 def scrape_package(package_name: str) -> PackageData | None:
-    utils.nsprint("scrape_package()", 3)
+    # utils.nsprint("scrape_package()", 3)
     # try:
     json_dict = scrape_package_json(package_name)
     if not json_dict:
