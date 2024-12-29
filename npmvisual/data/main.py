@@ -17,15 +17,13 @@ def search_and_scrape_recursive(
     all_packages: dict[str, PackageData] = {}
     all_scraped: dict[str, PackageData] = {}
 
-    count = 0
+    depth = 0
     while len(to_search) > 0:
-        if max_count and len(all_packages) > max_count:
-            break
-        bad_keys = [key for key in to_search if key in all_packages]
-        assert not any(bad_keys)
-        utils.nsprint(f"Searching round {count}: db searching for: {to_search}", 1)
+        # bad_keys = [key for key in to_search if key in all_packages]
+        # assert not any(bad_keys)
+        utils.nsprint(f"Searching round {depth}: db searching for: {to_search}", 1)
         (in_db, not_in_db) = database.search_db_recursive(
-            to_search, all_packages, max_count, count
+            to_search, all_packages, max_count, depth
         )
         all_packages.update(in_db)
         to_search -= set(in_db.keys())
@@ -40,7 +38,7 @@ def search_and_scrape_recursive(
                 for dependency in package_data.dependencies:
                     if dependency.package_id not in all_packages:
                         to_search.add(dependency.package_id)
-        count += 1
+        depth += 1
     build_relationships(all_scraped, all_packages)
     return all_packages
 
