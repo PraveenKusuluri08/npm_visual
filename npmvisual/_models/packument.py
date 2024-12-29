@@ -292,7 +292,7 @@ class PackageJSON(BaseModel, NSPrettyPrintable):
         | str
         | None
     ) = None
-    main: str | None = None
+    main: str | bool | None = None
     man: str | list[str | dict[str, str]] | None = None
     optional_dependencies: dict[str, str] | None = Field(
         None, alias="optionalDependencies"
@@ -462,13 +462,20 @@ class Packument(BaseModel, NSPrettyPrintable):
 
     @classmethod
     def from_json(cls, json_data: dict[str, Any]) -> "Packument | None":
+        # for field in json_data:
+        #     print(field)
+        return cls.model_validate(json_data)
         try:
             # print(f"json_data: {json_data}")
-            print(type(json_data["contributors"]))
-            for contributor in json_data["contributors"]:
-                print(type(contributor))
-                print(contributor)
-            # print(f"contributors: {json_data['contributors']}")
+            # print("##"* 55)
+            # if json_data["contributors"]:
+            #     print(json_data["contributors"])
+            #     print(type(json_data["contributors"]))
+            #     for contributor in json_data["contributors"]:
+            #         print(type(contributor))
+            #         print(contributor)
+            # # print(f"contributors: {json_data['contributors']}")
+            # print("--"* 55)
             return cls.model_validate(json_data)
         except Exception as e:
             print(f"Error during model validation: {e}")
