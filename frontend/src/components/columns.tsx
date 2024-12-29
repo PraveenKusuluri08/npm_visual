@@ -1,20 +1,35 @@
-"use client";
-
 import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "./ui/button";
+import { ArrowUpDown } from "lucide-react"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
-export type Node = {
-	id: string;
-};
 
-export const columns: ColumnDef<{ id: string }>[] = [
-	{
-		accessorKey: "id",
-		header: "ID",
-	},
-	{
-		accessorKey: "inDegree",
-		header: "In Degree",
-	},
+export const columns: ColumnDef<Node>[] = [
+  {
+    accessorKey: "id",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Name
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "inDegree",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          In Degree
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
 ];
