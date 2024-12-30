@@ -3,8 +3,8 @@ import { GraphData, Node } from "./utils/models";
 import Crudbar from "./components/Crudbar";
 import BackendTools from "./components/BackendTools";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
-import { NodeTable } from "./components/NodeTable";
-import { columns } from "./components/columns";
+import { NodeTable } from "./components/table/NodeTable";
+import { columns } from "./components/table/columns";
 
 const App = () => {
   const onResponseChanged = (data: GraphData) => {
@@ -34,7 +34,7 @@ const App = () => {
     <div className="flex flex-col w-full h-full justify-between">
       <Crudbar onResponse={onResponseChanged} />
       <div className="flex flex-row grow shrink overflow-hidden">
-        <div className="overflow-auto">
+        <div className="">
           <NodeTable columns={columns} data={tableData}></NodeTable>
         </div>
         <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
