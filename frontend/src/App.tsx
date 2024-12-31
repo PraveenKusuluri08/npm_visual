@@ -3,7 +3,7 @@ import { GraphData, Node } from "./utils/models";
 import Crudbar from "./components/Crudbar";
 import BackendTools from "./components/BackendTools";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
-import { NodeTable } from "./components/table/NodeTable";
+import { NodeTable } from "./components/table/NodeTableContainer";
 import { columns } from "./components/table/columns";
 
 const App = () => {
