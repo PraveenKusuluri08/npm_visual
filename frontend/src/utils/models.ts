@@ -1,6 +1,7 @@
 export type Node = {
   id: string;
-  inDegree: number
+  inDegree?: number
+  outDegree?: number
   index: number
   val: number
 };

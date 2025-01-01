@@ -54,7 +54,7 @@ export function NodeTable<TData, TValue>({
   })
 
   return (
-    <div className="rounded-md border h-full">
+    <div className="rounded-md border h-full flex flex-col">
       <div className="flex items-center py-4 gap-2">
         <Input
           placeholder="Filter packages..."

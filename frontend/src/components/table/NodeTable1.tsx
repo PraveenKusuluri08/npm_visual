@@ -30,6 +30,36 @@ export function NodeTable1<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
+  const tableBodyRef = React.useRef<HTMLDivElement>(null)
+  const wrapperRef = React.useRef<HTMLTableSectionElement>(null)
+
+  const setHeight = () => {
+    console.log("setHeight()")
+    if (wrapperRef?.current && tableBodyRef?.current) {
+      console.log("wrapperRef:  " + wrapperRef.current?.clientHeight)
+      console.log("tableBodyRef: " + tableBodyRef.current?.clientHeight)
+      tableBodyRef.current.style.height = wrapperRef.current.clientHeight + 'px'
+      console.log(tableBodyRef.current.style.height)
+    }
+  }
+
+  React.useEffect(() => {
+    // console.log(ref)
+    setHeight()
+    const resizeObserver = new ResizeObserver(() => {
+      setHeight()
+    })
+    console.log(tableBodyRef)
+    if (wrapperRef?.current && tableBodyRef?.current) {
+      console.log("tableBodyRef exists")
+      resizeObserver.observe(wrapperRef.current)
+    }
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -53,8 +83,8 @@ export function NodeTable1<TData, TValue>({
   })
 
   return (
-    <div className="rounded-md border">
-      <Table wrapperClassName="h-[650px]">
+    <div ref={wrapperRef} className="rounded-md border grow">
+      <Table ref={tableBodyRef} wrapperClassName="">
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
