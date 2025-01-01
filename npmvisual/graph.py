@@ -9,6 +9,7 @@ from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import main
 from npmvisual.data import database
+from .data_for_frontend import DataForFrontend
 
 bp = Blueprint("network", __name__)
 
@@ -99,7 +100,7 @@ def analyze_network(package_name: str):
         return jsonify({"error": str(e)}), 500
 
 
-def format_as_nx(data: dict[str, PackageData]):
+def format_as_nx(data: dict[str, DataForFrontend]):
     """
     Converts the given package data into a NetworkX graph and formats it into a structure
     with in-degrees and colors based on SCCs.
@@ -117,19 +118,59 @@ def format_as_nx(data: dict[str, PackageData]):
     # print(f"\n\nValues:{data.values()}")
     for p in data.values():
         # print(p)
-        G.add_node(p.package.package_id)
-        for d in p.dependencies:
+        G.add_node(p.packageData.package.package_id)
+        for d in p.packageData.dependencies:
             # G.add_edge(p.package.package_id, d.package_id)
-            G.add_edge(d.package_id, p.package.package_id)
+            G.add_edge(d.package_id, p.packageData.package.package_id)
 
     # Prepare the graph data in node-link format
     graph_data = nx.node_link_data(G, edges="links")
-    graph_data = _add_val(graph_data, G, data)
-    graph_data = _color_nodes(graph_data, G, data)
+    print(f"graph_data1: {graph_data}")
+    graph_data = _set_in_degree(graph_data, G, data)
+    print(f"graph_data2: {graph_data}")
+    data = _set_val(data)
+    print(f"graph_data3: {graph_data}")
+    graph_data = _color_nodes(graph_data, G)
 
     # Return the graph data for frontend
     return graph_data
 
+def _set_val(data: dict[str, DataForFrontend]) -> dict[str, DataForFrontend]:
+    for p in data.values():
+        if p.in_degree:
+            p.val = p.in_degree
+        else: 
+            p.val = -1
+    return data
+
+def _set_in_degree(graph_data, G, data: dict[str, DataForFrontend]):
+    # Get in-degrees for normalization
+    largest_in_degree: int = 0
+    for fd in data.values():
+        largest_in_degree = max(
+            largest_in_degree,
+            len(fd.packageData.dependencies),
+        )
+    in_degrees: dict[str, int] = dict(G.in_degree())
+
+    # Set the base size multiplier (you can adjust this to control overall size)
+    size_exponent = 1.15
+    size_multiplier = 5  # Adjust this to fine-tune node size scaling
+
+    # Loop over nodes and apply stronger exponential scaling
+    for node in graph_data["nodes"]:  # pyright: ignore[reportUnknownVariableType]
+        node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
+        in_degree: int = in_degrees[node_id]
+
+        node["inDegree"] = in_degree
+
+        # Apply stronger exponential scaling
+        # Using in_degree**2 (quadratic scaling) for more drastic size differences
+        node["val"] = (
+            in_degree**size_exponent
+        ) * size_multiplier  # Apply quadratic scaling
+
+    return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 def _add_val(graph_data, G, data: dict[str, PackageData]):
     # Get in-degrees for normalization
@@ -161,7 +202,7 @@ def _add_val(graph_data, G, data: dict[str, PackageData]):
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 
-def _color_nodes(graph_data, G, data: dict[str, PackageData]):
+def _color_nodes(graph_data, G):
     undirected = G.copy().to_undirected()
     communities = nx.community.louvain_communities(undirected)
     node_colors = {}
@@ -176,7 +217,7 @@ def _color_nodes(graph_data, G, data: dict[str, PackageData]):
             for node in community:
                 node_colors[node] = (default_color, -1)
 
-    # print(graph_data["nodes"])
+    print(f"graph_data: {graph_data}")
     for node in graph_data["nodes"]:
         node["color"] = node_colors[node["id"]][0]
         node["color_id"] = node_colors[node["id"]][1]
@@ -190,6 +231,7 @@ def _get_random_color():
 
 def format_for_frontend(data: dict[str, PackageData]):
     # print(f"data: {data}")
-    nx_graph = format_as_nx(data)
+    data_with_analysis = DataForFrontend.from_package_data(data)
+    nx_graph = format_as_nx(data_with_analysis)
     # print(f"\n\nnx_graph: {nx_graph}")
     return jsonify(nx_graph)
