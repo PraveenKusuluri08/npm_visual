@@ -109,8 +109,7 @@ def _create_nx_graph(data: dict[str, PackageDataAnalyzed]):
         G.add_node(p.package_data.package.package_id)
         for d in p.package_data.dependencies:
             # G.add_edge(p.package.package_id, d.package_id)
-            # Todo: this is backwards. 
-            G.add_edge(d.package_id, p.package_data.package.package_id)
+            G.add_edge(p.package_data.package.package_id, d.package_id)
     return G
 
 
@@ -147,6 +146,7 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
         graph = G.graph,
         directed = True
     )
+    _set_out_degree(graph_data, G)
     _set_in_degree(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
@@ -164,36 +164,28 @@ def _set_val(graph_data: DataForFrontend):
     size_multiplier = 4  # Adjust this to fine-tune node size scaling
 
     # Loop over nodes and apply stronger exponential scaling
+    
     for node in graph_data.nodes: 
         # Apply stronger exponential scaling
-        if node.in_degree is None:
+        if node.out_degree is None:
             raise Exception(f"node has no in degree to convert to val: {node}")
         node.val = (
-            (node.in_degree + 1)**size_exponent
+            (node.out_degree + 1)**size_exponent
         ) * size_multiplier  # Apply quadratic scaling
 
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
-
 def _set_in_degree(graph_data: DataForFrontend, G):
-    # Get in-degrees for normalization
-    largest_in_degree: int = 0
-    for x in graph_data.nodes:
-        if x.package_data is None: 
-            raise Exception(f"Invalid Data: packageData is None for: {x}")
-        if x.package_data.dependencies is None: 
-            raise Exception(f"Invalid Data: Dependencies is none for: {x.package_data}")
-        largest_in_degree = max(
-            largest_in_degree,
-            len(x.package_data.dependencies)
-        )
     in_degrees: dict[str, int] = dict(G.in_degree())
-
-
-    # Loop over nodes and apply stronger exponential scaling
     for node in graph_data.nodes: 
         node.in_degree = in_degrees[node.id]
-    return graph_data  # pyright: ignore[reportUnknownVariableType]
+    return graph_data  
+
+def _set_out_degree(graph_data: DataForFrontend, G):
+    out_degrees: dict[str, int] = dict(G.out_degree())
+    for node in graph_data.nodes: 
+        node.out_degree = out_degrees[node.id]
+    return graph_data 
 
 
 def _color_nodes(graph_data: DataForFrontend, G):
