@@ -33,6 +33,20 @@ export const columns: ColumnDef<Node>[] = [
     },
   },
   {
+    accessorKey: "betweennessCentrality",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Betweenness Centrality
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
     accessorKey: "inDegree",
     header: ({ column }) => {
       return (

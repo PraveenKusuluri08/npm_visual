@@ -148,6 +148,7 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     )
     _set_out_degree(graph_data, G)
     _set_in_degree(graph_data, G)
+    _set_betweenness_centrality(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
     _remove_unwanted_data(graph_data)
@@ -174,6 +175,13 @@ def _set_val(graph_data: DataForFrontend):
         ) * size_multiplier  # Apply quadratic scaling
 
     return graph_data  # pyright: ignore[reportUnknownVariableType]
+
+def _set_betweenness_centrality(graph_data: DataForFrontend, G):
+    betweenness_centrality = nx.betweenness_centrality(G, normalized=True, endpoints=False)
+    print(betweenness_centrality)
+    for node in graph_data.nodes: 
+        node.betweenness_centrality = betweenness_centrality[node.id]
+    return graph_data
 
 def _set_in_degree(graph_data: DataForFrontend, G):
     in_degrees: dict[str, int] = dict(G.in_degree())
