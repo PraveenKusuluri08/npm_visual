@@ -1,17 +1,13 @@
-# pyright: basic
 import random
 
 import networkx as nx
 from flask import Blueprint, jsonify
-from networkx.classes.function import edges
-from networkx.generators import directed
 
-from npmvisual._models import package
 import npmvisual.utils as utils
-from npmvisual._models.package import Package, PackageData
+from npmvisual._models.package import PackageData
 from npmvisual.commonpackages import get_popular_package_names
-from npmvisual.data import main
-from npmvisual.data import database
+from npmvisual.data import database, main
+
 from .data_for_frontend import DataForFrontend, PackageDataAnalyzed
 
 bp = Blueprint("network", __name__)
@@ -150,13 +146,10 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
         graph = G.graph,
         directed = True
     )
-    print(f"data: {data}")
     _set_in_degree(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
     _remove_unwanted_data(graph_data)
-
-    # Return the graph data for frontend
     return graph_data
 
 def _remove_unwanted_data(graph_data: DataForFrontend):
