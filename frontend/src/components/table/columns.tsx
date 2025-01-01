@@ -19,6 +19,20 @@ export const columns: ColumnDef<Node>[] = [
     },
   },
   {
+    accessorKey: "outDegree",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          out Degree
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
     accessorKey: "inDegree",
     header: ({ column }) => {
       return (
