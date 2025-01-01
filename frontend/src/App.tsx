@@ -8,9 +8,6 @@ import { columns } from "./components/table/columns";
 
 const App = () => {
   const manageGraphData = (data: GraphData) => {
-    for (const node of data.nodes) {
-      node.val = node.inDegree ?? -1
-    }
     return data
   }
   const onResponseChanged = (data: GraphData) => {

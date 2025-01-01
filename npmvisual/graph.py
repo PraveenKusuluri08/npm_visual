@@ -142,7 +142,6 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     else:
         edges = [{**d, "source": u, "target": v} for u, v, d in G.edges(data=True)]
 
-    # nodes =  [{**G.nodes[n], "id": n} for n in G],
     nodes: list[PackageDataAnalyzed] = list(data.values())
     graph_data = DataForFrontend(
         links = edges,
@@ -152,10 +151,8 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
         directed = True
     )
     print(f"data: {data}")
-    # print(f"graph_data1: {graph_data}")
     _set_in_degree(graph_data, G)
-    # print(f"graph_data2: {graph_data}")
-    _set_val(graph_data, data)
+    _set_val(graph_data)
     _color_nodes(graph_data, G)
     _remove_unwanted_data(graph_data)
 
@@ -167,25 +164,26 @@ def _remove_unwanted_data(graph_data: DataForFrontend):
         node.packageData = None
 
 
-def _set_val(graph_data, data: dict[str, PackageDataAnalyzed]) -> dict[str, PackageDataAnalyzed]:
+def _set_val(graph_data: DataForFrontend):
     # Set the base size multiplier (you can adjust this to control overall size)
     size_exponent = 1.15
-    size_multiplier = 5  # Adjust this to fine-tune node size scaling
+    size_multiplier = 4  # Adjust this to fine-tune node size scaling
 
     # Loop over nodes and apply stronger exponential scaling
     for node in graph_data.nodes: 
         # Apply stronger exponential scaling
-        # Using in_degree**2 (quadratic scaling) for more drastic size differences
+        if node.in_degree is None:
+            raise Exception(f"node has no in degree to convert to val: {node}")
         node.val = (
-            node.in_degree**size_exponent
+            (node.in_degree + 1)**size_exponent
         ) * size_multiplier  # Apply quadratic scaling
-    return graph_data
+
+    return graph_data  # pyright: ignore[reportUnknownVariableType]
+
 
 def _set_in_degree(graph_data: DataForFrontend, G):
     # Get in-degrees for normalization
     largest_in_degree: int = 0
-    print()
-    print(graph_data.nodes)
     for x in graph_data.nodes:
         if x.packageData is None: 
             raise Exception(f"Invalid Data: packageData is None for: {x}")
@@ -201,35 +199,6 @@ def _set_in_degree(graph_data: DataForFrontend, G):
     # Loop over nodes and apply stronger exponential scaling
     for node in graph_data.nodes: 
         node.in_degree = in_degrees[node.id]
-    return graph_data  # pyright: ignore[reportUnknownVariableType]
-
-def _add_val(graph_data, G, data: dict[str, PackageData]):
-    # Get in-degrees for normalization
-    largest_in_degree: int = 0
-    for p in data.values():
-        largest_in_degree = max(
-            largest_in_degree,
-            len(p.dependencies),
-        )
-    in_degrees: dict[str, int] = dict(G.in_degree())
-
-    # Set the base size multiplier (you can adjust this to control overall size)
-    size_exponent = 1.15
-    size_multiplier = 5  # Adjust this to fine-tune node size scaling
-
-    # Loop over nodes and apply stronger exponential scaling
-    for node in graph_data["nodes"]:  # pyright: ignore[reportUnknownVariableType]
-        node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
-        in_degree: int = in_degrees[node_id]
-
-        node["inDegree"] = in_degree
-
-        # Apply stronger exponential scaling
-        # Using in_degree**2 (quadratic scaling) for more drastic size differences
-        node["val"] = (
-            in_degree**size_exponent
-        ) * size_multiplier  # Apply quadratic scaling
-
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 
@@ -248,7 +217,7 @@ def _color_nodes(graph_data: DataForFrontend, G):
             for node in community:
                 node_colors[node] = (default_color, -1)
 
-    print(f"graph_data: {graph_data}")
+    # print(f"graph_data: {graph_data}")
     for node in graph_data.nodes:
         node.color = node_colors[node.id][0]
         node.color_id = node_colors[node.id][1]
@@ -263,6 +232,6 @@ def _get_random_color():
 def format_for_frontend(data: dict[str, PackageData]):
     # print(f"data: {data}")
     data_with_analysis = PackageDataAnalyzed.from_package_data(data)
-    nx_graph = format_as_nx(data_with_analysis)
+    data_for_frontend = format_as_nx(data_with_analysis)
     # print(f"\n\nnx_graph: {nx_graph}")
-    return jsonify(nx_graph)
+    return jsonify(data_for_frontend)
