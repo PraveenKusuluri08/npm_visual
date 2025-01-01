@@ -25,6 +25,40 @@ export const columns: ColumnDef<Node>[] = [
     cell: (info) => info.getValue(),
   },
   {
+    accessorKey: "inDegree",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="break-words whitespace-normal"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Direct Dependent of (in degree)
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+    // 'In Degree' is typically an integer, no decimals needed.
+    cell: (info) => formatNumber(info.getValue(), 0),
+  },
+  {
+    accessorKey: "predecessors",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="break-words whitespace-normal"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Dependent of
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+    // If 'id' is not a number, no formatting needed.
+    cell: (info) => info.getValue(),
+  },
+  {
     accessorKey: "outDegree",
     header: ({ column }) => {
       return (
@@ -33,13 +67,30 @@ export const columns: ColumnDef<Node>[] = [
           className="break-words whitespace-normal"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Out Degree
+          Direct Dependent of (out degree)
           <ArrowUpDown />
         </Button>
       )
     },
     // Assume 'outDegree' is a whole number, no decimal places needed.
     cell: (info) => formatNumber(info.getValue(), 0),
+  },
+  {
+    accessorKey: "successors",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="break-words whitespace-normal"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Depends on
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+    // If 'id' is not a number, no formatting needed.
+    cell: (info) => info.getValue(),
   },
   {
     accessorKey: "closenessCentrality",
@@ -145,22 +196,5 @@ export const columns: ColumnDef<Node>[] = [
       const value = info.getValue(); // This gets the boolean value
       return <span>{value ? "Yes" : "No"}</span>; // Render "Yes" for true and "No" for false
     },
-  },
-  {
-    accessorKey: "inDegree",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          className="break-words whitespace-normal"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          In Degree
-          <ArrowUpDown />
-        </Button>
-      )
-    },
-    // 'In Degree' is typically an integer, no decimals needed.
-    cell: (info) => formatNumber(info.getValue(), 0),
   },
 ];

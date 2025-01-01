@@ -146,14 +146,26 @@ def format_as_nx(seed_nodes: set[str], data: dict[str, PackageDataAnalyzed]) -> 
         graph = G.graph,
         directed = True
     )
-    _set_out_degree(graph_data, G)
+    _get_indirect_relationships(graph_data, G)
     _set_in_degree(graph_data, G)
+    _set_out_degree(graph_data, G)
     _set_graph_metrics(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
     _set_seed_nodes(graph_data, seed_nodes)
     _remove_unwanted_data(graph_data)
+
     return graph_data
+
+def _get_indirect_relationships(graph_data: DataForFrontend, G: nx.DiGraph):
+    # Dictionary to store the set of related package names for each node
+    successors: dict[str, list[str]] = nx.dfs_successors(G)
+    predecessors: dict[str, list[str]] = nx.dfs_predecessors(G)
+
+    for data in graph_data.nodes:
+        print(successors)
+        data.successors = successors.get(data.id, [])
+        data.predecessors = predecessors.get(data.id, [])
 
 def _set_seed_nodes(graph_data: DataForFrontend, seed_nodes: set[str]):
     for node in graph_data.nodes:

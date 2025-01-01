@@ -8,6 +8,8 @@ class PackageDataAnalyzed:
     id: str
     package_data: PackageData | None
     val: float | None
+    successors: list[str] | None = None
+    predecessors: list[str] | None = None
     betweenness_centrality: float | None = None
     closeness_centrality: float | None = None
     eigenvector_centrality: float | None = None
@@ -34,6 +36,8 @@ class PackageDataAnalyzed:
             "val": self.val,
             "isSeed": self.is_seed,
             "inDegree": self.in_degree,
+            "successors": self.successors,
+            "predecessors": self.predecessors,
             "betweennessCentrality": self.betweenness_centrality,
             "closenessCentrality": self.closeness_centrality,
             "eigenvectorCentrality": self.eigenvector_centrality,
