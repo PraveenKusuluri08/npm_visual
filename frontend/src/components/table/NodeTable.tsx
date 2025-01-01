@@ -23,6 +23,11 @@ export function NodeTable<TData, TValue>({
   columns,
   table,
 }: DataTableProps<TData, TValue>) {
+  /** Getting a react shadcn table to scroll in the body of the table is a difficult 
+   * task. I had to dynamically change the height with javascript so that it fills its 
+   * container. They I had to do some css tricks you can see below to get the scrolling 
+   * behaviour to work. I can not find a way to do both all in css. That is why this 
+   * component seems excessively complex.**/
   const tableBodyRef = React.useRef<HTMLDivElement>(null)
   const wrapperRef = React.useRef<HTMLTableSectionElement>(null)
 
