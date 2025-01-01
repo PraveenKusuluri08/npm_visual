@@ -10,6 +10,9 @@ class PackageDataAnalyzed:
     val: float | None
     betweenness_centrality: float | None = None
     closeness_centrality: float | None = None
+    eigenvector_centrality: float | None = None
+    clustering_coefficient: float | None = None
+    pagerank: float | None = None
     in_degree: int | None = None
     out_degree: int | None = None
     color: str | None = None
@@ -31,6 +34,9 @@ class PackageDataAnalyzed:
             "inDegree": self.in_degree,
             "betweennessCentrality": self.betweenness_centrality,
             "closenessCentrality": self.closeness_centrality,
+            "eigenvectorCentrality": self.eigenvector_centrality,
+            "pagerank": self.pagerank,
+            "clusteringCoefficient": self.clustering_coefficient,
             "outDegree": self.out_degree,
             "color": self.color,
             "colorId": self.color_id

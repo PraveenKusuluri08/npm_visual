@@ -148,8 +148,7 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     )
     _set_out_degree(graph_data, G)
     _set_in_degree(graph_data, G)
-    _set_betweenness_centrality(graph_data, G)
-    _set_closeness_centrality(graph_data, G)
+    _set_graph_metrics(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
     _remove_unwanted_data(graph_data)
@@ -177,22 +176,28 @@ def _set_val(graph_data: DataForFrontend):
 
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
-def _set_betweenness_centrality(graph_data: DataForFrontend, G):
-    betweenness_centrality = nx.betweenness_centrality(G, normalized=True, endpoints=False)
-    for node in graph_data.nodes: 
-        node.betweenness_centrality = betweenness_centrality[node.id]
 
-def _set_closeness_centrality(graph_data: DataForFrontend, G):
+def _set_graph_metrics(graph_data: DataForFrontend, G):
+    # Calculate various centrality measures and metrics
+    betweenness_centrality = nx.betweenness_centrality(G, normalized=True, endpoints=False)
     closeness_centrality = nx.closeness_centrality(G)
     n = len(G.nodes)
     normalized_closeness_centrality = {
         node_id: value / (n - 1)  # Normalize by the maximum possible value
         for node_id, value in closeness_centrality.items()
     }
-
-    # Assign the normalized closeness centrality to the nodes
+    eigenvector_centrality = nx.eigenvector_centrality(G, max_iter=1000, tol=1e-4)
+    pagerank = nx.pagerank(G)
+    clustering_coefficient = nx.clustering(G)
+    
+    # Assign the calculated metrics to nodes
     for node in graph_data.nodes:
+        node.betweenness_centrality = betweenness_centrality[node.id]
         node.closeness_centrality = normalized_closeness_centrality[node.id]
+        node.eigenvector_centrality = eigenvector_centrality[node.id]
+        node.pagerank = pagerank[node.id]
+        node.clustering_coefficient = clustering_coefficient[node.id]
+    return graph_data
 
 def _set_in_degree(graph_data: DataForFrontend, G):
     in_degrees: dict[str, int] = dict(G.in_degree())
@@ -205,7 +210,6 @@ def _set_out_degree(graph_data: DataForFrontend, G):
     for node in graph_data.nodes: 
         node.out_degree = out_degrees[node.id]
     return graph_data 
-
 
 def _color_nodes(graph_data: DataForFrontend, G):
     undirected = G.copy().to_undirected()
@@ -241,5 +245,5 @@ def format_for_frontend(data: dict[str, PackageData]):
     # print(f"\n\nnx_graph: {nx_graph}")
     serialized_data_for_frontend = data_for_frontend.to_dict()
     x = jsonify(serialized_data_for_frontend)
-    print(json.dumps(serialized_data_for_frontend))
+    # print(json.dumps(serialized_data_for_frontend))
     return x    

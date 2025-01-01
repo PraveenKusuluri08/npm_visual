@@ -47,6 +47,48 @@ export const columns: ColumnDef<Node>[] = [
     },
   },
   {
+    accessorKey: "eigenvectorCentrality",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Eigenvector Centrality
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "clusteringCoefficient",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Clustering Coefficient
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
+    accessorKey: "pagerank",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Pagerank
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+  },
+  {
     accessorKey: "betweennessCentrality",
     header: ({ column }) => {
       return (
