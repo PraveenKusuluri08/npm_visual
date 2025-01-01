@@ -26,7 +26,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function NodeTable1<TData, TValue>({
+export function NodeTable<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {

@@ -3,7 +3,7 @@ import { GraphData, Node } from "./utils/models";
 import Crudbar from "./components/Crudbar";
 import BackendTools from "./components/BackendTools";
 import NpmVisualGraph3d from "./components/NpmVisualGraph3d";
-import { NodeTable } from "./components/table/NodeTableContainer";
+import { NodeTableContainer } from "./components/table/NodeTableContainer";
 import { columns } from "./components/table/columns";
 
 const App = () => {
@@ -35,7 +35,7 @@ const App = () => {
       <Crudbar onResponse={onResponseChanged} />
       <div className="flex flex-row grow shrink overflow-hidden">
         <div className="">
-          <NodeTable columns={columns} data={tableData}></NodeTable>
+          <NodeTableContainer columns={columns} data={tableData}></NodeTableContainer>
         </div>
         <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
       </div>

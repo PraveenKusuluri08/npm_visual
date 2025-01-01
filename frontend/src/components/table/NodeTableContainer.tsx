@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 // import { NodeTable2 } from "./NodeTable2"
-import { NodeTable1 } from "./NodeTable1"
+import { NodeTable } from "./NodeTable"
 import React from "react";
 
 interface DataTableProps<TData, TValue> {
@@ -27,7 +27,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
 }
 
-export function NodeTable<TData, TValue>({
+export function NodeTableContainer<TData, TValue>({
   columns,
   data,
 }: DataTableProps<TData, TValue>) {
@@ -91,7 +91,7 @@ export function NodeTable<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <NodeTable1 columns={columns} data={data}></NodeTable1>
+      <NodeTable columns={columns} data={data}></NodeTable>
     </div>
   );
 }
