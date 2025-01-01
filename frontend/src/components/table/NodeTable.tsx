@@ -1,14 +1,7 @@
-
 import {
   ColumnDef,
   flexRender,
-  getFilteredRowModel,
-  getCoreRowModel,
-  VisibilityState,
-  ColumnFiltersState,
-  useReactTable,
-  SortingState,
-  getSortedRowModel,
+  Table as ReactTable,
 } from "@tanstack/react-table"
 
 import {
@@ -23,12 +16,12 @@ import React from "react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
-  data: TData[];
+  table: ReactTable<TData>
 }
 
 export function NodeTable<TData, TValue>({
   columns,
-  data,
+  table,
 }: DataTableProps<TData, TValue>) {
   const tableBodyRef = React.useRef<HTMLDivElement>(null)
   const wrapperRef = React.useRef<HTMLTableSectionElement>(null)
@@ -58,29 +51,6 @@ export function NodeTable<TData, TValue>({
       resizeObserver.disconnect();
     };
   }, []);
-
-
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-
-  const table = useReactTable({
-    data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-    },
-  })
 
   return (
     <div ref={wrapperRef} className="rounded-md border grow">

@@ -7,6 +7,7 @@ import {
   useReactTable,
   SortingState,
   getSortedRowModel,
+  Table,
 } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { ChevronDown } from "lucide-react"
@@ -37,7 +38,7 @@ export function NodeTableContainer<TData, TValue>({
   )
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
 
-  const table = useReactTable({
+  const table: Table<TData> = useReactTable({
     data,
     columns,
     onSortingChange: setSorting,
@@ -91,7 +92,7 @@ export function NodeTableContainer<TData, TValue>({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <NodeTable columns={columns} data={data}></NodeTable>
+      <NodeTable columns={columns} table={table}></NodeTable>
     </div>
   );
 }
