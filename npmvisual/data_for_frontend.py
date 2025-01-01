@@ -9,6 +9,7 @@ class PackageDataAnalyzed:
     package_data: PackageData | None
     val: float | None
     betweenness_centrality: float | None = None
+    closeness_centrality: float | None = None
     in_degree: int | None = None
     out_degree: int | None = None
     color: str | None = None
@@ -29,6 +30,7 @@ class PackageDataAnalyzed:
             "val": self.val,
             "inDegree": self.in_degree,
             "betweennessCentrality": self.betweenness_centrality,
+            "closenessCentrality": self.closeness_centrality,
             "outDegree": self.out_degree,
             "color": self.color,
             "colorId": self.color_id

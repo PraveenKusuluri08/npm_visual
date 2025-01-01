@@ -149,6 +149,7 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     _set_out_degree(graph_data, G)
     _set_in_degree(graph_data, G)
     _set_betweenness_centrality(graph_data, G)
+    _set_closeness_centrality(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
     _remove_unwanted_data(graph_data)
@@ -178,10 +179,20 @@ def _set_val(graph_data: DataForFrontend):
 
 def _set_betweenness_centrality(graph_data: DataForFrontend, G):
     betweenness_centrality = nx.betweenness_centrality(G, normalized=True, endpoints=False)
-    print(betweenness_centrality)
     for node in graph_data.nodes: 
         node.betweenness_centrality = betweenness_centrality[node.id]
-    return graph_data
+
+def _set_closeness_centrality(graph_data: DataForFrontend, G):
+    closeness_centrality = nx.closeness_centrality(G)
+    n = len(G.nodes)
+    normalized_closeness_centrality = {
+        node_id: value / (n - 1)  # Normalize by the maximum possible value
+        for node_id, value in closeness_centrality.items()
+    }
+
+    # Assign the normalized closeness centrality to the nodes
+    for node in graph_data.nodes:
+        node.closeness_centrality = normalized_closeness_centrality[node.id]
 
 def _set_in_degree(graph_data: DataForFrontend, G):
     in_degrees: dict[str, int] = dict(G.in_degree())
