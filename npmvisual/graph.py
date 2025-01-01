@@ -3,13 +3,16 @@ import random
 
 import networkx as nx
 from flask import Blueprint, jsonify
+from networkx.classes.function import edges
+from networkx.generators import directed
 
+from npmvisual._models import package
 import npmvisual.utils as utils
 from npmvisual._models.package import Package, PackageData
 from npmvisual.commonpackages import get_popular_package_names
 from npmvisual.data import main
 from npmvisual.data import database
-from .data_for_frontend import PackageDataAnalyzed
+from .data_for_frontend import DataForFrontend, PackageDataAnalyzed
 
 bp = Blueprint("network", __name__)
 
@@ -99,8 +102,22 @@ def analyze_network(package_name: str):
         print(f"Error processing the request for {package_name}: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
+def _create_nx_graph(data: dict[str, PackageDataAnalyzed]):
+    G: nx.DiGraph = nx.DiGraph()
+    # print(f"\n\nValues:{data.values()}")
+    for p in data.values():
+        if p.packageData is None:
+            raise Exception("invalid PackgeData. Should not be None")
+        # print(p)
+        G.add_node(p.packageData.package.package_id)
+        for d in p.packageData.dependencies:
+            # G.add_edge(p.package.package_id, d.package_id)
+            # Todo: this is backwards. 
+            G.add_edge(d.package_id, p.packageData.package.package_id)
+    return G
 
-def format_as_nx(data: dict[str, PackageDataAnalyzed]):
+
+def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     """
     Converts the given package data into a NetworkX graph and formats it into a structure
     with in-degrees and colors based on SCCs.
@@ -113,62 +130,77 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]):
         A dictionary in the node-link format with additional 'inDegree', 'val', and
         'color' properties for each node.
     """
-    G: nx.DiGraph = nx.DiGraph()
+    G = _create_nx_graph(data)
+        # Prepare the graph data in node-link format
+    print(f"data: {data}")
+    multigraph = G.is_multigraph()
+    if multigraph:
+        edges = [
+            {**d, "source": u, "target": v, "key": k}
+            for u, v, k, d in G.edges(keys=True, data=True)
+        ]
+    else:
+        edges = [{**d, "source": u, "target": v} for u, v, d in G.edges(data=True)]
 
-    # print(f"\n\nValues:{data.values()}")
-    for p in data.values():
-        # print(p)
-        G.add_node(p.packageData.package.package_id)
-        for d in p.packageData.dependencies:
-            # G.add_edge(p.package.package_id, d.package_id)
-            G.add_edge(d.package_id, p.packageData.package.package_id)
-
-    # Prepare the graph data in node-link format
-    graph_data = nx.node_link_data(G, edges="links")
+    # nodes =  [{**G.nodes[n], "id": n} for n in G],
+    nodes: list[PackageDataAnalyzed] = list(data.values())
+    graph_data = DataForFrontend(
+        links = edges,
+        nodes = nodes,
+        multigraph = multigraph,
+        graph = G.graph,
+        directed = True
+    )
+    print(f"data: {data}")
     # print(f"graph_data1: {graph_data}")
-    graph_data = _set_in_degree(graph_data, G, data)
+    _set_in_degree(graph_data, G)
     # print(f"graph_data2: {graph_data}")
-    data = _set_val(data)
-    graph_data = _color_nodes(graph_data, G)
+    _set_val(graph_data, data)
+    _color_nodes(graph_data, G)
+    _remove_unwanted_data(graph_data)
 
     # Return the graph data for frontend
     return graph_data
 
-def _set_val(data: dict[str, PackageDataAnalyzed]) -> dict[str, PackageDataAnalyzed]:
-    for p in data.values():
-        if p.in_degree:
-            p.val = p.in_degree
-        else: 
-            p.val = -1
-    return data
+def _remove_unwanted_data(graph_data: DataForFrontend):
+    for node in graph_data.nodes:
+        node.packageData = None
 
-def _set_in_degree(graph_data, G, data: dict[str, PackageDataAnalyzed]):
-    # Get in-degrees for normalization
-    largest_in_degree: int = 0
-    for fd in data.values():
-        largest_in_degree = max(
-            largest_in_degree,
-            len(fd.packageData.dependencies),
-        )
-    in_degrees: dict[str, int] = dict(G.in_degree())
 
+def _set_val(graph_data, data: dict[str, PackageDataAnalyzed]) -> dict[str, PackageDataAnalyzed]:
     # Set the base size multiplier (you can adjust this to control overall size)
     size_exponent = 1.15
     size_multiplier = 5  # Adjust this to fine-tune node size scaling
 
     # Loop over nodes and apply stronger exponential scaling
-    for node in graph_data["nodes"]:  # pyright: ignore[reportUnknownVariableType]
-        node_id: str = node["id"]  # pyright: ignore[reportUnknownVariableType]
-        in_degree: int = in_degrees[node_id]
-
-        node["inDegree"] = in_degree
-
+    for node in graph_data.nodes: 
         # Apply stronger exponential scaling
         # Using in_degree**2 (quadratic scaling) for more drastic size differences
-        node["val"] = (
-            in_degree**size_exponent
+        node.val = (
+            node.in_degree**size_exponent
         ) * size_multiplier  # Apply quadratic scaling
+    return graph_data
 
+def _set_in_degree(graph_data: DataForFrontend, G):
+    # Get in-degrees for normalization
+    largest_in_degree: int = 0
+    print()
+    print(graph_data.nodes)
+    for x in graph_data.nodes:
+        if x.packageData is None: 
+            raise Exception(f"Invalid Data: packageData is None for: {x}")
+        if x.packageData.dependencies is None: 
+            raise Exception(f"Invalid Data: Dependencies is none for: {x.packageData}")
+        largest_in_degree = max(
+            largest_in_degree,
+            len(x.packageData.dependencies)
+        )
+    in_degrees: dict[str, int] = dict(G.in_degree())
+
+
+    # Loop over nodes and apply stronger exponential scaling
+    for node in graph_data.nodes: 
+        node.in_degree = in_degrees[node.id]
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 def _add_val(graph_data, G, data: dict[str, PackageData]):
@@ -201,12 +233,12 @@ def _add_val(graph_data, G, data: dict[str, PackageData]):
     return graph_data  # pyright: ignore[reportUnknownVariableType]
 
 
-def _color_nodes(graph_data, G):
+def _color_nodes(graph_data: DataForFrontend, G):
     undirected = G.copy().to_undirected()
     communities = nx.community.louvain_communities(undirected)
     node_colors = {}
     default_color = _get_random_color()
-    for i, community in enumerate(communities):
+    for _, community in enumerate(communities):
         # print(f"Community {i+1}: {community}")
         if len(community) > 1:
             color = _get_random_color()
@@ -217,9 +249,9 @@ def _color_nodes(graph_data, G):
                 node_colors[node] = (default_color, -1)
 
     print(f"graph_data: {graph_data}")
-    for node in graph_data["nodes"]:
-        node["color"] = node_colors[node["id"]][0]
-        node["color_id"] = node_colors[node["id"]][1]
+    for node in graph_data.nodes:
+        node.color = node_colors[node.id][0]
+        node.color_id = node_colors[node.id][1]
     return graph_data
 
 
