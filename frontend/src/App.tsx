@@ -11,7 +11,7 @@ const App = () => {
     return data
   }
   const onResponseChanged = (data: GraphData) => {
-    console.log(JSON.parse(JSON.stringify(data)));
+    // console.log(JSON.parse(JSON.stringify(data)));
     console.log(data);
     data = manageGraphData(data)
     setGraphData(data);

@@ -5,7 +5,7 @@ from npmvisual._models.package import PackageData
 @dataclass
 class PackageDataAnalyzed:
     id: str
-    packageData: PackageData | None
+    package_data: PackageData | None
     val: float | None
     in_degree: int | None = None
     out_degree: int | None = None
@@ -16,7 +16,7 @@ class PackageDataAnalyzed:
     def from_package_data(cls, data: dict[str, PackageData]) -> dict[str, "PackageDataAnalyzed"]:
         results: dict[str, PackageDataAnalyzed] = {}
         for package_name, pd in data.items():
-            results[package_name] = PackageDataAnalyzed(id = package_name, packageData=pd, val= -1)
+            results[package_name] = PackageDataAnalyzed(id = package_name, package_data=pd, val= -1)
         return results
 
     def to_dict(self) -> dict[str, Any]:
@@ -25,10 +25,10 @@ class PackageDataAnalyzed:
             "id": self.id,
             "packageData": None,
             "val": self.val,
-            "in_degree": self.in_degree,
-            "out_degree": self.out_degree,
+            "inDegree": self.in_degree,
+            "outDegree": self.out_degree,
             "color": self.color,
-            "color_id": self.color_id
+            "colorId": self.color_id
         }
 
 @dataclass
@@ -46,4 +46,13 @@ class DataForFrontend:
     multigraph: bool
     directed: bool
 
+    def to_dict(self) -> dict[str, Any]:
+        # Serialize the DataForFrontend object, including converting each node with to_dict()
+        return {
+            "links": self.links,  # Assuming this is already in the correct format
+            "nodes": [node.to_dict() for node in self.nodes],  # Call `to_dict` for each node
+            "graph": self.graph,  # Assuming this is already in the correct format
+            "multigraph": self.multigraph,
+            "directed": self.directed
+        }
 

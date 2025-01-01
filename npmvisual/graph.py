@@ -1,4 +1,5 @@
 import random
+import json
 
 import networkx as nx
 from flask import Blueprint, jsonify
@@ -102,14 +103,14 @@ def _create_nx_graph(data: dict[str, PackageDataAnalyzed]):
     G: nx.DiGraph = nx.DiGraph()
     # print(f"\n\nValues:{data.values()}")
     for p in data.values():
-        if p.packageData is None:
+        if p.package_data is None:
             raise Exception("invalid PackgeData. Should not be None")
         # print(p)
-        G.add_node(p.packageData.package.package_id)
-        for d in p.packageData.dependencies:
+        G.add_node(p.package_data.package.package_id)
+        for d in p.package_data.dependencies:
             # G.add_edge(p.package.package_id, d.package_id)
             # Todo: this is backwards. 
-            G.add_edge(d.package_id, p.packageData.package.package_id)
+            G.add_edge(d.package_id, p.package_data.package.package_id)
     return G
 
 
@@ -154,7 +155,7 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
 
 def _remove_unwanted_data(graph_data: DataForFrontend):
     for node in graph_data.nodes:
-        node.packageData = None
+        node.package_data = None
 
 
 def _set_val(graph_data: DataForFrontend):
@@ -178,13 +179,13 @@ def _set_in_degree(graph_data: DataForFrontend, G):
     # Get in-degrees for normalization
     largest_in_degree: int = 0
     for x in graph_data.nodes:
-        if x.packageData is None: 
+        if x.package_data is None: 
             raise Exception(f"Invalid Data: packageData is None for: {x}")
-        if x.packageData.dependencies is None: 
-            raise Exception(f"Invalid Data: Dependencies is none for: {x.packageData}")
+        if x.package_data.dependencies is None: 
+            raise Exception(f"Invalid Data: Dependencies is none for: {x.package_data}")
         largest_in_degree = max(
             largest_in_degree,
-            len(x.packageData.dependencies)
+            len(x.package_data.dependencies)
         )
     in_degrees: dict[str, int] = dict(G.in_degree())
 
@@ -225,6 +226,9 @@ def _get_random_color():
 def format_for_frontend(data: dict[str, PackageData]):
     # print(f"data: {data}")
     data_with_analysis = PackageDataAnalyzed.from_package_data(data)
-    data_for_frontend = format_as_nx(data_with_analysis)
+    data_for_frontend: DataForFrontend = format_as_nx(data_with_analysis)
     # print(f"\n\nnx_graph: {nx_graph}")
-    return jsonify(data_for_frontend)
+    serialized_data_for_frontend = data_for_frontend.to_dict()
+    x = jsonify(serialized_data_for_frontend)
+    print(json.dumps(serialized_data_for_frontend))
+    return x    
