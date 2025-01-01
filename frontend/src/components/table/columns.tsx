@@ -127,6 +127,26 @@ export const columns: ColumnDef<Node>[] = [
     cell: (info) => formatNumber(info.getValue(), 4),
   },
   {
+    accessorKey: "isSeed",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="break-words whitespace-normal"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Is Seed
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+    // Betweenness Centrality might have more decimal places.
+    cell: (info) => {
+      const value = info.getValue(); // This gets the boolean value
+      return <span>{value ? "Yes" : "No"}</span>; // Render "Yes" for true and "No" for false
+    },
+  },
+  {
     accessorKey: "inDegree",
     header: ({ column }) => {
       return (

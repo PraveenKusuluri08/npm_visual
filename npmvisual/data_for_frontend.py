@@ -13,6 +13,7 @@ class PackageDataAnalyzed:
     eigenvector_centrality: float | None = None
     clustering_coefficient: float | None = None
     pagerank: float | None = None
+    is_seed: bool | None = None
     in_degree: int | None = None
     out_degree: int | None = None
     color: str | None = None
@@ -31,6 +32,7 @@ class PackageDataAnalyzed:
             "id": self.id,
             "packageData": None,
             "val": self.val,
+            "isSeed": self.is_seed,
             "inDegree": self.in_degree,
             "betweennessCentrality": self.betweenness_centrality,
             "closenessCentrality": self.closeness_centrality,

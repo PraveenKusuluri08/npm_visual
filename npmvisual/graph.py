@@ -31,7 +31,7 @@ def _get_networks(
         set(package_names), max_count
     )
     print(f"Found: {len(found)} packages")
-    formatted_data = format_for_frontend(found)
+    formatted_data = format_for_frontend(set(package_names), found)
     return formatted_data
 
 
@@ -53,7 +53,7 @@ def get_all_db_networks():
     found = database.get_db_all()
     print(f"Got all nodes in the db: {len(found)} packages")
 
-    formatted_data = format_for_frontend(found)
+    formatted_data = format_for_frontend(set(found.keys()), found)
     print(f"Formatted graph data: {formatted_data}")
     return formatted_data
 
@@ -113,7 +113,7 @@ def _create_nx_graph(data: dict[str, PackageDataAnalyzed]):
     return G
 
 
-def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
+def format_as_nx(seed_nodes: set[str], data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     """
     Converts the given package data into a NetworkX graph and formats it into a structure
     with in-degrees and colors based on SCCs.
@@ -151,8 +151,13 @@ def format_as_nx(data: dict[str, PackageDataAnalyzed]) -> DataForFrontend:
     _set_graph_metrics(graph_data, G)
     _set_val(graph_data)
     _color_nodes(graph_data, G)
+    _set_seed_nodes(graph_data, seed_nodes)
     _remove_unwanted_data(graph_data)
     return graph_data
+
+def _set_seed_nodes(graph_data: DataForFrontend, seed_nodes: set[str]):
+    for node in graph_data.nodes:
+        node.is_seed = node.id in seed_nodes
 
 def _remove_unwanted_data(graph_data: DataForFrontend):
     for node in graph_data.nodes:
@@ -238,12 +243,12 @@ def _get_random_color():
     return f"#{random.randint(0, 255):02x}{random.randint(0, 255):02x}{random.randint(0, 255):02x}"
 
 
-def format_for_frontend(data: dict[str, PackageData]):
+def format_for_frontend(seed_nodes: set[str], data: dict[str, PackageData]):
     # print(f"data: {data}")
     data_with_analysis = PackageDataAnalyzed.from_package_data(data)
-    data_for_frontend: DataForFrontend = format_as_nx(data_with_analysis)
+    data_for_frontend: DataForFrontend = format_as_nx(seed_nodes, data_with_analysis)
     # print(f"\n\nnx_graph: {nx_graph}")
     serialized_data_for_frontend = data_for_frontend.to_dict()
     x = jsonify(serialized_data_for_frontend)
     # print(json.dumps(serialized_data_for_frontend))
-    return x    
+    return x
