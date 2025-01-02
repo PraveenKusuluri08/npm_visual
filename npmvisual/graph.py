@@ -164,6 +164,8 @@ def _set_dependencies(graph_data: DataForFrontend, G: nx.DiGraph):
         node.dependencies = node.package_data.dependencies
 
 def _set_indirect_relationships(graph_data: DataForFrontend, G: nx.DiGraph):
+    """Does not actually get all of the dependencies. I think it just gets leaf nodes. 
+    Needs testing"""
     # Dictionary to store the set of related package names for each node
     successors: dict[str, list[str]] = nx.dfs_successors(G)
     predecessors: dict[str, list[str]] = nx.dfs_predecessors(G)
@@ -172,6 +174,21 @@ def _set_indirect_relationships(graph_data: DataForFrontend, G: nx.DiGraph):
         print(successors)
         data.successors = successors.get(data.id, [])
         data.predecessors = predecessors.get(data.id, [])
+
+
+def _set_indirect_relationships2(graph_data: DataForFrontend, G: nx.DiGraph):
+    """ I found this algorithm online to get all of the nodes and not just the leaf nodes 
+    (which I suspect the current algorithm is doing"""
+    #Here this list comprehension will get successors from all layers
+    list1 = [sum(nx.dfs_successors(L, i).values(), []) for i in L.nodes()]   
+
+    #All the nodes
+    list2 = [i for i in L.nodes()]
+
+    #cartesian product(cross product) within the lists of lists. This will 
+    #create all the (node, successor)
+    list3 = [j for i in range(len(list1)) for j in itertools.product([list2[i]],list1[i]) ]
+
 
 def _set_seed_nodes(graph_data: DataForFrontend, seed_nodes: set[str]):
     for node in graph_data.nodes:
