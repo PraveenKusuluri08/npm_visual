@@ -1,9 +1,16 @@
 export type Node = {
   id: string;
-  inDegree?: number
-  outDegree?: number
   index: number
   val: number
+  inDegree?: number
+  outDegree?: number
+  predeccessors: string[]
+  dependencies: string[]
+  closenessCentrality: number
+  eigenvectorCentrality: number
+  pagerank: number
+  betweennessCentrality: number
+  isSeed: boolean
 };
 
 export type Link = {
