@@ -7,6 +7,7 @@ import { NodeTableContainer } from "./components/table/NodeTableContainer";
 import { columns } from "./components/table/columns";
 
 const App = () => {
+  const [selectedNode, setSelectedNode] = useState<Node>()
   const manageGraphData = (data: GraphData) => {
     return data
   }
@@ -20,6 +21,10 @@ const App = () => {
 
   const [graphData, setGraphData] = useState<GraphData>();
   const [tableData, setTableData] = useState<Node[]>([]);
+
+  const onNodeSelected = (node: Node) => {
+    setSelectedNode(node)
+  }
 
   /* 
   useEffect(() => {
@@ -42,7 +47,10 @@ const App = () => {
         <div className="">
           <NodeTableContainer columns={columns} data={tableData}></NodeTableContainer>
         </div>
-        <NpmVisualGraph3d graphData={graphData}></NpmVisualGraph3d>
+        <div className="w-full h-full">
+          <div className="absolute z-10">{selectedNode?.id}</div>
+          <NpmVisualGraph3d graphData={graphData} onNodeSelected={onNodeSelected}></NpmVisualGraph3d>
+        </div>
       </div>
       <BackendTools></BackendTools>
     </div>
