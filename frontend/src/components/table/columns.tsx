@@ -1,6 +1,9 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
+import { Collapsible } from "@radix-ui/react-collapsible";
+import { CellColapsible, CellDependencies, CollapsibleDemo } from "./CellDependencies";
+import { CellDependenciesRecursive } from "./CellDependenciesRecursive";
 
 const formatNumber = (value: number, decimals: number) => {
   return value.toFixed(decimals);
@@ -93,18 +96,8 @@ export const columns: ColumnDef<Node>[] = [
 
     cell: (cell) => {
       return (
-        <>
-          <span>depends on {cell.getValue().length} dependencies</span>
-          < ul className="whitespace-nowrap" >
-            {
-              cell.getValue().map((item, index) => (
-                <li key={index}>
-                  - {item}
-                </li>
-              ))
-            }
-          </ul >
-        </>
+        <CellDependenciesRecursive cellData={cell}></CellDependenciesRecursive>
+
       )
     },
   },
@@ -125,16 +118,7 @@ export const columns: ColumnDef<Node>[] = [
     // If 'id' is not a number, no formatting needed.
     cell: (cell) => {
       return (
-        <>
-          <span>depends on {cell.getValue().length} dependencies</span>
-          <ul className="whitespace-nowrap">
-            {cell.getValue().map((item, index) => (
-              <li key={index}>
-                - {item['package_id']}:{item["version"]}
-              </li>
-            ))}
-          </ul>
-        </>
+        <CellDependencies cellData={cell}></CellDependencies>
       )
     },
   },
