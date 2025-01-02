@@ -97,7 +97,6 @@ export const columns: ColumnDef<Node>[] = [
     cell: (cell) => {
       return (
         <CellDependenciesRecursive cellData={cell}></CellDependenciesRecursive>
-
       )
     },
   },

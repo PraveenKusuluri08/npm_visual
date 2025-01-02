@@ -56,17 +56,9 @@ export function NodeTableContainer<TData, TValue>({
 
   return (
     <div className="rounded-md border h-full flex flex-col">
-      <div className="flex items-center py-4 gap-2">
-        <Input
-          placeholder="Filter packages..."
-          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("id")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
+      <div className="flex flex-row items-center py-4 gap-2">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger>
             <Button variant="outline" className="ml-auto">
               Columns <ChevronDown />
             </Button>
@@ -91,6 +83,14 @@ export function NodeTableContainer<TData, TValue>({
               })}
           </DropdownMenuContent>
         </DropdownMenu>
+        <Input
+          placeholder="Filter packages..."
+          value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("id")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
       </div>
       <NodeTable columns={columns} table={table}></NodeTable>
     </div>
