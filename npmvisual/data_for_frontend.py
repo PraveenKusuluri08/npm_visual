@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
+from npmvisual._models.dependency import Dependency
 from npmvisual._models.package import PackageData
 
 @dataclass
@@ -8,6 +9,7 @@ class PackageDataAnalyzed:
     id: str
     package_data: PackageData | None
     val: float | None
+    dependencies: list[Dependency] | None = None
     successors: list[str] | None = None
     predecessors: list[str] | None = None
     betweenness_centrality: float | None = None
@@ -33,6 +35,7 @@ class PackageDataAnalyzed:
         return {
             "id": self.id,
             "packageData": None,
+            "dependencies": self.dependencies,
             "val": self.val,
             "isSeed": self.is_seed,
             "inDegree": self.in_degree,

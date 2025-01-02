@@ -90,7 +90,53 @@ export const columns: ColumnDef<Node>[] = [
       )
     },
     // If 'id' is not a number, no formatting needed.
-    cell: (info) => info.getValue(),
+
+    cell: (cell) => {
+      return (
+        <>
+          <span>depends on {cell.getValue().length} dependencies</span>
+          < ul className="whitespace-nowrap" >
+            {
+              cell.getValue().map((item, index) => (
+                <li key={index}>
+                  - {item}
+                </li>
+              ))
+            }
+          </ul >
+        </>
+      )
+    },
+  },
+  {
+    accessorKey: "dependencies",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          className="break-words whitespace-normal"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Dependencies
+          <ArrowUpDown />
+        </Button>
+      )
+    },
+    // If 'id' is not a number, no formatting needed.
+    cell: (cell) => {
+      return (
+        <>
+          <span>depends on {cell.getValue().length} dependencies</span>
+          <ul className="whitespace-nowrap">
+            {cell.getValue().map((item, index) => (
+              <li key={index}>
+                - {item['package_id']}:{item["version"]}
+              </li>
+            ))}
+          </ul>
+        </>
+      )
+    },
   },
   {
     accessorKey: "closenessCentrality",
