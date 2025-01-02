@@ -1,8 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { Collapsible } from "@radix-ui/react-collapsible";
-import { CellColapsible, CellDependencies, CollapsibleDemo } from "./CellDependencies";
+import { CellDependencies } from "./CellDependencies";
 import { CellDependenciesRecursive } from "./CellDependenciesRecursive";
 
 const formatNumber = (value: number, decimals: number) => {
