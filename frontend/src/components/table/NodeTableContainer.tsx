@@ -36,7 +36,21 @@ export function NodeTableContainer<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
+    id: true,
+    inDegree: true,
+    outDegree: true,
+    predecessors: false,
+    dependencies: false,
+    successors: false,
+    closenessCentrality: false,
+    eigenvectorCentrality: false,
+    clusteringCoefficient: false,
+    pagerank: false,
+    betweennessCentrality: false,
+    isSeed: false,
+  })
 
   const table: Table<TData> = useReactTable({
     data,

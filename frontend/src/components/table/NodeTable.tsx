@@ -32,24 +32,18 @@ export function NodeTable<TData, TValue>({
   const wrapperRef = React.useRef<HTMLTableSectionElement>(null)
 
   const setHeight = () => {
-    console.log("setHeight()")
     if (wrapperRef?.current && tableBodyRef?.current) {
-      console.log("wrapperRef:  " + wrapperRef.current?.clientHeight)
-      console.log("tableBodyRef: " + tableBodyRef.current?.clientHeight)
       tableBodyRef.current.style.height = wrapperRef.current.clientHeight + 'px'
-      console.log(tableBodyRef.current.style.height)
     }
   }
 
   React.useEffect(() => {
-    // console.log(ref)
     setHeight()
     const resizeObserver = new ResizeObserver(() => {
       setHeight()
     })
     console.log(tableBodyRef)
     if (wrapperRef?.current && tableBodyRef?.current) {
-      console.log("tableBodyRef exists")
       resizeObserver.observe(wrapperRef.current)
     }
     return () => {
